@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +38,7 @@ public class QuestionGeneratorService {
 
     private static final int TARGET_QUESTION_COUNT = 10;
     private static final int MAX_GENERATION_ATTEMPTS = 2;
+    private static final long QUESTION_CACHE_TTL_MS = 90_000;
 
     @Value("${ollama.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
@@ -49,6 +51,9 @@ public class QuestionGeneratorService {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = createRestTemplate();
+    private final Map<String, CachedQuestions> questionCache = new ConcurrentHashMap<>();
+
+    private record CachedQuestions(long createdAtEpochMs, List<Question> questions) {}
 
     private RestTemplate createRestTemplate() {
         org.springframework.http.client.SimpleClientHttpRequestFactory factory =
@@ -63,6 +68,13 @@ public class QuestionGeneratorService {
                                             Difficulty difficulty,
                                             AppLanguage language) {
         log.info("Generation IA (Ollama): classe={} matiere={} niveau={} langue={}", classLevel, subject, difficulty, language);
+
+        String cacheKey = cacheKey(classLevel, subject, difficulty, language);
+        List<Question> cached = getCachedQuestions(cacheKey);
+        if (!cached.isEmpty()) {
+            log.info("Questions servies depuis le cache: {}", cacheKey);
+            return cached;
+        }
 
         if (ollamaBaseUrl == null || ollamaBaseUrl.isBlank()) {
             throw new IllegalStateException("OLLAMA_BASE_URL non defini. Generation Ollama impossible.");
@@ -82,7 +94,9 @@ public class QuestionGeneratorService {
 
                 List<Question> bestSoFar = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
                 if (bestSoFar.size() >= TARGET_QUESTION_COUNT) {
-                    return tailorQuestionsForClassAndDifficulty(bestSoFar, classLevel, difficulty, language);
+                    List<Question> tailored = tailorQuestionsForClassAndDifficulty(bestSoFar, classLevel, difficulty, language);
+                    putInCache(cacheKey, tailored);
+                    return copyQuestions(tailored);
                 }
 
                 log.warn("Generation insuffisante (tentative {}): {} questions valides.", attempt, bestSoFar.size());
@@ -106,7 +120,9 @@ public class QuestionGeneratorService {
 
         List<Question> best = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
         if (best.size() >= TARGET_QUESTION_COUNT) {
-            return tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
+            List<Question> tailored = tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
+            putInCache(cacheKey, tailored);
+            return copyQuestions(tailored);
         }
 
         throw new IllegalStateException("Generation indisponible temporairement.");
@@ -267,6 +283,50 @@ public class QuestionGeneratorService {
         }
 
         return null;
+    }
+
+    private String cacheKey(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
+        return classLevel + "|" + subject + "|" + difficulty + "|" + language;
+    }
+
+    private List<Question> getCachedQuestions(String cacheKey) {
+        CachedQuestions cached = questionCache.get(cacheKey);
+        if (cached == null) {
+            return List.of();
+        }
+
+        long age = System.currentTimeMillis() - cached.createdAtEpochMs();
+        if (age > QUESTION_CACHE_TTL_MS) {
+            questionCache.remove(cacheKey);
+            return List.of();
+        }
+        return copyQuestions(cached.questions());
+    }
+
+    private void putInCache(String cacheKey, List<Question> questions) {
+        questionCache.put(cacheKey, new CachedQuestions(System.currentTimeMillis(), copyQuestions(questions)));
+    }
+
+    private List<Question> copyQuestions(List<Question> questions) {
+        List<Question> copies = new ArrayList<>();
+        for (Question q : questions) {
+            if (q == null) {
+                continue;
+            }
+            copies.add(Question.builder()
+                    .questionText(q.getQuestionText())
+                    .choiceA(q.getChoiceA())
+                    .choiceB(q.getChoiceB())
+                    .choiceC(q.getChoiceC())
+                    .choiceD(q.getChoiceD())
+                    .correctChoice(q.getCorrectChoice())
+                    .explanation(q.getExplanation())
+                    .subject(q.getSubject())
+                    .classLevel(q.getClassLevel())
+                    .difficulty(q.getDifficulty())
+                    .build());
+        }
+        return copies;
     }
 
     private String shiftNumbers(String text, int shift) {
