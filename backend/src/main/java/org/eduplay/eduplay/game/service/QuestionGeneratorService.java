@@ -189,12 +189,84 @@ public class QuestionGeneratorService {
         };
         int shift = Math.max(0, classLevel - 1) + diffWeight + (index % 2);
 
-        question.setQuestionText(shiftNumbers(question.getQuestionText(), shift));
-        question.setChoiceA(shiftNumbers(question.getChoiceA(), shift));
-        question.setChoiceB(shiftNumbers(question.getChoiceB(), shift));
-        question.setChoiceC(shiftNumbers(question.getChoiceC(), shift));
-        question.setChoiceD(shiftNumbers(question.getChoiceD(), shift));
-        question.setExplanation(shiftNumbers(question.getExplanation(), shift));
+        if (isArithmeticMathQuestion(question.getQuestionText())) {
+            question.setQuestionText(shiftNumbers(question.getQuestionText(), shift));
+            question.setChoiceA(shiftNumbers(question.getChoiceA(), shift));
+            question.setChoiceB(shiftNumbers(question.getChoiceB(), shift));
+            question.setChoiceC(shiftNumbers(question.getChoiceC(), shift));
+            question.setChoiceD(shiftNumbers(question.getChoiceD(), shift));
+            question.setExplanation(shiftNumbers(question.getExplanation(), shift));
+        }
+
+        enforceMathAnswerConsistency(question);
+    }
+
+    private boolean isArithmeticMathQuestion(String questionText) {
+        if (questionText == null) {
+            return false;
+        }
+        String t = questionText.toLowerCase();
+        if (containsAny(t, "forme", "cote", "cotes", "triangle", "carre", "cercle", "rectangle", "شكل", "أضلاع", "مثلث", "مربع", "دائرة")) {
+            return false;
+        }
+        return t.contains("+")
+                || t.contains("-")
+                || t.contains("x")
+                || t.contains("×")
+                || containsAny(t, "font", "double", "vient apres", "يأتي بعد", "ضعف", "كم يساوي");
+    }
+
+    private void enforceMathAnswerConsistency(Question question) {
+        String q = Optional.ofNullable(question.getQuestionText()).orElse("");
+        Integer expected = extractExpectedMathResult(q);
+        if (expected == null) {
+            return;
+        }
+
+        Map<String, String> choices = Map.of(
+                "A", Optional.ofNullable(question.getChoiceA()).orElse("").trim(),
+                "B", Optional.ofNullable(question.getChoiceB()).orElse("").trim(),
+                "C", Optional.ofNullable(question.getChoiceC()).orElse("").trim(),
+                "D", Optional.ofNullable(question.getChoiceD()).orElse("").trim()
+        );
+
+        String expectedText = String.valueOf(expected);
+        for (Map.Entry<String, String> entry : choices.entrySet()) {
+            if (expectedText.equals(entry.getValue())) {
+                question.setCorrectChoice(entry.getKey());
+                return;
+            }
+        }
+    }
+
+    private Integer extractExpectedMathResult(String questionText) {
+        if (questionText == null || questionText.isBlank()) {
+            return null;
+        }
+
+        Matcher op = Pattern.compile("(\\d{1,3})\\s*([+\\-x×])\\s*(\\d{1,3})").matcher(questionText);
+        if (op.find()) {
+            int a = Integer.parseInt(op.group(1));
+            int b = Integer.parseInt(op.group(3));
+            return switch (op.group(2)) {
+                case "+" -> a + b;
+                case "-" -> a - b;
+                case "x", "×" -> a * b;
+                default -> null;
+            };
+        }
+
+        Matcher after = Pattern.compile("(?:apres|après|بعد)\\s*(\\d{1,3})", Pattern.CASE_INSENSITIVE).matcher(questionText);
+        if (after.find()) {
+            return Integer.parseInt(after.group(1)) + 1;
+        }
+
+        Matcher doub = Pattern.compile("(?:double|ضعف)\\D*(\\d{1,3})", Pattern.CASE_INSENSITIVE).matcher(questionText);
+        if (doub.find()) {
+            return Integer.parseInt(doub.group(1)) * 2;
+        }
+
+        return null;
     }
 
     private String shiftNumbers(String text, int shift) {
