@@ -75,6 +75,71 @@ public class GameController {
         ));
     }
 
+    @GetMapping("/diagnostic")
+    public ResponseEntity<Map<String, Object>> qualityDiagnostic(
+            @RequestParam Subject subject,
+            @RequestParam Difficulty difficulty,
+            @RequestParam(defaultValue = "FRENCH") AppLanguage language) {
+        
+        List<Question> questions = questionGeneratorService
+                .generateQuestions(1, subject, difficulty, language);
+
+        int totalQuestions = questions.size();
+        int withFourChoices = 0;
+        int validCorrectChoice = 0;
+        int endsWithQuestionMark = 0;
+        int hasExplanation = 0;
+        int allFieldsFilled = 0;
+
+        for (Question q : questions) {
+            Set<String> choices = new HashSet<>();
+            if (q.getChoiceA() != null && !q.getChoiceA().isBlank()) choices.add(q.getChoiceA());
+            if (q.getChoiceB() != null && !q.getChoiceB().isBlank()) choices.add(q.getChoiceB());
+            if (q.getChoiceC() != null && !q.getChoiceC().isBlank()) choices.add(q.getChoiceC());
+            if (q.getChoiceD() != null && !q.getChoiceD().isBlank()) choices.add(q.getChoiceD());
+
+            if (choices.size() == 4) withFourChoices++;
+
+            String correct = q.getCorrectChoice();
+            if (correct != null && (correct.equals("A") || correct.equals("B") || correct.equals("C") || correct.equals("D"))) {
+                validCorrectChoice++;
+            }
+
+            if (q.getQuestionText() != null && (q.getQuestionText().endsWith("?") || q.getQuestionText().endsWith("؟"))) {
+                endsWithQuestionMark++;
+            }
+
+            if (q.getExplanation() != null && !q.getExplanation().isBlank()) {
+                hasExplanation++;
+            }
+
+            if (q.getQuestionText() != null && !q.getQuestionText().isBlank()
+                    && q.getChoiceA() != null && !q.getChoiceA().isBlank()
+                    && q.getChoiceB() != null && !q.getChoiceB().isBlank()
+                    && q.getChoiceC() != null && !q.getChoiceC().isBlank()
+                    && q.getChoiceD() != null && !q.getChoiceD().isBlank()
+                    && q.getCorrectChoice() != null && !q.getCorrectChoice().isBlank()
+                    && q.getExplanation() != null && !q.getExplanation().isBlank()) {
+                allFieldsFilled++;
+            }
+        }
+
+        int qualityScore = (int) (100.0 * allFieldsFilled / Math.max(1, totalQuestions));
+
+        return ResponseEntity.ok(Map.of(
+                "subject", subject,
+                "difficulty", difficulty,
+                "language", language,
+                "totalQuestions", totalQuestions,
+                "withFourDistinctChoices", withFourChoices,
+                "withValidCorrectChoice", validCorrectChoice,
+                "endsWithQuestionMark", endsWithQuestionMark,
+                "hasExplanation", hasExplanation,
+                "allFieldsFilled", allFieldsFilled,
+                "qualityScore%", qualityScore
+        ));
+    }
+
         private int toInt(Object value, String fieldName) {
                 if (value instanceof Number number) {
                         return number.intValue();
