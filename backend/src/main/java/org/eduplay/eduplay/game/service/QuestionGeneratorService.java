@@ -191,6 +191,7 @@ public class QuestionGeneratorService {
             } else {
                 adaptTextQuestion(q, classLevel, difficulty, language, idx, q.getSubject());
             }
+            enforceCorrectChoiceFromExplanation(q);
             adapted.add(q);
         }
         return adapted;
@@ -283,6 +284,51 @@ public class QuestionGeneratorService {
         }
 
         return null;
+    }
+
+    private void enforceCorrectChoiceFromExplanation(Question question) {
+        String explanation = Optional.ofNullable(question.getExplanation()).orElse("").trim();
+        if (explanation.isBlank()) {
+            return;
+        }
+
+        Map<String, String> choices = new LinkedHashMap<>();
+        choices.put("A", Optional.ofNullable(question.getChoiceA()).orElse("").trim());
+        choices.put("B", Optional.ofNullable(question.getChoiceB()).orElse("").trim());
+        choices.put("C", Optional.ofNullable(question.getChoiceC()).orElse("").trim());
+        choices.put("D", Optional.ofNullable(question.getChoiceD()).orElse("").trim());
+
+        String normalizedExplanation = normalizeForContains(explanation);
+        String bestLetter = null;
+        int bestLen = -1;
+        boolean tie = false;
+
+        for (Map.Entry<String, String> entry : choices.entrySet()) {
+            String choiceText = normalizeForContains(entry.getValue());
+            if (choiceText.length() < 3) {
+                continue;
+            }
+            if (normalizedExplanation.contains(choiceText)) {
+                if (choiceText.length() > bestLen) {
+                    bestLetter = entry.getKey();
+                    bestLen = choiceText.length();
+                    tie = false;
+                } else if (choiceText.length() == bestLen) {
+                    tie = true;
+                }
+            }
+        }
+
+        if (bestLetter != null && !tie) {
+            question.setCorrectChoice(bestLetter);
+        }
+    }
+
+    private String normalizeForContains(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.toLowerCase().replaceAll("\\s+", " ").trim();
     }
 
     private String cacheKey(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
