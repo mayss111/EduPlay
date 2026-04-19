@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://eduplay-g3as.onrender.com/api/$1"
+    }
+  ]
+}
