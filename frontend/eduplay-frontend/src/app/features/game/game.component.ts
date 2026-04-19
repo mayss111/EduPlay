@@ -134,7 +134,10 @@ export class GameComponent implements OnInit, OnDestroy {
       subject: this.subject,
       difficulty: this.difficulty
     }).subscribe({
-      next: (result) => this.gameResult = result,
+      next: (result) => {
+        this.gameResult = result;
+        this.authService.updateLocalUserStats({ totalXp: result.totalXp, streak: result.streak });
+      },
       error: () => {}
     });
   }

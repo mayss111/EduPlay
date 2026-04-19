@@ -69,6 +69,18 @@ export class AuthService {
     }
   }
 
+  updateLocalUserStats(stats: { totalXp?: number; streak?: number }): void {
+    const user = this.getUser();
+    if (!user) return;
+
+    const updated: User = {
+      ...user,
+      totalXp: stats.totalXp ?? user.totalXp
+    };
+
+    localStorage.setItem('user', JSON.stringify(updated));
+  }
+
   isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) return false;
