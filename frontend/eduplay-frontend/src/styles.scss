@@ -1,0 +1,95 @@
+/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+:root {
+  --purple-dark:   #1a1035;
+  --purple-mid:    #2d1f5e;
+  --purple-light:  #3d2a7a;
+  --accent:        #7c3aed;
+  --accent-hover:  #6d28d9;
+  --accent-light:  #a78bfa;
+  --gold:          #fbbf24;
+  --success:       #10b981;
+  --danger:        #ef4444;
+  --text-primary:  #ffffff;
+  --text-muted:    #a78bfa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--purple-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+}
+
+.btn-primary {
+  width: 100%;
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  padding: 13px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  transition: transform 0.15s, background 0.15s;
+
+  &:hover { background: var(--accent-hover); transform: scale(1.02); }
+  &:active { transform: scale(0.98); }
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+}
+
+.card {
+  background: var(--purple-mid);
+  border: 1.5px solid var(--purple-light);
+  border-radius: 20px;
+  padding: 24px;
+}
+
+.form-group {
+  margin-bottom: 14px;
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--purple-mid);
+    border: 1.5px solid var(--purple-light);
+    border-radius: 12px;
+    padding: 10px 14px;
+    color: #fff;
+    font-size: 14px;
+    font-family: 'Nunito', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus { border-color: var(--accent); }
+    &::placeholder { color: #6b5a9e; }
+  }
+}
+
+.error-msg {
+  background: #3f1a1a;
+  border: 1px solid #7f1d1d;
+  border-radius: 10px;
+  padding: 10px 14px;
+  color: #fca5a5;
+  font-size: 13px;
+  margin-bottom: 12px;
+  text-align: center;
+}

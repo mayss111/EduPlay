@@ -1,0 +1,84 @@
+<div class="dashboard" [attr.dir]="isArabic ? 'rtl' : 'ltr'">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="brand">🌟 EduPlay</div>
+    <div class="user-info">
+      <div class="avatar-badge">{{ avatars[user?.avatarIndex || 0] }}</div>
+      <div>
+        <div class="username">{{ user?.firstName }}</div>
+        <div class="xp-label">{{ user?.totalXp }} XP · {{ t('Niveau', 'المستوى') }} {{ getLevel() }}</div>
+      </div>
+      <button class="logout-btn" (click)="logout()">{{ t('⬅ Quitter', '⬅ خروج') }}</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- XP BAR -->
+    <div class="xp-bar-wrapper">
+      <div class="xp-bar">
+        <div class="xp-fill" [style.width]="getXpPercent()+'%'"></div>
+      </div>
+      <span class="xp-text">{{ getXpPercent() }}/100 XP {{ t('pour le niveau', 'للمستوى') }} {{ getLevel()+1 }}</span>
+    </div>
+
+    <!-- CHOIX MATIÈRE -->
+    <section class="section">
+      <h2>{{ t('📚 Choisis ta matière', '📚 اختر المادة') }}</h2>
+      <div class="subjects-grid">
+        <div class="subject-card"
+             *ngFor="let s of subjects"
+             [class.selected]="selectedSubject === s.key"
+             [style.--accent]="s.color"
+             (click)="selectedSubject = s.key">
+          <span class="subject-icon">{{ s.icon }}</span>
+          <span class="subject-label">{{ subjectLabel(s.key) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHOIX NIVEAU -->
+    <section class="section">
+      <h2>{{ t('🎯 Choisis ton niveau', '🎯 اختر المستوى') }}</h2>
+      <div class="difficulty-grid">
+        <div class="diff-card"
+             *ngFor="let d of difficulties"
+             [class.selected]="selectedDifficulty === d.key"
+             (click)="selectedDifficulty = d.key">
+          <span class="diff-stars">{{ d.stars }}</span>
+          <span class="diff-label">{{ difficultyLabel(d.key) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PLAY BUTTON -->
+    <button class="play-btn"
+            [disabled]="!selectedSubject || !selectedDifficulty"
+            (click)="startGame()">
+      {{ t('🚀 Lancer la partie !', '🚀 ابدأ اللعبة!') }}
+    </button>
+
+    <!-- LEADERBOARD -->
+    <section class="section">
+      <h2>{{ t('🏆 Classement global', '🏆 الترتيب العام') }}</h2>
+      <div class="leaderboard">
+        <div class="lb-row" *ngFor="let entry of leaderboard">
+          <span class="lb-rank"
+                [class.gold]="entry.rank===1"
+                [class.silver]="entry.rank===2"
+                [class.bronze]="entry.rank===3">
+            {{ entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : '#'+entry.rank }}
+          </span>
+          <span class="lb-avatar">{{ avatars[entry.avatarIndex] }}</span>
+          <span class="lb-name">{{ entry.username }}</span>
+          <span class="lb-pts">{{ entry.totalPoints }} {{ t('pts', 'نقاط') }}</span>
+        </div>
+        <div class="lb-empty" *ngIf="leaderboard.length === 0">
+          {{ t('Pas encore de scores. Sois le premier ! 🎮', 'لا توجد نتائج بعد. كن الأول! 🎮') }}
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>

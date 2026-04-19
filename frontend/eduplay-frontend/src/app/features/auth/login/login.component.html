@@ -1,0 +1,53 @@
+<div class="auth-wrapper" [attr.dir]="isArabic ? 'rtl' : 'ltr'">
+  <div class="stars-bg">
+    <span class="star" *ngFor="let s of stars" [style.left]="s.x+'%'" [style.top]="s.y+'%'" [style.opacity]="s.o"></span>
+  </div>
+
+  <div class="auth-card">
+    <div class="logo">
+      <div class="planet">🌟</div>
+      <h1>EduPlay</h1>
+      <p>{{ t('Apprends. Joue. Gagne !', 'تعلم. العب. اربح!') }}</p>
+    </div>
+
+    <div class="tabs">
+      <span class="tab" [class.active]="selectedLanguage === 'FRENCH'" (click)="selectLanguage('FRENCH')">Français</span>
+      <span class="tab" [class.active]="selectedLanguage === 'ARABIC'" (click)="selectLanguage('ARABIC')">العربية</span>
+    </div>
+
+    <div class="tabs">
+      <span class="tab active">{{ t('Connexion', 'تسجيل الدخول') }}</span>
+      <span class="tab" routerLink="/register">{{ t('Inscription', 'إنشاء حساب') }}</span>
+    </div>
+
+    <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>{{ t('Pseudo', 'اسم المستخدم') }}</label>
+        <input formControlName="username" type="text" [placeholder]="t('ton pseudo...', 'اسم المستخدم...')" />
+        <span class="field-error" *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
+          {{ t('Minimum 3 caractères', '3 أحرف على الأقل') }}
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
+        <input formControlName="password" type="password" placeholder="••••••••" />
+        <span class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
+          {{ t('Minimum 6 caractères', '6 أحرف على الأقل') }}
+        </span>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span *ngIf="!isLoading">{{ t('🚀 Jouer maintenant !', '🚀 ابدأ اللعب الآن!') }}</span>
+        <span *ngIf="isLoading" class="spinner"></span>
+      </button>
+    </form>
+
+    <p class="switch-link">
+      {{ t('Pas encore de compte ?', 'ليس لديك حساب؟') }}
+      <a routerLink="/register">{{ t('S\'inscrire', 'إنشاء حساب') }}</a>
+    </p>
+  </div>
+</div>

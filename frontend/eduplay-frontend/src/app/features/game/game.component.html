@@ -1,0 +1,107 @@
+<div class="game-wrapper" [attr.dir]="isArabic ? 'rtl' : 'ltr'">
+
+  <!-- LOADING -->
+  <div class="loading-screen" *ngIf="isLoading">
+    <div class="loading-planet">🌍</div>
+    <p>{{ t('Génération des questions en cours...', 'جاري إنشاء الأسئلة...') }}</p>
+    <div class="loading-dots">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
+  <!-- GAME OVER -->
+  <div class="game-over" *ngIf="isGameOver && !isLoading">
+    <div class="score-emoji">{{ getScoreEmoji() }}</div>
+    <h1>{{ t('Partie terminée !', 'انتهت اللعبة!') }}</h1>
+    <div class="score-circle">
+      <span class="score-big">{{ score }}/{{ questions.length }}</span>
+      <span class="score-pct">{{ getScorePercent() }}%</span>
+    </div>
+
+    <div class="result-cards" *ngIf="gameResult">
+      <div class="result-card">
+        <span class="rc-icon">⚡</span>
+        <span class="rc-value">+{{ gameResult.xpEarned }}</span>
+        <span class="rc-label">{{ t('XP gagnés', 'نقاط XP المكتسبة') }}</span>
+      </div>
+      <div class="result-card">
+        <span class="rc-icon">🔥</span>
+        <span class="rc-value">{{ gameResult.streak }}</span>
+        <span class="rc-label">{{ t('Série', 'سلسلة') }}</span>
+      </div>
+      <div class="result-card">
+        <span class="rc-icon">🌟</span>
+        <span class="rc-value">{{ gameResult.totalXp }}</span>
+        <span class="rc-label">{{ t('XP Total', 'إجمالي XP') }}</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" (click)="goToDashboard()">
+      {{ t('🏠 Retour au menu', '🏠 العودة إلى القائمة') }}
+    </button>
+  </div>
+
+  <!-- GAME -->
+  <div class="game-screen" *ngIf="!isLoading && !isGameOver">
+
+    <div class="question-card" *ngIf="questions.length === 0">
+      <p class="question-text">{{ t('Aucune question n\'a pu être chargée.', 'تعذر تحميل أي سؤال.') }}</p>
+      <div class="feedback">
+        <div class="feedback-wrong">
+          {{ t('Vérifie la connexion au backend ou le service Ollama, puis réessaie.', 'تحقق من اتصال الخادم أو خدمة Ollama ثم أعد المحاولة.') }}
+        </div>
+      </div>
+      <button class="btn-primary" (click)="goToDashboard()">{{ t('Retour au menu', 'العودة إلى القائمة') }}</button>
+    </div>
+
+    <!-- HEADER -->
+    <div class="game-header" *ngIf="questions.length > 0">
+      <div class="progress-info">
+        <span>{{ t('Question', 'السؤال') }} {{ currentIndex + 1 }}/{{ questions.length }}</span>
+        <span class="score-badge">⭐ {{ score }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill"
+             [style.width]="((currentIndex+1)/questions.length*100)+'%'">
+        </div>
+      </div>
+      <div class="timer" [class.danger]="timeLeft <= 10">
+        ⏱ {{ timeLeft }}s
+      </div>
+    </div>
+
+    <!-- QUESTION -->
+    <div class="question-card" *ngIf="currentQuestion && questions.length > 0">
+      <p class="question-text">{{ currentQuestion.questionText }}</p>
+
+      <div class="choices">
+        <button class="choice-btn"
+                *ngFor="let c of choices"
+                [class.correct]="showResult && c.key === currentQuestion.correctChoice"
+                [class.wrong]="showResult && selectedAnswer === c.key && c.key !== currentQuestion.correctChoice"
+                [class.selected]="selectedAnswer === c.key"
+                [disabled]="showResult"
+                (click)="selectAnswer(c.key)">
+          <span class="choice-key">{{ c.key }}</span>
+          <span class="choice-label">{{ c.label }}</span>
+        </button>
+      </div>
+
+      <!-- FEEDBACK -->
+      <div class="feedback" *ngIf="showResult">
+        <div class="feedback-correct" *ngIf="isCorrect">
+          {{ t('✅ Bravo ! Bonne réponse !', '✅ أحسنت! إجابة صحيحة!') }}
+        </div>
+        <div class="feedback-wrong" *ngIf="!isCorrect">
+          ❌ {{ selectedAnswer ? t('Mauvaise réponse !', 'إجابة خاطئة!') : t('Temps écoulé !', 'انتهى الوقت!') }}
+          {{ t('La bonne réponse était', 'الإجابة الصحيحة هي') }} <strong>{{ currentQuestion.correctChoice }}</strong>.
+        </div>
+        <p class="explanation">💡 {{ currentQuestion.explanation }}</p>
+        <button class="btn-next" (click)="next()">
+          {{ currentIndex < questions.length - 1 ? t('Question suivante →', '← السؤال التالي') : t('Voir mon score !', 'عرض نتيجتي!') }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,106 @@
+<div class="auth-wrapper" [attr.dir]="isArabic ? 'rtl' : 'ltr'">
+  <div class="stars-bg">
+    <span class="star" *ngFor="let s of stars"
+          [style.left]="s.x+'%'"
+          [style.top]="s.y+'%'"
+          [style.opacity]="s.o">
+    </span>
+  </div>
+
+  <div class="auth-card">
+    <div class="logo">
+      <div class="planet">🚀</div>
+      <h1>EduPlay</h1>
+      <p>{{ t('Crée ton compte aventurier !', 'أنشئ حسابك وانطلق!') }}</p>
+    </div>
+
+    <div class="tabs">
+      <span class="tab" routerLink="/login">{{ t('Connexion', 'تسجيل الدخول') }}</span>
+      <span class="tab active">{{ t('Inscription', 'إنشاء حساب') }}</span>
+    </div>
+
+    <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div class="form-group">
+        <label>{{ t('Langue', 'اللغة') }}</label>
+        <div class="class-grid">
+          <div class="class-btn"
+               [class.selected]="selectedLanguage === 'FRENCH'"
+               (click)="selectLanguage('FRENCH')">
+            Français
+          </div>
+          <div class="class-btn"
+               [class.selected]="selectedLanguage === 'ARABIC'"
+               (click)="selectLanguage('ARABIC')">
+            العربية
+          </div>
+        </div>
+      </div>
+
+      <!-- Avatar -->
+      <div class="form-group">
+        <label>{{ t('Choisis ton avatar', 'اختر صورتك الرمزية') }}</label>
+        <div class="avatar-row">
+          <div class="avatar"
+               *ngFor="let av of avatars; let i = index"
+               [class.selected]="selectedAvatar === i"
+               (click)="selectAvatar(i)">
+            {{ av }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Prénom -->
+      <div class="form-group">
+        <label>{{ t('Prénom', 'الاسم') }}</label>
+        <input formControlName="firstName" type="text" [placeholder]="t('ton prénom...', 'اسمك...')" />
+      </div>
+
+      <!-- Pseudo -->
+      <div class="form-group">
+        <label>{{ t('Pseudo', 'اسم المستخدم') }}</label>
+        <input formControlName="username" type="text" [placeholder]="t('pseudo unique...', 'اسم مستخدم فريد...')" />
+        <span class="field-error"
+              *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
+          {{ t('Minimum 3 caractères', '3 أحرف على الأقل') }}
+        </span>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
+        <input formControlName="password" type="password" placeholder="••••••••" />
+        <div class="strength-bar">
+          <div class="strength-fill"
+               [style.width]="getStrength()+'%'"
+               [style.background]="getStrengthColor()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Classe -->
+      <div class="form-group">
+        <label>{{ t('Ta classe', 'قسمك') }}</label>
+        <div class="class-grid">
+          <div class="class-btn"
+               *ngFor="let c of classes"
+               [class.selected]="selectedClass === c"
+               (click)="selectClass(c)">
+            {{ isArabic ? ('السنة ' + c) : (c === 1 ? '1ere' : c + 'ème') }}
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="isLoading">
+        <span *ngIf="!isLoading">{{ t('🎮 Créer mon compte !', '🎮 إنشاء الحساب!') }}</span>
+        <span *ngIf="isLoading" class="spinner"></span>
+      </button>
+    </form>
+
+    <p class="switch-link">
+      {{ t('Déjà inscrit ?', 'لديك حساب؟') }} <a routerLink="/login">{{ t('Se connecter', 'تسجيل الدخول') }}</a>
+    </p>
+  </div>
+</div>
