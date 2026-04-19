@@ -60,6 +60,10 @@
         <span>{{ t('Question', 'السؤال') }} {{ currentIndex + 1 }}/{{ questions.length }}</span>
         <span class="score-badge">⭐ {{ score }}</span>
       </div>
+      <div class="competency-badge">
+        <span class="competency-icon">🎯</span>
+        <span class="competency-text">{{ currentCompetencyText }}</span>
+      </div>
       <div class="progress-bar">
         <div class="progress-fill"
              [style.width]="((currentIndex+1)/questions.length*100)+'%'">
@@ -89,16 +93,47 @@
 
       <!-- FEEDBACK -->
       <div class="feedback" *ngIf="showResult">
-        <div class="feedback-correct" *ngIf="isCorrect">
-          {{ t('✅ Bravo ! Bonne réponse !', '✅ أحسنت! إجابة صحيحة!') }}
+        <div class="feedback-header" [class.correct]="isCorrect" [class.wrong]="!isCorrect">
+          <div class="feedback-icon">{{ isCorrect ? '✅' : '❌' }}</div>
+          <div class="feedback-text">
+            {{ isCorrect 
+              ? t('Bravo ! Bonne réponse !', 'أحسنت! إجابة صحيحة!')
+              : (selectedAnswer 
+                ? t('Mauvaise réponse !', 'إجابة خاطئة!')
+                : t('Temps écoulé !', 'انتهى الوقت!'))
+            }}
+          </div>
         </div>
-        <div class="feedback-wrong" *ngIf="!isCorrect">
-          ❌ {{ selectedAnswer ? t('Mauvaise réponse !', 'إجابة خاطئة!') : t('Temps écoulé !', 'انتهى الوقت!') }}
-          {{ t('La bonne réponse était', 'الإجابة الصحيحة هي') }} <strong>{{ currentQuestion.correctChoice }}</strong>.
+
+        <div class="answer-info">
+          <div class="answer-detail">
+            <span class="label">{{ t('Votre réponse:', 'إجابتك:') }}</span>
+            <span class="value" [class.empty]="!selectedAnswer">
+              {{ selectedAnswer || t('Aucune', 'لا شيء') }}
+            </span>
+          </div>
+          <div class="answer-detail" *ngIf="!isCorrect">
+            <span class="label">{{ t('Bonne réponse:', 'الإجابة الصحيحة:') }}</span>
+            <span class="value correct">{{ currentQuestion.correctChoice }}</span>
+          </div>
         </div>
-        <p class="explanation">💡 {{ currentQuestion.explanation }}</p>
+
+        <p class="explanation">
+          <span class="exp-icon">💡</span>
+          <span>{{ currentQuestion.explanation }}</span>
+        </p>
+
+        <div class="feedback-progress">
+          <span>{{ t('Progression:', 'التقدم:') }}</span>
+          <span class="progress-numbers">{{ score }}/{{ currentIndex + 1 }} {{ t('corrects', 'صحيح') }}</span>
+        </div>
+
         <button class="btn-next" (click)="next()">
-          {{ currentIndex < questions.length - 1 ? t('Question suivante →', '← السؤال التالي') : t('Voir mon score !', 'عرض نتيجتي!') }}
+          <span class="btn-icon">{{ currentIndex < questions.length - 1 ? '→' : '🏁' }}</span>
+          {{ currentIndex < questions.length - 1 
+            ? t('Question suivante', 'السؤال التالي')
+            : t('Voir mon score', 'عرض نتيجتي') 
+          }}
         </button>
       </div>
     </div>

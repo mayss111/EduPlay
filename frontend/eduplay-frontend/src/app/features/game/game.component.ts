@@ -32,6 +32,8 @@ export class GameComponent implements OnInit, OnDestroy {
 
   answers: string[] = [];
   language: 'FRENCH' | 'ARABIC' = 'FRENCH';
+  skillsWorked: Map<string, number> = new Map();
+  currentCompetency = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -75,6 +77,55 @@ export class GameComponent implements OnInit, OnDestroy {
 
   get currentQuestion(): Question {
     return this.questions[this.currentIndex];
+  }
+
+  get currentCompetencyText(): string {
+    return this.t(
+      this.getCompetencyFR(this.subject, this.difficulty),
+      this.getCompetencyAR(this.subject, this.difficulty)
+    );
+  }
+
+  getCompetencyFR(subject: string, difficulty: string): string {
+    const map: { [key: string]: string } = {
+      'MATH_SIMPLE': 'calcul simple',
+      'MATH_MOYEN': 'calcul intermédiaire',
+      'MATH_DIFFICILE': 'résolution de problème',
+      'FRENCH_SIMPLE': 'vocabulaire basique',
+      'FRENCH_MOYEN': 'grammaire appliquée',
+      'FRENCH_DIFFICILE': 'analyse textuelle',
+      'SCIENCE_SIMPLE': 'concepts de base',
+      'SCIENCE_MOYEN': 'explicación scientifique',
+      'SCIENCE_DIFFICILE': 'expérimentation',
+      'HISTORY_SIMPLE': 'repères historiques',
+      'HISTORY_MOYEN': 'contextualisation',
+      'HISTORY_DIFFICILE': 'analyse causale',
+      'GEOGRAPHY_SIMPLE': 'géographie générale',
+      'GEOGRAPHY_MOYEN': 'lecture de carte',
+      'GEOGRAPHY_DIFFICILE': 'analyse régionale'
+    };
+    return map[`${subject}_${difficulty}`] || 'compétence';
+  }
+
+  getCompetencyAR(subject: string, difficulty: string): string {
+    const map: { [key: string]: string } = {
+      'MATH_SIMPLE': 'حساب بسيط',
+      'MATH_MOYEN': 'حساب وسيط',
+      'MATH_DIFFICILE': 'حل المسائل',
+      'FRENCH_SIMPLE': 'مفردات أساسية',
+      'FRENCH_MOYEN': 'قواعد لغوية',
+      'FRENCH_DIFFICILE': 'تحليل نصي',
+      'SCIENCE_SIMPLE': 'مفاهيم أساسية',
+      'SCIENCE_MOYEN': 'شرح علمي',
+      'SCIENCE_DIFFICILE': 'التجريب',
+      'HISTORY_SIMPLE': 'معالم تاريخية',
+      'HISTORY_MOYEN': 'السياق التاريخي',
+      'HISTORY_DIFFICILE': 'التحليل السببي',
+      'GEOGRAPHY_SIMPLE': 'جغرافيا عامة',
+      'GEOGRAPHY_MOYEN': 'قراءة الخرائط',
+      'GEOGRAPHY_DIFFICILE': 'تحليل إقليمي'
+    };
+    return map[`${subject}_${difficulty}`] || 'مهارة';
   }
 
   get choices(): { key: string; label: string }[] {
