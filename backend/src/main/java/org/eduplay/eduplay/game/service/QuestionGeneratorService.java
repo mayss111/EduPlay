@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +82,7 @@ public class QuestionGeneratorService {
 
                 List<Question> bestSoFar = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
                 if (bestSoFar.size() >= TARGET_QUESTION_COUNT) {
-                    return bestSoFar;
+                    return tailorQuestionsForClassAndDifficulty(bestSoFar, classLevel, difficulty, language);
                 }
 
                 log.warn("Generation insuffisante (tentative {}): {} questions valides.", attempt, bestSoFar.size());
@@ -104,7 +106,7 @@ public class QuestionGeneratorService {
 
         List<Question> best = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
         if (best.size() >= TARGET_QUESTION_COUNT) {
-            return best;
+            return tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
         }
 
         throw new IllegalStateException("Generation indisponible temporairement.");
@@ -112,8 +114,12 @@ public class QuestionGeneratorService {
 
         private String buildPrompt(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
                 String outputLanguage = language == AppLanguage.ARABIC ? "arabe" : "francais";
+                String pedagogicalFocus = pedagogicalFocus(classLevel, subject, difficulty, language);
                 return """
                                 Genere exactement 10 questions QCM en %s pour classe %deme, matiere %s, niveau %s.
+                                Objectifs pedagogiques:
+                                %s
+
                                 Retourne UNIQUEMENT un JSON valide (sans markdown):
                                 [
                                     {
@@ -136,8 +142,228 @@ public class QuestionGeneratorService {
                                 - Explication courte mais utile (justification, regle ou raisonnement simple).
                                 - Eviter les repetitions de structure ou d'idee entre questions.
                                 - Ne rien inventer.
-                                """.formatted(outputLanguage, classLevel, subjectLabel(subject), difficultyLabel(difficulty), outputLanguage);
+                                """.formatted(outputLanguage, classLevel, subjectLabel(subject), difficultyLabel(difficulty), pedagogicalFocus, outputLanguage);
         }
+
+    private String pedagogicalFocus(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
+        if (language == AppLanguage.ARABIC) {
+            return "- مستوى الصف: " + classLevel + "\n"
+                    + "- درجة الصعوبة: " + difficultyLabel(difficulty) + "\n"
+                    + "- المادة: " + subjectLabel(subject) + "\n"
+                    + "- اجعل الاسئلة متدرجة ومناسبة لعمر التلميذ.";
+        }
+
+        return "- Classe cible: " + classLevel + "\n"
+                + "- Niveau cible: " + difficultyLabel(difficulty) + "\n"
+                + "- Matiere cible: " + subjectLabel(subject) + "\n"
+                + "- Questions progressives et adaptees au niveau scolaire.";
+    }
+
+    private List<Question> tailorQuestionsForClassAndDifficulty(List<Question> questions,
+                                                                int classLevel,
+                                                                Difficulty difficulty,
+                                                                AppLanguage language) {
+        List<Question> adapted = new ArrayList<>();
+        int idx = 0;
+        for (Question q : questions) {
+            if (q == null) {
+                continue;
+            }
+            idx++;
+            if (q.getSubject() == Subject.MATH) {
+                adaptMathQuestion(q, classLevel, difficulty, idx);
+            } else {
+                adaptTextQuestion(q, classLevel, difficulty, language, idx, q.getSubject());
+            }
+            adapted.add(q);
+        }
+        return adapted;
+    }
+
+    private void adaptMathQuestion(Question question, int classLevel, Difficulty difficulty, int index) {
+        int diffWeight = switch (difficulty) {
+            case SIMPLE -> 0;
+            case MOYEN -> 1;
+            case DIFFICILE -> 2;
+            case EXCELLENT -> 3;
+        };
+        int shift = Math.max(0, classLevel - 1) + diffWeight + (index % 2);
+
+        question.setQuestionText(shiftNumbers(question.getQuestionText(), shift));
+        question.setChoiceA(shiftNumbers(question.getChoiceA(), shift));
+        question.setChoiceB(shiftNumbers(question.getChoiceB(), shift));
+        question.setChoiceC(shiftNumbers(question.getChoiceC(), shift));
+        question.setChoiceD(shiftNumbers(question.getChoiceD(), shift));
+        question.setExplanation(shiftNumbers(question.getExplanation(), shift));
+    }
+
+    private String shiftNumbers(String text, int shift) {
+        if (text == null || text.isBlank() || shift <= 0) {
+            return text;
+        }
+
+        Pattern p = Pattern.compile("\\b\\d{1,3}\\b");
+        Matcher m = p.matcher(text);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            int n = Integer.parseInt(m.group());
+            int updated = n <= 0 ? n : Math.min(999, n + shift);
+            m.appendReplacement(sb, String.valueOf(updated));
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
+    private void adaptTextQuestion(Question question,
+                                   int classLevel,
+                                   Difficulty difficulty,
+                                   AppLanguage language,
+                                   int index,
+                                   Subject subject) {
+        String levelTag;
+        if (language == AppLanguage.ARABIC) {
+            levelTag = "الصف " + classLevel + " - " + difficultyLabel(difficulty);
+        } else {
+            levelTag = "classe " + classLevel + " - niveau " + difficultyLabel(difficulty);
+        }
+
+        String theme = subjectTheme(subject, classLevel, difficulty, index, language);
+        String suffix = language == AppLanguage.ARABIC
+                ? " (" + levelTag + " | محور: " + theme + ")"
+                : " (" + levelTag + " | theme: " + theme + ")";
+
+        String qt = Optional.ofNullable(question.getQuestionText()).orElse("").trim();
+        if (!qt.contains(suffix)) {
+            if (qt.endsWith("?") || qt.endsWith("؟")) {
+                qt = qt.substring(0, qt.length() - 1).trim() + suffix + (qt.endsWith("؟") ? "؟" : "?");
+            } else {
+                qt = qt + suffix + "?";
+            }
+            question.setQuestionText(qt);
+        }
+
+        String explanation = Optional.ofNullable(question.getExplanation()).orElse("").trim();
+        if (language == AppLanguage.ARABIC) {
+            String objective = "هدف التعلم: " + learningObjective(subject, difficulty, language) + ".";
+            if (!explanation.contains("هدف التعلم")) {
+                question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + objective);
+            }
+        } else {
+            String objective = "Objectif d'apprentissage: " + learningObjective(subject, difficulty, language) + ".";
+            if (!explanation.contains("Objectif d'apprentissage")) {
+                question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + objective);
+            }
+        }
+    }
+
+    private String subjectTheme(Subject subject,
+                                int classLevel,
+                                Difficulty difficulty,
+                                int index,
+                                AppLanguage language) {
+        int offset = classLevel + difficultyWeight(difficulty) + index;
+
+        if (language == AppLanguage.ARABIC) {
+            String[] pool = switch (subject) {
+                case FRENCH -> new String[]{"المفردات", "القواعد", "فهم الجملة", "تركيب الجملة"};
+                case ARABIC -> new String[]{"المفردات", "النحو", "الإملاء", "الفهم القرائي"};
+                case SCIENCE -> new String[]{"جسم الإنسان", "البيئة", "المادة", "الكائنات الحية"};
+                case HISTORY -> new String[]{"التسلسل الزمني", "الشخصيات", "التراث التونسي", "الأحداث"};
+                case GEOGRAPHY -> new String[]{"الاتجاهات", "الخريطة", "المناخ", "تونس وجوارها"};
+                case MATH -> new String[]{"الحساب", "المسائل", "المنطق", "الهندسة"};
+            };
+            return pool[Math.floorMod(offset, pool.length)];
+        }
+
+        String[] pool = switch (subject) {
+            case FRENCH -> new String[]{"vocabulaire", "grammaire", "comprehension", "construction de phrase"};
+            case ARABIC -> new String[]{"vocabulaire arabe", "grammaire arabe", "orthographe arabe", "lecture arabe"};
+            case SCIENCE -> new String[]{"corps humain", "environnement", "matiere", "vivant et non vivant"};
+            case HISTORY -> new String[]{"chronologie", "personnages", "patrimoine tunisien", "reperes historiques"};
+            case GEOGRAPHY -> new String[]{"orientation", "lecture de carte", "climat", "Tunisie et voisins"};
+            case MATH -> new String[]{"calcul", "problemes", "raisonnement", "geometrie"};
+        };
+        return pool[Math.floorMod(offset, pool.length)];
+    }
+
+    private String learningObjective(Subject subject, Difficulty difficulty, AppLanguage language) {
+        if (language == AppLanguage.ARABIC) {
+            return switch (subject) {
+                case FRENCH, ARABIC -> switch (difficulty) {
+                    case SIMPLE -> "تمييز الكلمات الأساسية";
+                    case MOYEN -> "تطبيق قاعدة لغوية بسيطة";
+                    case DIFFICILE -> "تحليل بنية الجملة";
+                    case EXCELLENT -> "استنتاج المعنى من السياق";
+                };
+                case SCIENCE -> switch (difficulty) {
+                    case SIMPLE -> "التعرف على المفاهيم العلمية الأساسية";
+                    case MOYEN -> "الربط بين السبب والنتيجة";
+                    case DIFFICILE -> "تفسير ظاهرة علمية قصيرة";
+                    case EXCELLENT -> "المقارنة بين مفاهيم علمية";
+                };
+                case HISTORY -> switch (difficulty) {
+                    case SIMPLE -> "تحديد حدث أو شخصية";
+                    case MOYEN -> "ترتيب الأحداث زمنيا";
+                    case DIFFICILE -> "فهم علاقة حدثين";
+                    case EXCELLENT -> "استخلاص دلالة تاريخية";
+                };
+                case GEOGRAPHY -> switch (difficulty) {
+                    case SIMPLE -> "تمييز الاتجاهات أو الأماكن";
+                    case MOYEN -> "قراءة معلومة جغرافية بسيطة";
+                    case DIFFICILE -> "تفسير معطى من خريطة";
+                    case EXCELLENT -> "تحليل علاقة بين المناخ والمكان";
+                };
+                case MATH -> switch (difficulty) {
+                    case SIMPLE -> "إجراء حساب مباشر";
+                    case MOYEN -> "حل مسألة قصيرة";
+                    case DIFFICILE -> "اختيار استراتيجية حساب";
+                    case EXCELLENT -> "تفسير الحل والتحقق منه";
+                };
+            };
+        }
+
+        return switch (subject) {
+            case FRENCH, ARABIC -> switch (difficulty) {
+                case SIMPLE -> "reconnaitre les mots essentiels";
+                case MOYEN -> "appliquer une regle de langue simple";
+                case DIFFICILE -> "analyser la structure d'une phrase";
+                case EXCELLENT -> "deduire le sens a partir du contexte";
+            };
+            case SCIENCE -> switch (difficulty) {
+                case SIMPLE -> "identifier un concept scientifique de base";
+                case MOYEN -> "faire un lien cause-consequence";
+                case DIFFICILE -> "expliquer une petite situation scientifique";
+                case EXCELLENT -> "comparer deux notions scientifiques";
+            };
+            case HISTORY -> switch (difficulty) {
+                case SIMPLE -> "identifier un evenement ou un personnage";
+                case MOYEN -> "ordonner des faits dans le temps";
+                case DIFFICILE -> "comprendre le lien entre deux evenements";
+                case EXCELLENT -> "interpreter la portee d'un fait historique";
+            };
+            case GEOGRAPHY -> switch (difficulty) {
+                case SIMPLE -> "reconnaitre un lieu ou une direction";
+                case MOYEN -> "lire une information geographique simple";
+                case DIFFICILE -> "interpretrer une donnee de carte";
+                case EXCELLENT -> "analyser le lien entre climat et territoire";
+            };
+            case MATH -> switch (difficulty) {
+                case SIMPLE -> "effectuer un calcul direct";
+                case MOYEN -> "resoudre un probleme court";
+                case DIFFICILE -> "choisir une strategie de calcul";
+                case EXCELLENT -> "justifier et verifier la solution";
+            };
+        };
+    }
+
+    private int difficultyWeight(Difficulty difficulty) {
+        return switch (difficulty) {
+            case SIMPLE -> 0;
+            case MOYEN -> 1;
+            case DIFFICILE -> 2;
+            case EXCELLENT -> 3;
+        };
+    }
 
     private String callOllama(String prompt) {
         Map<String, Object> body = new LinkedHashMap<>();
