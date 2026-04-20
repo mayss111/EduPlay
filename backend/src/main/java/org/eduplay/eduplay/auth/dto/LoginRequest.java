@@ -4,6 +4,7 @@ package org.eduplay.eduplay.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import org.eduplay.eduplay.enums.AppLanguage;
 
 @Data
 public class LoginRequest {
@@ -12,4 +13,6 @@ public class LoginRequest {
 
     @NotBlank(message = "Password requis")
     private String password;
+
+    private AppLanguage language;
 }

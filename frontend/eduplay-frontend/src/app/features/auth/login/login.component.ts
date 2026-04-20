@@ -65,7 +65,12 @@ export class LoginComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     this.errorMsg = '';
 
-    this.authService.login(this.form.value).subscribe({
+    const payload = {
+      ...this.form.value,
+      language: this.selectedLanguage
+    };
+
+    this.authService.login(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),
       error: () => {
         this.isLoading = false;

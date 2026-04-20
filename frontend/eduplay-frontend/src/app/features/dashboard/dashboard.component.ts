@@ -105,7 +105,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/game'], {
       queryParams: {
         subject: this.selectedSubject,
-        difficulty: this.selectedDifficulty
+        difficulty: this.selectedDifficulty,
+        language: this.authService.getUiLanguage()
       }
     });
   }

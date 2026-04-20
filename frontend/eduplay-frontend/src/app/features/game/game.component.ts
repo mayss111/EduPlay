@@ -52,6 +52,7 @@ export class GameComponent implements OnInit, OnDestroy {
     this.route.queryParams.subscribe(params => {
       this.subject    = params['subject'];
       this.difficulty = params['difficulty'];
+      this.language = params['language'] || this.language;
       this.loadQuestions();
     });
   }

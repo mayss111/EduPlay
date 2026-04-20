@@ -30,6 +30,11 @@ public class AuthService {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
+        if (request.getLanguage() != null && request.getLanguage() != user.getLanguage()) {
+            user.setLanguage(request.getLanguage());
+            userRepository.save(user);
+        }
+
         String token = jwtUtil.generateToken(user.getUsername());
         return buildResponse(user, token);
     }
