@@ -95,8 +95,9 @@ public class QuestionGeneratorService {
                 List<Question> bestSoFar = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
                 if (bestSoFar.size() >= TARGET_QUESTION_COUNT) {
                     List<Question> tailored = tailorQuestionsForClassAndDifficulty(bestSoFar, classLevel, difficulty, language);
-                    putInCache(cacheKey, tailored);
-                    return copyQuestions(tailored);
+                    List<Question> finalized = finalizeQuestionSet(tailored, classLevel, subject, difficulty, language);
+                    putInCache(cacheKey, finalized);
+                    return copyQuestions(finalized);
                 }
 
                 log.warn("Generation insuffisante (tentative {}): {} questions valides.", attempt, bestSoFar.size());
@@ -121,8 +122,9 @@ public class QuestionGeneratorService {
         List<Question> best = selectBestQuestions(candidatePool, difficulty, TARGET_QUESTION_COUNT);
         if (best.size() >= TARGET_QUESTION_COUNT) {
             List<Question> tailored = tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
-            putInCache(cacheKey, tailored);
-            return copyQuestions(tailored);
+            List<Question> finalized = finalizeQuestionSet(tailored, classLevel, subject, difficulty, language);
+            putInCache(cacheKey, finalized);
+            return copyQuestions(finalized);
         }
 
         throw new IllegalStateException("Generation indisponible temporairement.");
@@ -329,6 +331,181 @@ public class QuestionGeneratorService {
             return "";
         }
         return text.toLowerCase().replaceAll("\\s+", " ").trim();
+    }
+
+    private List<Question> finalizeQuestionSet(List<Question> questions,
+                                               int classLevel,
+                                               Subject subject,
+                                               Difficulty difficulty,
+                                               AppLanguage language) {
+        List<Question> finalized = new ArrayList<>();
+        int index = 0;
+
+        for (Question q : questions) {
+            if (q == null || finalized.size() >= TARGET_QUESTION_COUNT) {
+                continue;
+            }
+
+            index++;
+            q.setSubject(subject);
+            q.setClassLevel(classLevel);
+            q.setDifficulty(difficulty);
+            sanitize(q);
+            ensureDistinctChoices(q, subject, language, classLevel, difficulty, index);
+
+            if (subject == Subject.MATH) {
+                enforceMathAnswerConsistency(q);
+            }
+
+            enforceCorrectChoiceFromExplanation(q);
+            ensureCorrectChoiceIsValid(q);
+
+            if (!isPedagogicallyValid(q)) {
+                continue;
+            }
+            finalized.add(q);
+        }
+
+        return finalized;
+    }
+
+    private void ensureDistinctChoices(Question question,
+                                       Subject subject,
+                                       AppLanguage language,
+                                       int classLevel,
+                                       Difficulty difficulty,
+                                       int index) {
+        Map<String, String> byLetter = new LinkedHashMap<>();
+        byLetter.put("A", Optional.ofNullable(question.getChoiceA()).orElse("").trim());
+        byLetter.put("B", Optional.ofNullable(question.getChoiceB()).orElse("").trim());
+        byLetter.put("C", Optional.ofNullable(question.getChoiceC()).orElse("").trim());
+        byLetter.put("D", Optional.ofNullable(question.getChoiceD()).orElse("").trim());
+
+        Set<String> used = new HashSet<>();
+        for (Map.Entry<String, String> entry : byLetter.entrySet()) {
+            String normalized = normalizeForContains(entry.getValue());
+            if (normalized.isBlank() || used.contains(normalized)) {
+                String replacement = buildReplacementChoice(question, subject, language, classLevel, difficulty, index, used);
+                byLetter.put(entry.getKey(), replacement);
+                used.add(normalizeForContains(replacement));
+            } else {
+                used.add(normalized);
+            }
+        }
+
+        question.setChoiceA(byLetter.get("A"));
+        question.setChoiceB(byLetter.get("B"));
+        question.setChoiceC(byLetter.get("C"));
+        question.setChoiceD(byLetter.get("D"));
+    }
+
+    private String buildReplacementChoice(Question question,
+                                          Subject subject,
+                                          AppLanguage language,
+                                          int classLevel,
+                                          Difficulty difficulty,
+                                          int index,
+                                          Set<String> used) {
+        if (subject == Subject.MATH) {
+            Integer expected = extractExpectedMathResult(question.getQuestionText());
+            if (expected != null) {
+                int[] candidates = new int[] {
+                        expected + 1,
+                        Math.max(0, expected - 1),
+                        expected + Math.max(2, classLevel),
+                        Math.max(0, expected - Math.max(2, difficultyWeight(difficulty) + 1))
+                };
+                for (int c : candidates) {
+                    String candidate = String.valueOf(c);
+                    if (!used.contains(normalizeForContains(candidate))) {
+                        return candidate;
+                    }
+                }
+            }
+        }
+
+        String[] pool = replacementPool(subject, language);
+        for (String candidate : pool) {
+            if (!used.contains(normalizeForContains(candidate))) {
+                return candidate;
+            }
+        }
+
+        String fallback = language == AppLanguage.ARABIC ? "خيار " + index : "Choix " + index;
+        if (!used.contains(normalizeForContains(fallback))) {
+            return fallback;
+        }
+        return fallback + " " + difficultyWeight(difficulty);
+    }
+
+    private String[] replacementPool(Subject subject, AppLanguage language) {
+        if (language == AppLanguage.ARABIC) {
+            return switch (subject) {
+                case MATH -> new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+                case SCIENCE -> new String[]{"الماء", "الهواء", "النبات", "الحيوان", "الشمس", "الأرض"};
+                case HISTORY -> new String[]{"الماضي", "الحاضر", "الخط الزمني", "حدث", "شخصية"};
+                case GEOGRAPHY -> new String[]{"الشمال", "الجنوب", "الشرق", "الغرب", "خريطة", "عاصمة"};
+                case FRENCH -> new String[]{"اسم", "فعل", "جمع", "مفرد", "جملة"};
+                case ARABIC -> new String[]{"كلمة", "جملة", "حرف", "مرادف", "معنى"};
+            };
+        }
+
+        return switch (subject) {
+            case MATH -> new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+            case SCIENCE -> new String[]{"eau", "air", "plante", "animal", "soleil", "terre"};
+            case HISTORY -> new String[]{"passe", "present", "frise chronologique", "evenement", "personnage"};
+            case GEOGRAPHY -> new String[]{"nord", "sud", "est", "ouest", "carte", "capitale"};
+            case FRENCH -> new String[]{"nom", "verbe", "adjectif", "phrase", "syllabe"};
+            case ARABIC -> new String[]{"mot arabe", "lettre", "phrase", "sens", "vocabulaire"};
+        };
+    }
+
+    private void ensureCorrectChoiceIsValid(Question question) {
+        String correct = Optional.ofNullable(question.getCorrectChoice()).orElse("").trim().toUpperCase();
+        Map<String, String> choices = new LinkedHashMap<>();
+        choices.put("A", Optional.ofNullable(question.getChoiceA()).orElse("").trim());
+        choices.put("B", Optional.ofNullable(question.getChoiceB()).orElse("").trim());
+        choices.put("C", Optional.ofNullable(question.getChoiceC()).orElse("").trim());
+        choices.put("D", Optional.ofNullable(question.getChoiceD()).orElse("").trim());
+
+        if (choices.containsKey(correct) && !choices.get(correct).isBlank()) {
+            return;
+        }
+
+        String explanation = normalizeForContains(question.getExplanation());
+        String bestLetter = "A";
+        int bestScore = -1;
+
+        for (Map.Entry<String, String> entry : choices.entrySet()) {
+            String candidate = normalizeForContains(entry.getValue());
+            if (candidate.isBlank()) {
+                continue;
+            }
+
+            int score = overlapScore(explanation, candidate);
+            if (score > bestScore) {
+                bestScore = score;
+                bestLetter = entry.getKey();
+            }
+        }
+
+        question.setCorrectChoice(bestLetter);
+    }
+
+    private int overlapScore(String base, String candidate) {
+        if (base == null || candidate == null || base.isBlank() || candidate.isBlank()) {
+            return 0;
+        }
+        int score = 0;
+        for (String token : candidate.split("\\s+")) {
+            if (token.length() < 3) {
+                continue;
+            }
+            if (base.contains(token)) {
+                score += token.length();
+            }
+        }
+        return score;
     }
 
     private String cacheKey(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
