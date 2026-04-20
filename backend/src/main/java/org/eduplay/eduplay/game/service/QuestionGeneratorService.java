@@ -354,7 +354,7 @@ public class QuestionGeneratorService {
 
         if (finalized.size() < TARGET_QUESTION_COUNT) {
             List<Question> fallbackCandidates = buildFallbackQuestions(classLevel, subject, difficulty, language);
-            addValidatedQuestions(
+            int nextIndex = addValidatedQuestions(
                     fallbackCandidates,
                     classLevel,
                     subject,
@@ -364,6 +364,21 @@ public class QuestionGeneratorService {
                     seen,
                     index
             );
+
+            // If strict validation is too restrictive for some profiles, relax only the
+            // explanation-based uniqueness constraint so users still get playable sets.
+            if (finalized.size() < TARGET_QUESTION_COUNT) {
+                addRelaxedQuestions(
+                        fallbackCandidates,
+                        classLevel,
+                        subject,
+                        difficulty,
+                        language,
+                        finalized,
+                        seen,
+                        nextIndex
+                );
+            }
         }
 
         return finalized.size() > TARGET_QUESTION_COUNT
@@ -401,6 +416,50 @@ public class QuestionGeneratorService {
             ensureCorrectChoiceIsValid(q);
 
             if (!isPedagogicallyValid(q) || !isSingleAnswerWellJustified(q)) {
+                continue;
+            }
+
+            String key = normalizeForContains(q.getQuestionText());
+            if (key.isBlank() || !seen.add(key)) {
+                continue;
+            }
+
+            target.add(q);
+        }
+
+        return index;
+    }
+
+    private int addRelaxedQuestions(List<Question> source,
+                                    int classLevel,
+                                    Subject subject,
+                                    Difficulty difficulty,
+                                    AppLanguage language,
+                                    List<Question> target,
+                                    Set<String> seen,
+                                    int startIndex) {
+        int index = startIndex;
+
+        for (Question q : source) {
+            if (q == null || target.size() >= TARGET_QUESTION_COUNT) {
+                continue;
+            }
+
+            index++;
+            q.setSubject(subject);
+            q.setClassLevel(classLevel);
+            q.setDifficulty(difficulty);
+            sanitize(q);
+            ensureDistinctChoices(q, subject, language, classLevel, difficulty, index);
+
+            if (subject == Subject.MATH) {
+                enforceMathAnswerConsistency(q);
+            }
+
+            enforceCorrectChoiceFromExplanation(q);
+            ensureCorrectChoiceIsValid(q);
+
+            if (!isPedagogicallyValid(q)) {
                 continue;
             }
 
