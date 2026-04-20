@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-register',
@@ -11,7 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
-export class RegisterComponent {
+export class RegisterComponent implements OnInit, OnDestroy {
   form: FormGroup;
   isLoading = false;
   errorMsg = '';
@@ -41,6 +42,19 @@ export class RegisterComponent {
       language:    [this.selectedLanguage, Validators.required],
       classLevel:  [null, Validators.required]
     });
+  }
+
+  private languageSub?: Subscription;
+
+  ngOnInit() {
+    this.languageSub = this.authService.language$.subscribe(language => {
+      this.selectedLanguage = language;
+      this.form.patchValue({ language }, { emitEvent: false });
+    });
+  }
+
+  ngOnDestroy() {
+    this.languageSub?.unsubscribe();
   }
 
   get isArabic(): boolean {

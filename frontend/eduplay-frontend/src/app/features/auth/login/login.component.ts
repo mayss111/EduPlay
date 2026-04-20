@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../core/services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-login',
@@ -11,7 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy {
   form: FormGroup;
   isLoading = false;
   errorMsg = '';
@@ -32,6 +33,18 @@ export class LoginComponent {
       username: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
+  }
+
+  private languageSub?: Subscription;
+
+  ngOnInit() {
+    this.languageSub = this.authService.language$.subscribe(language => {
+      this.selectedLanguage = language;
+    });
+  }
+
+  ngOnDestroy() {
+    this.languageSub?.unsubscribe();
   }
 
   get isArabic(): boolean {

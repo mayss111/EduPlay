@@ -5,6 +5,7 @@ import { HttpClient } from '@angular/common/http';
 import { Question, GameResult } from '../../shared/models/question.model';
 import { API_ENDPOINTS } from '../../core/constants/api.constants';
 import { AuthService } from '../../core/services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-game',
@@ -34,6 +35,7 @@ export class GameComponent implements OnInit, OnDestroy {
   language: 'FRENCH' | 'ARABIC' = 'FRENCH';
   skillsWorked: Map<string, number> = new Map();
   currentCompetency = '';
+  private languageSub?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -44,6 +46,9 @@ export class GameComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.language = this.authService.getUser()?.language || this.authService.getUiLanguage();
+    this.languageSub = this.authService.language$.subscribe(language => {
+      this.language = language;
+    });
     this.route.queryParams.subscribe(params => {
       this.subject    = params['subject'];
       this.difficulty = params['difficulty'];
@@ -211,6 +216,7 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.languageSub?.unsubscribe();
     clearInterval(this.timer);
   }
 }

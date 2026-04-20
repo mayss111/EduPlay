@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { User } from '../../shared/models/user.model';
 import { API_ENDPOINTS } from '../../core/constants/api.constants';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
@@ -13,7 +14,7 @@ import { API_ENDPOINTS } from '../../core/constants/api.constants';
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
 
   user: User | null = null;
   leaderboard: any[] = [];
@@ -44,9 +45,18 @@ export class DashboardComponent implements OnInit {
     private http: HttpClient
   ) {}
 
+  private languageSub?: Subscription;
+
   ngOnInit() {
     this.user = this.authService.getUser();
+    this.languageSub = this.authService.language$.subscribe(() => {
+      this.user = this.authService.getUser();
+    });
     this.loadLeaderboard();
+  }
+
+  ngOnDestroy() {
+    this.languageSub?.unsubscribe();
   }
 
   get isArabic(): boolean {

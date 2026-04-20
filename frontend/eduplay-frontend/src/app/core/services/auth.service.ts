@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthResponse, LoginRequest, RegisterRequest, User } from '../../shared/models/user.model';
 import { API_ENDPOINTS } from '../constants/api.constants';
 
@@ -11,6 +11,8 @@ export class AuthService {
 
   private API = API_ENDPOINTS.auth;
   private readonly UI_LANG_KEY = 'uiLanguage';
+  private readonly languageSubject = new BehaviorSubject<'FRENCH' | 'ARABIC'>(this.getStoredUiLanguage());
+  readonly language$ = this.languageSubject.asObservable();
 
   constructor(private http: HttpClient, private router: Router) {}
 
@@ -47,12 +49,17 @@ export class AuthService {
   }
 
   getUiLanguage(): 'FRENCH' | 'ARABIC' {
+    return this.languageSubject.value;
+  }
+
+  private getStoredUiLanguage(): 'FRENCH' | 'ARABIC' {
     const lang = localStorage.getItem(this.UI_LANG_KEY);
     return lang === 'ARABIC' ? 'ARABIC' : 'FRENCH';
   }
 
   setUiLanguage(language: 'FRENCH' | 'ARABIC'): void {
     localStorage.setItem(this.UI_LANG_KEY, language);
+    this.languageSubject.next(language);
   }
 
   getToken(): string | null {
