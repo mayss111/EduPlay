@@ -4,6 +4,10 @@
   <header class="header">
     <div class="brand">🌟 EduPlay</div>
     <div class="user-info">
+      <div class="lang-switch">
+        <button class="lang-btn" [class.active]="!isArabic" (click)="selectLanguage('FRENCH')">FR</button>
+        <button class="lang-btn" [class.active]="isArabic" (click)="selectLanguage('ARABIC')">AR</button>
+      </div>
       <div class="avatar-badge">{{ avatars[user?.avatarIndex || 0] }}</div>
       <div>
         <div class="username">{{ user?.firstName }}</div>

@@ -24,6 +24,32 @@
     gap: 12px;
   }
 
+  .lang-switch {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: #1f163f;
+    border: 1px solid #3d2a7a;
+    border-radius: 999px;
+  }
+
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: #a78bfa;
+    font-weight: 800;
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: #7c3aed;
+      color: #fff;
+    }
+  }
+
   .avatar-badge { font-size: 28px; }
 
   .username {
