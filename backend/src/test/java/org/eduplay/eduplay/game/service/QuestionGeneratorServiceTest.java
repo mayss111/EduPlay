@@ -11,7 +11,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -160,6 +164,94 @@ class QuestionGeneratorServiceTest {
             );
             assertEquals(10, questions.size(), 
                     "Should generate 10 questions for difficulty: " + difficulty);
+        }
+    }
+
+    @Test
+    @DisplayName("Different class levels should produce different question sets")
+    void testClassLevelDifferentiation() {
+        List<Question> level1 = questionGeneratorService.generateQuestions(
+                1, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
+        );
+        List<Question> level6 = questionGeneratorService.generateQuestions(
+                6, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
+        );
+
+        Set<String> level1Texts = level1.stream()
+                .map(Question::getQuestionText)
+                .map(String::trim)
+                .collect(Collectors.toSet());
+        Set<String> level6Texts = level6.stream()
+                .map(Question::getQuestionText)
+                .map(String::trim)
+                .collect(Collectors.toSet());
+
+        assertNotEquals(level1Texts, level6Texts,
+                "Questions should differ between class levels 1 and 6");
+    }
+
+    @Test
+    @DisplayName("correctChoice should always point to an existing choice")
+    void testCorrectChoicePointsToExistingChoice() {
+        for (Subject subject : Subject.values()) {
+            List<Question> questions = questionGeneratorService.generateQuestions(
+                    4, subject, Difficulty.DIFFICILE, AppLanguage.FRENCH
+            );
+
+            for (Question q : questions) {
+                Map<String, String> byLetter = Map.of(
+                        "A", q.getChoiceA(),
+                        "B", q.getChoiceB(),
+                        "C", q.getChoiceC(),
+                        "D", q.getChoiceD()
+                );
+
+                String correct = q.getCorrectChoice();
+                assertTrue(byLetter.containsKey(correct),
+                        "correctChoice must be one of A/B/C/D");
+                assertNotNull(byLetter.get(correct),
+                        "correctChoice must point to a non-null choice");
+                assertFalse(byLetter.get(correct).isBlank(),
+                        "correctChoice must point to a non-empty choice");
+            }
+        }
+    }
+
+    @Test
+    @DisplayName("Math questions with parsable operation should have matching answer")
+    void testMathOperationConsistency() {
+        List<Question> questions = questionGeneratorService.generateQuestions(
+                5, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
+        );
+
+        Pattern operation = Pattern.compile("(\\d{1,3})\\s*([+\\-x×])\\s*(\\d{1,3})");
+        for (Question q : questions) {
+            Matcher m = operation.matcher(q.getQuestionText());
+            if (!m.find()) {
+                continue;
+            }
+
+            int a = Integer.parseInt(m.group(1));
+            int b = Integer.parseInt(m.group(3));
+            int expected = switch (m.group(2)) {
+                case "+" -> a + b;
+                case "-" -> a - b;
+                case "x", "×" -> a * b;
+                default -> Integer.MIN_VALUE;
+            };
+
+            Map<String, String> byLetter = Map.of(
+                    "A", q.getChoiceA().trim(),
+                    "B", q.getChoiceB().trim(),
+                    "C", q.getChoiceC().trim(),
+                    "D", q.getChoiceD().trim()
+            );
+
+            String expectedText = String.valueOf(expected);
+            if (byLetter.containsValue(expectedText)) {
+                assertEquals(expectedText, byLetter.get(q.getCorrectChoice()),
+                        "For parsable math question, correctChoice should match expected result");
+            }
         }
     }
 }
