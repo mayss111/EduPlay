@@ -114,6 +114,31 @@
 .game-header {
   margin-bottom: 20px;
 
+  .game-lang-switch {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+
+  .lang-btn {
+    background: #1a1035;
+    border: 1px solid #3d2a7a;
+    border-radius: 999px;
+    color: #a78bfa;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 6px 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: #7c3aed;
+      color: #fff;
+      border-color: #7c3aed;
+    }
+  }
+
   .progress-info {
     display: flex;
     justify-content: space-between;

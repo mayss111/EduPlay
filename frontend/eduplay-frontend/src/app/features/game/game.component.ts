@@ -65,6 +65,11 @@ export class GameComponent implements OnInit, OnDestroy {
     return this.isArabic ? ar : fr;
   }
 
+  selectLanguage(language: 'FRENCH' | 'ARABIC') {
+    this.language = language;
+    this.authService.setUiLanguage(language);
+  }
+
   loadQuestions() {
     this.isLoading = true;
     const url = `${API_ENDPOINTS.game}/questions?subject=${this.subject}&difficulty=${this.difficulty}&language=${this.language}`;

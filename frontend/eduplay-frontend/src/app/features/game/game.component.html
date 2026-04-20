@@ -56,6 +56,10 @@
 
     <!-- HEADER -->
     <div class="game-header" *ngIf="questions.length > 0">
+      <div class="game-lang-switch">
+        <button class="lang-btn" [class.active]="!isArabic" (click)="selectLanguage('FRENCH')">FR</button>
+        <button class="lang-btn" [class.active]="isArabic" (click)="selectLanguage('ARABIC')">AR</button>
+      </div>
       <div class="progress-info">
         <span>{{ t('Question', 'السؤال') }} {{ currentIndex + 1 }}/{{ questions.length }}</span>
         <span class="score-badge">⭐ {{ score }}</span>
