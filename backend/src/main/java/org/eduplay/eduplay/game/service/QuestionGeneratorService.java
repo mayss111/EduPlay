@@ -275,26 +275,7 @@ public class QuestionGeneratorService {
             return;
         }
 
-        String[] prefixes = language == AppLanguage.ARABIC
-                ? new String[]{
-                "في نشاط القسم",
-                "في تمرين مناسب للمستوى",
-                "في وضعية تعلم يومية",
-                "في مثال مرتبط بالحياة المدرسية"
-        }
-                : new String[]{
-                "Dans une situation de classe",
-                "Dans un exercice adapte au niveau",
-                "Dans un contexte de vie scolaire",
-                "Dans une activite d'apprentissage"
-        };
-
-        String prefix = prefixes[Math.floorMod(classLevel + difficultyWeight(difficulty) + index, prefixes.length)];
-        String qText = Optional.ofNullable(question.getQuestionText()).orElse("").trim();
-        if (!qText.isBlank() && !qText.toLowerCase().startsWith(prefix.toLowerCase())) {
-            String separator = language == AppLanguage.ARABIC ? "، " : ", ";
-            question.setQuestionText(prefix + separator + qText);
-        }
+        question.setQuestionText(stripQuestionContextDecorations(question.getQuestionText()));
     }
 
     private void adaptMathQuestion(Question question, int classLevel, Difficulty difficulty, int index) {
@@ -838,32 +819,8 @@ public class QuestionGeneratorService {
                                    AppLanguage language,
                                    int index,
                                    Subject subject) {
-        String levelTag;
-        if (language == AppLanguage.ARABIC) {
-            levelTag = "الصف " + classLevel + " - " + difficultyLabel(difficulty);
-        } else {
-            levelTag = "classe " + classLevel + " - niveau " + difficultyLabel(difficulty);
-        }
-
-        String theme = subjectTheme(subject, classLevel, difficulty, index, language);
-        String suffix = language == AppLanguage.ARABIC
-                ? " (" + levelTag + " | محور: " + theme + ")"
-                : " (" + levelTag + " | theme: " + theme + ")";
-
-        String qt = Optional.ofNullable(question.getQuestionText()).orElse("").trim();
-        String profileContext = classProfileContext(classLevel, difficulty, language);
-        if (!profileContext.isBlank() && !qt.contains(profileContext)) {
-            qt = language == AppLanguage.ARABIC
-                    ? profileContext + " - " + qt
-                    : profileContext + " - " + qt;
-        }
-
-        if (!qt.contains(suffix)) {
-            if (qt.endsWith("?") || qt.endsWith("؟")) {
-                qt = qt.substring(0, qt.length() - 1).trim() + suffix + (qt.endsWith("؟") ? "؟" : "?");
-            } else {
-                qt = qt + suffix + "?";
-            }
+        String qt = stripQuestionContextDecorations(question.getQuestionText());
+        if (!qt.isBlank()) {
             question.setQuestionText(qt);
         }
 
@@ -887,6 +844,25 @@ public class QuestionGeneratorService {
         if (!updatedExp.contains(levelHint)) {
             question.setExplanation((updatedExp.isBlank() ? "" : updatedExp + " ") + levelHint);
         }
+    }
+
+    private String stripQuestionContextDecorations(String questionText) {
+        if (questionText == null) {
+            return "";
+        }
+
+        String cleaned = questionText.trim();
+
+        cleaned = cleaned.replaceAll("^(?:Contexte[^-]*|Dans un contexte[^-]*|Dans un exercice adapte au niveau[^-]*|Dans une situation de classe[^-]*|Dans une activite d'apprentissage[^-]*|في نشاط القسم[^-]*|في تمرين مناسب للمستوى[^-]*|في وضعية تعلم يومية[^-]*|في مثال مرتبط بالحياة المدرسية[^-]*)\\s*[-,:]\\s*", "");
+        cleaned = cleaned.replaceAll("\\s*\\((?:classe|الصف)[^\\)]*\\)\\s*$", "");
+        cleaned = cleaned.replaceAll("\\s*(?:-\\s*)?(?:classe\\s*\\d+\\s*-\\s*niveau\\s*[^\\|\\)]*|الصف\\s*\\d+\\s*-\\s*[^\\|\\)]*)(?:\\s*\\|\\s*(?:theme|محور)[:：]?\\s*[^\\)]*)?\\s*$", "");
+        cleaned = cleaned.replaceAll("\\s+", " ").trim();
+
+        if (!cleaned.isEmpty() && !(cleaned.endsWith("?") || cleaned.endsWith("؟"))) {
+            cleaned = cleaned + "?";
+        }
+
+        return cleaned;
     }
 
     private String classProfileContext(int classLevel, Difficulty difficulty, AppLanguage language) {

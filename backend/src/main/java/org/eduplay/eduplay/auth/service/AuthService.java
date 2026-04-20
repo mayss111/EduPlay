@@ -8,9 +8,11 @@ import org.eduplay.eduplay.enums.Role;
 import org.eduplay.eduplay.repository.UserRepository;
 import org.eduplay.eduplay.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,16 +21,15 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-    private final AuthenticationManager authenticationManager;
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(), request.getPassword()
-                )
-        );
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+                .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Identifiants invalides");
+        }
 
         if (request.getLanguage() != null && request.getLanguage() != user.getLanguage()) {
             user.setLanguage(request.getLanguage());
@@ -39,6 +40,7 @@ public class AuthService {
         return buildResponse(user, token);
     }
 
+    @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Ce pseudo est déjà pris !");
