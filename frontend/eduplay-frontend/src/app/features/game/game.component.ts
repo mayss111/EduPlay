@@ -61,7 +61,7 @@ export class GameComponent implements OnInit, OnDestroy {
 
   loadQuestions() {
     this.isLoading = true;
-    const url = `${API_ENDPOINTS.game}/questions?subject=${this.subject}&difficulty=${this.difficulty}`;
+    const url = `${API_ENDPOINTS.game}/questions?subject=${this.subject}&difficulty=${this.difficulty}&language=${this.language}`;
     this.http.get<Question[]>(url).subscribe({
       next: (data) => {
         this.questions = data;
