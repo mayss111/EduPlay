@@ -41,7 +41,7 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Ce pseudo est déjà pris !");
+            throw new IllegalArgumentException("Ce pseudo est déjà pris !");
         }
 
         User user = User.builder()

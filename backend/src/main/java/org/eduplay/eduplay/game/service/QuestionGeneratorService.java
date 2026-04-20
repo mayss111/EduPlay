@@ -42,6 +42,7 @@ public class QuestionGeneratorService {
     private static final int TARGET_QUESTION_COUNT = 10;
     private static final int MAX_GENERATION_ATTEMPTS = 2;
     private static final long QUESTION_CACHE_TTL_MS = 90_000;
+    private static final long VARIATION_BUCKET_MS = 4_000;
     private static final int MIN_QUALITY_SCORE = 70;
     private static final double DUPLICATE_SIMILARITY_THRESHOLD = 0.74;
 
@@ -78,7 +79,7 @@ public class QuestionGeneratorService {
         List<Question> cached = getCachedQuestions(cacheKey);
         if (!cached.isEmpty()) {
             log.info("Questions servies depuis le cache: {}", cacheKey);
-            return cached;
+            return rotateForVariety(cached);
         }
 
         if (ollamaBaseUrl == null || ollamaBaseUrl.isBlank()) {
@@ -102,7 +103,7 @@ public class QuestionGeneratorService {
                     List<Question> tailored = tailorQuestionsForClassAndDifficulty(bestSoFar, classLevel, difficulty, language);
                     List<Question> finalized = finalizeQuestionSet(tailored, classLevel, subject, difficulty, language);
                     putInCache(cacheKey, finalized);
-                    return copyQuestions(finalized);
+                    return rotateForVariety(finalized);
                 }
 
                 log.warn("Generation insuffisante (tentative {}): {} questions valides.", attempt, bestSoFar.size());
@@ -129,7 +130,7 @@ public class QuestionGeneratorService {
             List<Question> tailored = tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
             List<Question> finalized = finalizeQuestionSet(tailored, classLevel, subject, difficulty, language);
             putInCache(cacheKey, finalized);
-            return copyQuestions(finalized);
+            return rotateForVariety(finalized);
         }
 
         // Last-resort path: return a fully playable set from fallback content
@@ -141,7 +142,7 @@ public class QuestionGeneratorService {
         if (!emergencyFinal.isEmpty()) {
             List<Question> safe = ensureMinimumPlayableSet(emergencyFinal, fallback, subject, classLevel, difficulty);
             putInCache(cacheKey, safe);
-            return copyQuestions(safe);
+            return rotateForVariety(safe);
         }
 
         throw new IllegalStateException("Generation indisponible temporairement.");
@@ -237,24 +238,63 @@ public class QuestionGeneratorService {
                                                                 Difficulty difficulty,
                                                                 AppLanguage language) {
         List<Question> adapted = new ArrayList<>();
+        int seed = variationSalt();
         int idx = 0;
         for (Question q : questions) {
             if (q == null) {
                 continue;
             }
             idx++;
-            q.setTopicTag(subjectTheme(q.getSubject(), classLevel, difficulty, idx, language));
-            q.setGenerationProfile(questionProfile(classLevel, difficulty, idx, language));
+            int variantIndex = idx + seed;
+            q.setTopicTag(subjectTheme(q.getSubject(), classLevel, difficulty, variantIndex, language));
+            q.setGenerationProfile(questionProfile(classLevel, difficulty, variantIndex, language));
+            injectContextVariant(q, classLevel, difficulty, language, variantIndex);
             if (q.getSubject() == Subject.MATH) {
-                adaptMathQuestion(q, classLevel, difficulty, idx);
+                adaptMathQuestion(q, classLevel, difficulty, variantIndex);
             } else {
-                adaptTextQuestion(q, classLevel, difficulty, language, idx, q.getSubject());
+                adaptTextQuestion(q, classLevel, difficulty, language, variantIndex, q.getSubject());
             }
             enforceCorrectChoiceFromExplanation(q);
             q.setQualityScore(qualityScore(q, difficulty));
             adapted.add(q);
         }
         return adapted;
+    }
+
+    private int variationSalt() {
+        long bucket = System.currentTimeMillis() / VARIATION_BUCKET_MS;
+        return (int) Math.floorMod(bucket, 37);
+    }
+
+    private void injectContextVariant(Question question,
+                                      int classLevel,
+                                      Difficulty difficulty,
+                                      AppLanguage language,
+                                      int index) {
+        if (question == null || question.getSubject() == Subject.MATH) {
+            return;
+        }
+
+        String[] prefixes = language == AppLanguage.ARABIC
+                ? new String[]{
+                "في نشاط القسم",
+                "في تمرين مناسب للمستوى",
+                "في وضعية تعلم يومية",
+                "في مثال مرتبط بالحياة المدرسية"
+        }
+                : new String[]{
+                "Dans une situation de classe",
+                "Dans un exercice adapte au niveau",
+                "Dans un contexte de vie scolaire",
+                "Dans une activite d'apprentissage"
+        };
+
+        String prefix = prefixes[Math.floorMod(classLevel + difficultyWeight(difficulty) + index, prefixes.length)];
+        String qText = Optional.ofNullable(question.getQuestionText()).orElse("").trim();
+        if (!qText.isBlank() && !qText.toLowerCase().startsWith(prefix.toLowerCase())) {
+            String separator = language == AppLanguage.ARABIC ? "، " : ", ";
+            question.setQuestionText(prefix + separator + qText);
+        }
     }
 
     private void adaptMathQuestion(Question question, int classLevel, Difficulty difficulty, int index) {
@@ -735,6 +775,19 @@ public class QuestionGeneratorService {
 
     private void putInCache(String cacheKey, List<Question> questions) {
         questionCache.put(cacheKey, new CachedQuestions(System.currentTimeMillis(), copyQuestions(questions)));
+    }
+
+    private List<Question> rotateForVariety(List<Question> questions) {
+        List<Question> copies = copyQuestions(questions);
+        if (copies.size() <= 1) {
+            return copies;
+        }
+
+        int shift = (int) ((System.currentTimeMillis() / 2000L) % copies.size());
+        if (shift != 0) {
+            Collections.rotate(copies, shift);
+        }
+        return copies;
     }
 
     private List<Question> copyQuestions(List<Question> questions) {
@@ -1308,8 +1361,8 @@ public class QuestionGeneratorService {
         return switch (difficulty) {
             case SIMPLE -> words <= 35;
             case MOYEN -> words >= 12 && words <= 55;
-            case DIFFICILE -> words >= 18;
-            case EXCELLENT -> words >= 22;
+            case DIFFICILE -> words >= 14;
+            case EXCELLENT -> words >= 18;
         };
     }
 
@@ -1708,7 +1761,11 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> normalized = normalizeAndDiversify(new ArrayList<>(questions), language);
+            List<Question> expanded = expandFallbackPool(questions, classLevel, subject, difficulty, language);
+            List<Question> normalized = normalizeAndDiversify(expanded, language);
+            if (normalized.isEmpty()) {
+                normalized = copyQuestions(expanded);
+            }
             if (normalized.size() >= TARGET_QUESTION_COUNT) {
                 return new ArrayList<>(normalized.subList(0, TARGET_QUESTION_COUNT));
             }
@@ -1719,7 +1776,7 @@ public class QuestionGeneratorService {
                 seen.add(question.getQuestionText().trim().toLowerCase());
             }
 
-            for (Question question : questions) {
+            for (Question question : expanded) {
                 if (completed.size() >= TARGET_QUESTION_COUNT) {
                     break;
                 }
@@ -1810,11 +1867,111 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> normalized = normalizeAndDiversify(new ArrayList<>(questions), AppLanguage.ARABIC);
-            return normalized.size() > TARGET_QUESTION_COUNT
-                ? new ArrayList<>(normalized.subList(0, TARGET_QUESTION_COUNT))
-                : normalized;
+            List<Question> expanded = expandFallbackPool(questions, classLevel, subject, difficulty, AppLanguage.ARABIC);
+            List<Question> normalized = normalizeAndDiversify(expanded, AppLanguage.ARABIC);
+            if (normalized.isEmpty()) {
+                normalized = copyQuestions(expanded);
             }
+
+            if (normalized.size() >= TARGET_QUESTION_COUNT) {
+                return new ArrayList<>(normalized.subList(0, TARGET_QUESTION_COUNT));
+            }
+
+            List<Question> completed = new ArrayList<>(normalized);
+            Set<String> seen = new HashSet<>();
+            for (Question question : completed) {
+                seen.add(question.getQuestionText().trim().toLowerCase());
+            }
+
+            for (Question question : expanded) {
+                if (completed.size() >= TARGET_QUESTION_COUNT) {
+                    break;
+                }
+                String key = question.getQuestionText().trim().toLowerCase();
+                if (seen.add(key)) {
+                    completed.add(question);
+                }
+            }
+
+            return completed.size() > TARGET_QUESTION_COUNT
+                    ? new ArrayList<>(completed.subList(0, TARGET_QUESTION_COUNT))
+                    : completed;
+            }
+
+    private List<Question> expandFallbackPool(List<Question> base,
+                                              int classLevel,
+                                              Subject subject,
+                                              Difficulty difficulty,
+                                              AppLanguage language) {
+        List<Question> expanded = new ArrayList<>();
+        if (base == null || base.isEmpty()) {
+            return expanded;
+        }
+
+        int seed = variationSalt();
+        int index = 0;
+        for (Question original : base) {
+            if (original == null) {
+                continue;
+            }
+
+            index++;
+            Question first = copyQuestion(original);
+            applyFallbackVariant(first, classLevel, subject, difficulty, language, index + seed);
+            expanded.add(first);
+
+            Question second = copyQuestion(original);
+            applyFallbackVariant(second, classLevel, subject, difficulty, language, index + seed + 11);
+            expanded.add(second);
+        }
+
+        return expanded;
+    }
+
+    private Question copyQuestion(Question q) {
+        return Question.builder()
+                .questionText(q.getQuestionText())
+                .choiceA(q.getChoiceA())
+                .choiceB(q.getChoiceB())
+                .choiceC(q.getChoiceC())
+                .choiceD(q.getChoiceD())
+                .correctChoice(q.getCorrectChoice())
+                .explanation(q.getExplanation())
+                .subject(q.getSubject())
+                .classLevel(q.getClassLevel())
+                .difficulty(q.getDifficulty())
+                .build();
+    }
+
+    private void applyFallbackVariant(Question question,
+                                      int classLevel,
+                                      Subject subject,
+                                      Difficulty difficulty,
+                                      AppLanguage language,
+                                      int variantIndex) {
+        if (question == null) {
+            return;
+        }
+
+        if (subject == Subject.MATH) {
+            adaptMathQuestion(question, classLevel, difficulty, variantIndex);
+            return;
+        }
+
+        injectContextVariant(question, classLevel, difficulty, language, variantIndex);
+
+        String theme = subjectTheme(subject, classLevel, difficulty, variantIndex, language);
+        String objective = learningObjective(subject, difficulty, language);
+        String explanation = Optional.ofNullable(question.getExplanation()).orElse("").trim();
+
+        String add = language == AppLanguage.ARABIC
+                ? "محور: " + theme + " | هدف: " + objective + "."
+                : "Theme: " + theme + " | Objectif: " + objective + ".";
+
+        if (!explanation.contains(add)) {
+            question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + add);
+        }
+    }
 
     private Question createQuestion(String questionText,
                                     String choiceA,
