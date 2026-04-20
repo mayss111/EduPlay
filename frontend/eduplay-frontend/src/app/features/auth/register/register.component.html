@@ -29,12 +29,12 @@
           <div class="class-btn"
                [class.selected]="selectedLanguage === 'FRENCH'"
                (click)="selectLanguage('FRENCH')">
-            Français
+            {{ t('Français', 'الفرنسية') }}
           </div>
           <div class="class-btn"
                [class.selected]="selectedLanguage === 'ARABIC'"
                (click)="selectLanguage('ARABIC')">
-            العربية
+            {{ t('Arabe', 'العربية') }}
           </div>
         </div>
       </div>

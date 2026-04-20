@@ -66,8 +66,28 @@ export class GameComponent implements OnInit, OnDestroy {
   }
 
   selectLanguage(language: 'FRENCH' | 'ARABIC') {
+    if (this.language === language) {
+      return;
+    }
+
     this.language = language;
     this.authService.setUiLanguage(language);
+    this.resetGameState();
+    this.loadQuestions();
+  }
+
+  private resetGameState() {
+    clearInterval(this.timer);
+    this.questions = [];
+    this.currentIndex = 0;
+    this.selectedAnswer = '';
+    this.showResult = false;
+    this.isCorrect = false;
+    this.score = 0;
+    this.isGameOver = false;
+    this.gameResult = null;
+    this.timeLeft = 30;
+    this.answers = [];
   }
 
   loadQuestions() {
@@ -106,7 +126,7 @@ export class GameComponent implements OnInit, OnDestroy {
       'FRENCH_MOYEN': 'grammaire appliquée',
       'FRENCH_DIFFICILE': 'analyse textuelle',
       'SCIENCE_SIMPLE': 'concepts de base',
-      'SCIENCE_MOYEN': 'explicación scientifique',
+      'SCIENCE_MOYEN': 'explication scientifique',
       'SCIENCE_DIFFICILE': 'expérimentation',
       'HISTORY_SIMPLE': 'repères historiques',
       'HISTORY_MOYEN': 'contextualisation',

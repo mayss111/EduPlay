@@ -11,8 +11,8 @@
     </div>
 
     <div class="tabs">
-      <span class="tab" [class.active]="selectedLanguage === 'FRENCH'" (click)="selectLanguage('FRENCH')">Français</span>
-      <span class="tab" [class.active]="selectedLanguage === 'ARABIC'" (click)="selectLanguage('ARABIC')">العربية</span>
+      <span class="tab" [class.active]="selectedLanguage === 'FRENCH'" (click)="selectLanguage('FRENCH')">{{ t('Français', 'الفرنسية') }}</span>
+      <span class="tab" [class.active]="selectedLanguage === 'ARABIC'" (click)="selectLanguage('ARABIC')">{{ t('Arabe', 'العربية') }}</span>
     </div>
 
     <div class="tabs">
