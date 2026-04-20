@@ -339,10 +339,50 @@ public class QuestionGeneratorService {
                                                Difficulty difficulty,
                                                AppLanguage language) {
         List<Question> finalized = new ArrayList<>();
-        int index = 0;
+        Set<String> seen = new HashSet<>();
 
-        for (Question q : questions) {
-            if (q == null || finalized.size() >= TARGET_QUESTION_COUNT) {
+        int index = addValidatedQuestions(
+                questions,
+                classLevel,
+                subject,
+                difficulty,
+                language,
+                finalized,
+                seen,
+                0
+        );
+
+        if (finalized.size() < TARGET_QUESTION_COUNT) {
+            List<Question> fallbackCandidates = buildFallbackQuestions(classLevel, subject, difficulty, language);
+            addValidatedQuestions(
+                    fallbackCandidates,
+                    classLevel,
+                    subject,
+                    difficulty,
+                    language,
+                    finalized,
+                    seen,
+                    index
+            );
+        }
+
+        return finalized.size() > TARGET_QUESTION_COUNT
+                ? new ArrayList<>(finalized.subList(0, TARGET_QUESTION_COUNT))
+                : finalized;
+    }
+
+    private int addValidatedQuestions(List<Question> source,
+                                      int classLevel,
+                                      Subject subject,
+                                      Difficulty difficulty,
+                                      AppLanguage language,
+                                      List<Question> target,
+                                      Set<String> seen,
+                                      int startIndex) {
+        int index = startIndex;
+
+        for (Question q : source) {
+            if (q == null || target.size() >= TARGET_QUESTION_COUNT) {
                 continue;
             }
 
@@ -360,13 +400,19 @@ public class QuestionGeneratorService {
             enforceCorrectChoiceFromExplanation(q);
             ensureCorrectChoiceIsValid(q);
 
-            if (!isPedagogicallyValid(q)) {
+            if (!isPedagogicallyValid(q) || !isSingleAnswerWellJustified(q)) {
                 continue;
             }
-            finalized.add(q);
+
+            String key = normalizeForContains(q.getQuestionText());
+            if (key.isBlank() || !seen.add(key)) {
+                continue;
+            }
+
+            target.add(q);
         }
 
-        return finalized;
+        return index;
     }
 
     private void ensureDistinctChoices(Question question,
@@ -506,6 +552,50 @@ public class QuestionGeneratorService {
             }
         }
         return score;
+    }
+
+    private boolean isSingleAnswerWellJustified(Question question) {
+        String correct = Optional.ofNullable(question.getCorrectChoice()).orElse("").trim().toUpperCase();
+        Map<String, String> choices = new LinkedHashMap<>();
+        choices.put("A", Optional.ofNullable(question.getChoiceA()).orElse("").trim());
+        choices.put("B", Optional.ofNullable(question.getChoiceB()).orElse("").trim());
+        choices.put("C", Optional.ofNullable(question.getChoiceC()).orElse("").trim());
+        choices.put("D", Optional.ofNullable(question.getChoiceD()).orElse("").trim());
+
+        if (!choices.containsKey(correct) || choices.get(correct).isBlank()) {
+            return false;
+        }
+
+        if (question.getSubject() == Subject.MATH) {
+            Integer expected = extractExpectedMathResult(question.getQuestionText());
+            if (expected == null) {
+                return true;
+            }
+            String expectedText = String.valueOf(expected);
+            long matches = choices.values().stream().filter(expectedText::equals).count();
+            return matches == 1 && expectedText.equals(choices.get(correct));
+        }
+
+        String explanation = normalizeForContains(question.getExplanation());
+        if (explanation.isBlank()) {
+            return false;
+        }
+
+        String correctText = normalizeForContains(choices.get(correct));
+        int correctScore = overlapScore(explanation, correctText);
+        if (correctScore <= 0) {
+            return false;
+        }
+
+        int competitorBest = 0;
+        for (Map.Entry<String, String> entry : choices.entrySet()) {
+            if (entry.getKey().equals(correct)) {
+                continue;
+            }
+            competitorBest = Math.max(competitorBest, overlapScore(explanation, normalizeForContains(entry.getValue())));
+        }
+
+        return correctScore > competitorBest;
     }
 
     private String cacheKey(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
