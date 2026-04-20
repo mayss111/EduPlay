@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,6 +29,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Locale;
+import java.text.Normalizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,6 +42,8 @@ public class QuestionGeneratorService {
     private static final int TARGET_QUESTION_COUNT = 10;
     private static final int MAX_GENERATION_ATTEMPTS = 2;
     private static final long QUESTION_CACHE_TTL_MS = 90_000;
+    private static final int MIN_QUALITY_SCORE = 70;
+    private static final double DUPLICATE_SIMILARITY_THRESHOLD = 0.74;
 
     @Value("${ollama.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
@@ -127,15 +132,35 @@ public class QuestionGeneratorService {
             return copyQuestions(finalized);
         }
 
+        // Last-resort path: return a fully playable set from fallback content
+        // even when diversity/quality selection was too restrictive.
+        List<Question> emergencyBase = new ArrayList<>(fallback);
+        List<Question> emergencyTailored = tailorQuestionsForClassAndDifficulty(emergencyBase, classLevel, difficulty, language);
+        List<Question> emergencyFinal = finalizeQuestionSet(emergencyTailored, classLevel, subject, difficulty, language);
+
+        if (!emergencyFinal.isEmpty()) {
+            List<Question> safe = ensureMinimumPlayableSet(emergencyFinal, fallback, subject, classLevel, difficulty);
+            putInCache(cacheKey, safe);
+            return copyQuestions(safe);
+        }
+
         throw new IllegalStateException("Generation indisponible temporairement.");
     }
 
         private String buildPrompt(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
                 String outputLanguage = language == AppLanguage.ARABIC ? "arabe" : "francais";
                 String pedagogicalFocus = pedagogicalFocus(classLevel, subject, difficulty, language);
+                String questionMix = questionMixGuidance(language);
+                String styleGuidance = styleGuidance(classLevel, subject, difficulty, language);
                 return """
                                 Genere exactement 10 questions QCM en %s pour classe %deme, matiere %s, niveau %s.
                                 Objectifs pedagogiques:
+                                %s
+
+                                Repartition pedagogique attendue:
+                                %s
+
+                                Consignes de style:
                                 %s
 
                                 Retourne UNIQUEMENT un JSON valide (sans markdown):
@@ -154,13 +179,14 @@ public class QuestionGeneratorService {
                                 Regles:
                                 - Toute la sortie doit etre en %s (question, choix, explication).
                                 - Faits vrais, niveau primaire tunisien.
-                                - Question claire, precise et pedagogique (pas trop facile, pas ambigue).
+                                - Les questions doivent etre differentes par formulation et par contexte.
                                 - 4 choix differents, plausibles, sans pieges absurdes.
                                 - correctChoice doit etre A, B, C ou D.
                                 - Explication courte mais utile (justification, regle ou raisonnement simple).
                                 - Eviter les repetitions de structure ou d'idee entre questions.
                                 - Ne rien inventer.
-                                """.formatted(outputLanguage, classLevel, subjectLabel(subject), difficultyLabel(difficulty), pedagogicalFocus, outputLanguage);
+                                - Chaque question doit avoir une reponse unique et defendable.
+                                """.formatted(outputLanguage, classLevel, subjectLabel(subject), difficultyLabel(difficulty), pedagogicalFocus, questionMix, styleGuidance, outputLanguage);
         }
 
     private String pedagogicalFocus(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
@@ -177,6 +203,35 @@ public class QuestionGeneratorService {
                 + "- Questions progressives et adaptees au niveau scolaire.";
     }
 
+    private String questionMixGuidance(AppLanguage language) {
+        if (language == AppLanguage.ARABIC) {
+            return "- 3 اسئلة تذكير بسيط\n"
+                    + "- 4 اسئلة تطبيق مباشر\n"
+                    + "- 2 اسئلة تفكير او تفسير\n"
+                    + "- 1 سؤال انتقال او توسيع للمفهوم";
+        }
+
+        return "- 3 questions de rappel\n"
+                + "- 4 questions d'application directe\n"
+                + "- 2 questions de raisonnement ou d'explication\n"
+                + "- 1 question de transfert pour varier le contexte";
+    }
+
+    private String styleGuidance(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
+        String band = classBand(classLevel);
+        String topic = subjectTheme(subject, classLevel, difficulty, classLevel + difficultyWeight(difficulty), language);
+
+        if (language == AppLanguage.ARABIC) {
+            return "- مناسب للـ " + band + "\n"
+                    + "- استعمل سياقات من محور: " + topic + "\n"
+                    + "- غير بداية الجمل وتجنب التكرار الحرفي.";
+        }
+
+        return "- Niveau de classe: " + band + "\n"
+                + "- Utilise des contextes relies au theme: " + topic + "\n"
+                + "- Varie les debuts de phrases et evite la repetition litterale.";
+    }
+
     private List<Question> tailorQuestionsForClassAndDifficulty(List<Question> questions,
                                                                 int classLevel,
                                                                 Difficulty difficulty,
@@ -188,12 +243,15 @@ public class QuestionGeneratorService {
                 continue;
             }
             idx++;
+            q.setTopicTag(subjectTheme(q.getSubject(), classLevel, difficulty, idx, language));
+            q.setGenerationProfile(questionProfile(classLevel, difficulty, idx, language));
             if (q.getSubject() == Subject.MATH) {
                 adaptMathQuestion(q, classLevel, difficulty, idx);
             } else {
                 adaptTextQuestion(q, classLevel, difficulty, language, idx, q.getSubject());
             }
             enforceCorrectChoiceFromExplanation(q);
+            q.setQualityScore(qualityScore(q, difficulty));
             adapted.add(q);
         }
         return adapted;
@@ -696,6 +754,9 @@ public class QuestionGeneratorService {
                     .subject(q.getSubject())
                     .classLevel(q.getClassLevel())
                     .difficulty(q.getDifficulty())
+                    .qualityScore(q.getQualityScore())
+                    .topicTag(q.getTopicTag())
+                    .generationProfile(q.getGenerationProfile())
                     .build());
         }
         return copies;
@@ -1027,6 +1088,7 @@ public class QuestionGeneratorService {
     private List<Question> normalizeAndDiversify(List<Question> questions, AppLanguage language) {
         List<Question> normalized = new ArrayList<>();
         Set<String> seenQuestionTexts = new HashSet<>();
+        List<String> seenSignatures = new ArrayList<>();
 
         for (Question question : questions) {
             if (question == null) {
@@ -1055,12 +1117,25 @@ public class QuestionGeneratorService {
                 continue;
             }
 
+            int classLevel = Optional.ofNullable(question.getClassLevel()).orElse(1);
+            Difficulty questionDifficulty = Optional.ofNullable(question.getDifficulty()).orElse(Difficulty.MOYEN);
+            AppLanguage effectiveLanguage = language;
+            question.setTopicTag(subjectTheme(question.getSubject(), classLevel, questionDifficulty, normalized.size() + 1, effectiveLanguage));
+            question.setGenerationProfile(questionProfile(classLevel, questionDifficulty, normalized.size() + 1, effectiveLanguage));
+
             String dedupeKey = question.getQuestionText().trim().toLowerCase();
             if (!seenQuestionTexts.add(dedupeKey)) {
                 continue;
             }
 
+            String signature = questionSignature(question);
+            if (isNearDuplicate(signature, seenSignatures)) {
+                continue;
+            }
+
             shuffleChoicesAndFixCorrect(question);
+            question.setQualityScore(qualityScore(question, question.getDifficulty()));
+            seenSignatures.add(signature);
             normalized.add(question);
         }
         return normalized;
@@ -1242,11 +1317,13 @@ public class QuestionGeneratorService {
         int score = 0;
         String q = question.getQuestionText().trim();
         String exp = question.getExplanation().trim();
-        score += Math.min(q.length(), 120);
-        score += Math.min(exp.length(), 120);
+        score += Math.min(q.length(), 90);
+        score += Math.min(exp.length(), 80);
+        score += Math.min(tokenCount(q) * 3, 24);
+        score += Math.min(tokenCount(exp) * 2, 24);
 
         if (exp.split("\\s+").length >= 8) {
-            score += 20;
+            score += 18;
         }
 
         List<String> choices = List.of(question.getChoiceA(), question.getChoiceB(), question.getChoiceC(), question.getChoiceD());
@@ -1255,10 +1332,21 @@ public class QuestionGeneratorService {
             score += 15;
         }
 
+        if (question.getTopicTag() != null && !question.getTopicTag().isBlank()) {
+            score += 10;
+        }
+
+        if (question.getGenerationProfile() != null && !question.getGenerationProfile().isBlank()) {
+            score += 5;
+        }
+
         if (question.getDifficulty() == expectedDifficulty) {
             score += 30;
         }
         if (isDifficultyConsistent(question)) {
+            score += 20;
+        }
+        if (isSingleAnswerWellJustified(question)) {
             score += 20;
         }
         return score;
@@ -1266,11 +1354,77 @@ public class QuestionGeneratorService {
 
     private List<Question> selectBestQuestions(List<Question> source, Difficulty difficulty, int limit) {
         List<Question> unique = takeUniqueByQuestionText(source, 1000);
-        unique.sort(Comparator.comparingInt((Question q) -> qualityScore(q, difficulty)).reversed());
-        if (unique.size() <= limit) {
-            return unique;
+        unique.forEach(q -> q.setQualityScore(Optional.ofNullable(q.getQualityScore()).orElse(qualityScore(q, difficulty))));
+        unique.sort(Comparator
+                .comparingInt((Question q) -> Optional.ofNullable(q.getQualityScore()).orElse(0))
+                .reversed()
+                .thenComparing(q -> Optional.ofNullable(q.getTopicTag()).orElse(""))
+                .thenComparing(Question::getQuestionText));
+
+        List<Question> selected = new ArrayList<>();
+        List<String> seenSignatures = new ArrayList<>();
+        Map<String, Integer> topicCounts = new HashMap<>();
+
+        for (Question question : unique) {
+            if (selected.size() >= limit) {
+                break;
+            }
+
+            String signature = questionSignature(question);
+            if (isNearDuplicate(signature, seenSignatures)) {
+                continue;
+            }
+
+            String topic = Optional.ofNullable(question.getTopicTag()).orElse("global");
+            int maxPerTopic = question.getSubject() == Subject.MATH ? 2 : 3;
+            if (topicCounts.getOrDefault(topic, 0) >= maxPerTopic && selected.size() < limit - 2) {
+                continue;
+            }
+
+            selected.add(question);
+            seenSignatures.add(signature);
+            topicCounts.merge(topic, 1, Integer::sum);
         }
-        return new ArrayList<>(unique.subList(0, limit));
+
+        if (selected.size() < limit) {
+            for (Question question : unique) {
+                if (selected.size() >= limit) {
+                    break;
+                }
+
+                String signature = questionSignature(question);
+                if (isNearDuplicate(signature, seenSignatures)) {
+                    continue;
+                }
+
+                selected.add(question);
+                seenSignatures.add(signature);
+            }
+        }
+
+        if (selected.size() < limit) {
+            Set<String> selectedTexts = new HashSet<>();
+            for (Question selectedQuestion : selected) {
+                selectedTexts.add(normalizeForContains(selectedQuestion.getQuestionText()));
+            }
+
+            for (Question question : unique) {
+                if (selected.size() >= limit) {
+                    break;
+                }
+
+                String key = normalizeForContains(question.getQuestionText());
+                if (key.isBlank() || !selectedTexts.add(key)) {
+                    continue;
+                }
+
+                selected.add(question);
+            }
+        }
+
+        return selected.size() <= limit
+                ? selected
+                : new ArrayList<>(selected.subList(0, limit));
     }
 
     private void shuffleChoicesAndFixCorrect(Question question) {
@@ -1338,6 +1492,140 @@ public class QuestionGeneratorService {
         }
 
         return result;
+    }
+
+    private List<Question> ensureMinimumPlayableSet(List<Question> selected,
+                                                    List<Question> fallbackSource,
+                                                    Subject subject,
+                                                    int classLevel,
+                                                    Difficulty difficulty) {
+        List<Question> result = new ArrayList<>(selected);
+        Set<String> seen = new HashSet<>();
+
+        for (Question q : result) {
+            seen.add(normalizeForContains(q.getQuestionText()));
+        }
+
+        for (Question q : fallbackSource) {
+            if (result.size() >= TARGET_QUESTION_COUNT) {
+                break;
+            }
+            String key = normalizeForContains(q.getQuestionText());
+            if (key.isBlank() || !seen.add(key)) {
+                continue;
+            }
+            q.setSubject(subject);
+            q.setClassLevel(classLevel);
+            q.setDifficulty(difficulty);
+            sanitize(q);
+            ensureCorrectChoiceIsValid(q);
+            if (isPedagogicallyValid(q)) {
+                result.add(q);
+            }
+        }
+
+        return result.size() > TARGET_QUESTION_COUNT
+                ? new ArrayList<>(result.subList(0, TARGET_QUESTION_COUNT))
+                : result;
+    }
+
+    private String questionSignature(Question question) {
+        String combined = Optional.ofNullable(question.getQuestionText()).orElse("") + " "
+                + Optional.ofNullable(question.getExplanation()).orElse("");
+        return normalizeSignature(combined);
+    }
+
+    private boolean isNearDuplicate(String signature, List<String> seenSignatures) {
+        if (signature == null || signature.isBlank()) {
+            return true;
+        }
+
+        for (String seen : seenSignatures) {
+            if (semanticOverlap(signature, seen) >= DUPLICATE_SIMILARITY_THRESHOLD) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private double semanticOverlap(String a, String b) {
+        Set<String> tokensA = signatureTokens(a);
+        Set<String> tokensB = signatureTokens(b);
+        if (tokensA.isEmpty() || tokensB.isEmpty()) {
+            return 0.0;
+        }
+
+        Set<String> intersection = new HashSet<>(tokensA);
+        intersection.retainAll(tokensB);
+
+        Set<String> union = new HashSet<>(tokensA);
+        union.addAll(tokensB);
+
+        return union.isEmpty() ? 0.0 : (double) intersection.size() / union.size();
+    }
+
+    private Set<String> signatureTokens(String text) {
+        String normalized = normalizeSignature(text);
+        if (normalized.isBlank()) {
+            return Set.of();
+        }
+
+        Set<String> tokens = new HashSet<>();
+        for (String token : normalized.split("\\s+")) {
+            if (token.length() >= 3) {
+                tokens.add(token);
+            }
+        }
+        return tokens;
+    }
+
+    private String normalizeSignature(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return Normalizer.normalize(text, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N} ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private int tokenCount(String text) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
+        return (int) Pattern.compile("\\S+").matcher(text).results().count();
+    }
+
+    private String classBand(int classLevel) {
+        if (classLevel <= 2) {
+            return "debutant";
+        }
+        if (classLevel <= 4) {
+            return "intermediaire";
+        }
+        return "avance";
+    }
+
+    private String questionProfile(int classLevel, Difficulty difficulty, int index, AppLanguage language) {
+        int slot = Math.floorMod(classLevel + difficultyWeight(difficulty) + index, 4);
+        if (language == AppLanguage.ARABIC) {
+            return switch (slot) {
+                case 0 -> "استرجاع مباشر";
+                case 1 -> "تطبيق عملي";
+                case 2 -> "تفكير وتفسير";
+                default -> "نقل المفهوم";
+            };
+        }
+
+        return switch (slot) {
+            case 0 -> "rappel direct";
+            case 1 -> "application";
+            case 2 -> "raisonnement";
+            default -> "transfert";
+        };
     }
 
         private List<Question> buildFallbackQuestions(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {

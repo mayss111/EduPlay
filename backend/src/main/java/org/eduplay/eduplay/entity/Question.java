@@ -54,4 +54,13 @@ public class Question implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Difficulty difficulty;
+
+    @Transient
+    private Integer qualityScore;
+
+    @Transient
+    private String topicTag;
+
+    @Transient
+    private String generationProfile;
 }

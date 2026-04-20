@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 import java.util.Map;
@@ -19,11 +18,21 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
-@TestPropertySource(properties = {
+@SpringBootTest(properties = {
         "ollama.base-url=http://localhost:11434",
         "ollama.model=qwen2.5:7b-instruct",
-        "ollama.temperature=0.2"
+        "ollama.temperature=0.2",
+        "spring.datasource.url=jdbc:h2:mem:eduplay_test;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.database-platform=org.hibernate.dialect.H2Dialect",
+        "spring.cache.type=none",
+        "spring.session.store-type=none",
+        "app.jwt.secret=TestJwtSecretKey_ChangeMe_2026_Min32Chars",
+        "app.jwt.expiration=86400000",
+        "app.cors.allowed-origins=http://localhost:4200",
 })
 @DisplayName("Question Generator Service Tests")
 class QuestionGeneratorServiceTest {
@@ -188,6 +197,27 @@ class QuestionGeneratorServiceTest {
 
         assertNotEquals(level1Texts, level6Texts,
                 "Questions should differ between class levels 1 and 6");
+    }
+
+    @Test
+    @DisplayName("Generated questions should expose quality metadata and topic diversity")
+    void testQualityMetadataAndTopicDiversity() {
+        List<Question> questions = questionGeneratorService.generateQuestions(
+                3, Subject.SCIENCE, Difficulty.MOYEN, AppLanguage.FRENCH
+        );
+
+        assertEquals(10, questions.size(), "Should generate exactly 10 questions");
+        assertTrue(questions.stream().allMatch(q -> q.getQualityScore() != null && q.getQualityScore() >= 0),
+                "Each question should expose a quality score");
+
+        long distinctTopics = questions.stream()
+                .map(Question::getTopicTag)
+                .filter(topic -> topic != null && !topic.isBlank())
+                .distinct()
+                .count();
+
+        assertTrue(distinctTopics >= 3,
+                "Questions should span at least 3 distinct topic tags");
     }
 
     @Test

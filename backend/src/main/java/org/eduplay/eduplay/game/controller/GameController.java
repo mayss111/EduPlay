@@ -98,6 +98,9 @@ public class GameController {
         int endsWithQuestionMark = 0;
         int hasExplanation = 0;
         int allFieldsFilled = 0;
+        int qualityScoreTotal = 0;
+        int lowConfidence = 0;
+        Set<String> topics = new HashSet<>();
 
         for (Question q : questions) {
             Set<String> choices = new HashSet<>();
@@ -121,6 +124,18 @@ public class GameController {
                 hasExplanation++;
             }
 
+                        Integer qualityScore = q.getQualityScore();
+                        if (qualityScore != null) {
+                                qualityScoreTotal += qualityScore;
+                                if (qualityScore < 70) {
+                                        lowConfidence++;
+                                }
+                        }
+
+                        if (q.getTopicTag() != null && !q.getTopicTag().isBlank()) {
+                                topics.add(q.getTopicTag());
+                        }
+
             if (q.getQuestionText() != null && !q.getQuestionText().isBlank()
                     && q.getChoiceA() != null && !q.getChoiceA().isBlank()
                     && q.getChoiceB() != null && !q.getChoiceB().isBlank()
@@ -133,19 +148,24 @@ public class GameController {
         }
 
         int qualityScore = (int) (100.0 * allFieldsFilled / Math.max(1, totalQuestions));
+        int averageQualityScore = (int) Math.round(qualityScoreTotal / Math.max(1.0, totalQuestions));
 
-        return ResponseEntity.ok(Map.of(
-                "subject", subject,
-                "difficulty", difficulty,
-                "language", language,
-                "totalQuestions", totalQuestions,
-                "withFourDistinctChoices", withFourChoices,
-                "withValidCorrectChoice", validCorrectChoice,
-                "endsWithQuestionMark", endsWithQuestionMark,
-                "hasExplanation", hasExplanation,
-                "allFieldsFilled", allFieldsFilled,
-                "qualityScore%", qualityScore
-        ));
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("subject", subject);
+        response.put("difficulty", difficulty);
+        response.put("language", language);
+        response.put("totalQuestions", totalQuestions);
+        response.put("withFourDistinctChoices", withFourChoices);
+        response.put("withValidCorrectChoice", validCorrectChoice);
+        response.put("endsWithQuestionMark", endsWithQuestionMark);
+        response.put("hasExplanation", hasExplanation);
+        response.put("allFieldsFilled", allFieldsFilled);
+        response.put("qualityScore%", qualityScore);
+        response.put("averageQualityScore", averageQualityScore);
+        response.put("lowConfidenceQuestions", lowConfidence);
+        response.put("distinctTopics", topics.size());
+
+        return ResponseEntity.ok(response);
     }
 
         private int toInt(Object value, String fieldName) {
