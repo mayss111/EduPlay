@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get isArabic(): boolean {
-    return (this.user?.language || this.authService.getUiLanguage()) === 'ARABIC';
+    return this.authService.getUiLanguage() === 'ARABIC';
   }
 
   t(fr: string, ar: string): string {

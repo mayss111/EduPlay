@@ -737,6 +737,13 @@ public class QuestionGeneratorService {
                 : " (" + levelTag + " | theme: " + theme + ")";
 
         String qt = Optional.ofNullable(question.getQuestionText()).orElse("").trim();
+        String profileContext = classProfileContext(classLevel, difficulty, language);
+        if (!profileContext.isBlank() && !qt.contains(profileContext)) {
+            qt = language == AppLanguage.ARABIC
+                    ? profileContext + " - " + qt
+                    : profileContext + " - " + qt;
+        }
+
         if (!qt.contains(suffix)) {
             if (qt.endsWith("?") || qt.endsWith("؟")) {
                 qt = qt.substring(0, qt.length() - 1).trim() + suffix + (qt.endsWith("؟") ? "؟" : "?");
@@ -758,6 +765,34 @@ public class QuestionGeneratorService {
                 question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + objective);
             }
         }
+
+        String levelHint = language == AppLanguage.ARABIC
+                ? "مراعاة مستوى الصف " + classLevel + "."
+                : "Adapte au niveau de la classe " + classLevel + ".";
+        String updatedExp = Optional.ofNullable(question.getExplanation()).orElse("").trim();
+        if (!updatedExp.contains(levelHint)) {
+            question.setExplanation((updatedExp.isBlank() ? "" : updatedExp + " ") + levelHint);
+        }
+    }
+
+    private String classProfileContext(int classLevel, Difficulty difficulty, AppLanguage language) {
+        String band = classLevel <= 2 ? "debutant"
+                : classLevel <= 4 ? "intermediaire"
+                : "avance";
+
+        if (language == AppLanguage.ARABIC) {
+            return switch (band) {
+                case "debutant" -> "سياق حياتي بسيط";
+                case "intermediaire" -> "سياق مدرسي تطبيقي";
+                default -> "سياق تحليلي مناسب";
+            };
+        }
+
+        return switch (band) {
+            case "debutant" -> "Contexte quotidien simple";
+            case "intermediaire" -> "Contexte scolaire applique";
+            default -> "Contexte d'analyse guidee";
+        };
     }
 
     private String subjectTheme(Subject subject,

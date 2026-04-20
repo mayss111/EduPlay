@@ -59,6 +59,10 @@ export class AuthService {
 
   setUiLanguage(language: 'FRENCH' | 'ARABIC'): void {
     localStorage.setItem(this.UI_LANG_KEY, language);
+    const user = this.getUser();
+    if (user) {
+      localStorage.setItem('user', JSON.stringify({ ...user, language }));
+    }
     this.languageSubject.next(language);
   }
 

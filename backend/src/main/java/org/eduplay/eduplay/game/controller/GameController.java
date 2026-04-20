@@ -24,6 +24,7 @@ public class GameController {
     public ResponseEntity<List<Question>> getQuestions(
             @RequestParam Subject subject,
             @RequestParam Difficulty difficulty,
+            @RequestParam(required = false) AppLanguage language,
             Authentication auth) {
 
         String username = auth.getName();
@@ -31,10 +32,17 @@ public class GameController {
                 .orElseThrow(() -> new RuntimeException("User introuvable"));
 
         int classLevel = user.getClassLevel() == null ? 1 : user.getClassLevel();
-        AppLanguage language = user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage();
+        AppLanguage effectiveLanguage = language != null
+                ? language
+                : (user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage());
+
+        if (user.getLanguage() != effectiveLanguage) {
+            user.setLanguage(effectiveLanguage);
+            userRepository.save(user);
+        }
 
         List<Question> questions = questionGeneratorService
-                .generateQuestions(classLevel, subject, difficulty, language);
+                .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
         return ResponseEntity.ok(questions);
     }
 
