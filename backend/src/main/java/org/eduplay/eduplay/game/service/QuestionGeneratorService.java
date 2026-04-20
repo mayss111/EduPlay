@@ -41,7 +41,7 @@ public class QuestionGeneratorService {
 
     private static final int TARGET_QUESTION_COUNT = 10;
     private static final int MAX_GENERATION_ATTEMPTS = 2;
-    private static final long QUESTION_CACHE_TTL_MS = 90_000;
+    private static final long QUESTION_CACHE_TTL_MS = 30_000;
     private static final long VARIATION_BUCKET_MS = 4_000;
     private static final int MIN_QUALITY_SCORE = 70;
     private static final double DUPLICATE_SIMILARITY_THRESHOLD = 0.74;
@@ -129,7 +129,6 @@ public class QuestionGeneratorService {
         if (best.size() >= TARGET_QUESTION_COUNT) {
             List<Question> tailored = tailorQuestionsForClassAndDifficulty(best, classLevel, difficulty, language);
             List<Question> finalized = finalizeQuestionSet(tailored, classLevel, subject, difficulty, language);
-            putInCache(cacheKey, finalized);
             return rotateForVariety(finalized);
         }
 
@@ -141,7 +140,6 @@ public class QuestionGeneratorService {
 
         if (!emergencyFinal.isEmpty()) {
             List<Question> safe = ensureMinimumPlayableSet(emergencyFinal, fallback, subject, classLevel, difficulty);
-            putInCache(cacheKey, safe);
             return rotateForVariety(safe);
         }
 
@@ -181,6 +179,8 @@ public class QuestionGeneratorService {
                                 - Toute la sortie doit etre en %s (question, choix, explication).
                                 - Faits vrais, niveau primaire tunisien.
                                 - Les questions doivent etre differentes par formulation et par contexte.
+                                - Chaque question doit utiliser un sous-theme ou une situation differente.
+                                - Ne reutilise pas la meme structure d'une question a l'autre.
                                 - 4 choix differents, plausibles, sans pieges absurdes.
                                 - correctChoice doit etre A, B, C ou D.
                                 - Explication courte mais utile (justification, regle ou raisonnement simple).
@@ -221,15 +221,20 @@ public class QuestionGeneratorService {
     private String styleGuidance(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
         String band = classBand(classLevel);
         String topic = subjectTheme(subject, classLevel, difficulty, classLevel + difficultyWeight(difficulty), language);
+        String diversityHint = language == AppLanguage.ARABIC
+                ? "- غيّر نوع الوضعية في كل سؤال: تعريف، اختيار، مقارنة، تطبيق، تفسير."
+                : "- Alterne les situations: definition, choix, comparaison, application, interpretation.";
 
         if (language == AppLanguage.ARABIC) {
             return "- مناسب للـ " + band + "\n"
                     + "- استعمل سياقات من محور: " + topic + "\n"
+                    + diversityHint + "\n"
                     + "- غير بداية الجمل وتجنب التكرار الحرفي.";
         }
 
         return "- Niveau de classe: " + band + "\n"
                 + "- Utilise des contextes relies au theme: " + topic + "\n"
+                + diversityHint + "\n"
                 + "- Varie les debuts de phrases et evite la repetition litterale.";
     }
 
@@ -891,26 +896,75 @@ public class QuestionGeneratorService {
                                 int index,
                                 AppLanguage language) {
         int offset = classLevel + difficultyWeight(difficulty) + index;
+        String band = classBand(classLevel);
 
         if (language == AppLanguage.ARABIC) {
             String[] pool = switch (subject) {
-                case FRENCH -> new String[]{"المفردات", "القواعد", "فهم الجملة", "تركيب الجملة"};
-                case ARABIC -> new String[]{"المفردات", "النحو", "الإملاء", "الفهم القرائي"};
-                case SCIENCE -> new String[]{"جسم الإنسان", "البيئة", "المادة", "الكائنات الحية"};
-                case HISTORY -> new String[]{"التسلسل الزمني", "الشخصيات", "التراث التونسي", "الأحداث"};
-                case GEOGRAPHY -> new String[]{"الاتجاهات", "الخريطة", "المناخ", "تونس وجوارها"};
-                case MATH -> new String[]{"الحساب", "المسائل", "المنطق", "الهندسة"};
+                case FRENCH -> switch (band) {
+                    case "debutant" -> new String[]{"الحروف", "المقاطع", "الكلمات اليومية", "الجمل القصيرة", "المفرد", "الجمع", "القراءة", "الكتابة", "التهجئة", "المعجم"};
+                    case "intermediaire" -> new String[]{"القواعد", "الفعل", "الاسم", "الصفة", "الضمائر", "التركيب", "الفهم", "التمييز", "الترقيم", "المعنى"};
+                    default -> new String[]{"الاستنتاج", "إعادة الصياغة", "تركيب الجمل", "فهم النص", "السياق", "المقارنة", "التحليل", "الاستعمال", "اللغات", "المعجم المتقدم"};
+                };
+                case ARABIC -> switch (band) {
+                    case "debutant" -> new String[]{"الحروف", "المقاطع", "الكلمات اليومية", "الجمل القصيرة", "المفرد", "الجمع", "القراءة", "الكتابة", "الإملاء", "المعجم"};
+                    case "intermediaire" -> new String[]{"النحو", "الفعل", "الاسم", "الصفة", "الضمائر", "التركيب", "الفهم", "التمييز", "الترقيم", "المعنى"};
+                    default -> new String[]{"الاستنتاج", "إعادة الصياغة", "تحليل النص", "الفهم القرائي", "السياق", "المقارنة", "التحليل", "الاستعمال", "الأساليب", "المعجم المتقدم"};
+                };
+                case SCIENCE -> switch (band) {
+                    case "debutant" -> new String[]{"الجسم", "الحواس", "الماء", "الهواء", "النبات", "الحيوان", "الضوء", "الحرارة", "النظافة", "البيئة"};
+                    case "intermediaire" -> new String[]{"أعضاء الجسم", "الطاقة", "المادة", "التوازن", "النباتات", "الحيوانات", "الطقس", "الصحة", "التحول", "الملاحظة"};
+                    default -> new String[]{"السبب والنتيجة", "الظواهر", "التجريب", "المقارنة", "البيئة", "الدورات", "التحليل", "التفسير", "العلوم اليومية", "الاستنتاج"};
+                };
+                case HISTORY -> switch (band) {
+                    case "debutant" -> new String[]{"الماضي", "الحاضر", "الشخصيات", "الأحداث", "الترتيب", "الزمن", "الصور القديمة", "المدرسة", "البلاد", "الذاكرة"};
+                    case "intermediaire" -> new String[]{"التسلسل الزمني", "الوثائق", "التراث", "الأحداث", "الشخصيات", "الحقبة", "المقارنة", "الأسئلة", "السبب", "النتيجة"};
+                    default -> new String[]{"التحليل التاريخي", "الاستنتاج", "المصادر", "السياق", "التحول", "الترتيب الزمني", "التراث التونسي", "الوقائع", "العلاقة", "الدلالة"};
+                };
+                case GEOGRAPHY -> switch (band) {
+                    case "debutant" -> new String[]{"الاتجاهات", "الخريطة", "المدينة", "القرية", "البحر", "الجبال", "الصحراء", "الطقس", "البلد", "الحدود"};
+                    case "intermediaire" -> new String[]{"المناخ", "الخرائط", "المنظر الطبيعي", "الاتجاهات", "تونس", "الجوار", "الرموز", "الموقع", "المياه", "السكان"};
+                    default -> new String[]{"تحليل الخريطة", "العلاقة بين المكان والمناخ", "المجالات", "الحدود", "الأنشطة", "المدن", "القراءة", "المقارنة", "الاستنتاج", "التوزيع"};
+                };
+                case MATH -> switch (band) {
+                    case "debutant" -> new String[]{"الحساب", "العد", "المقارنة", "الجمع", "الطرح", "الأشكال", "الترتيب", "الوقت", "الأعداد", "القياس"};
+                    case "intermediaire" -> new String[]{"المسائل", "الكسور", "الضرب", "القسمة", "المنطق", "الهندسة", "القياس", "الأنماط", "العدد", "الاستراتيجية"};
+                    default -> new String[]{"الاستدلال", "حل المسائل", "التحقق", "الأنماط", "التمثيل", "الهندسة", "التركيب", "التفسير", "الاستراتيجية", "القياس"};
+                };
             };
             return pool[Math.floorMod(offset, pool.length)];
         }
 
         String[] pool = switch (subject) {
-            case FRENCH -> new String[]{"vocabulaire", "grammaire", "comprehension", "construction de phrase"};
-            case ARABIC -> new String[]{"vocabulaire arabe", "grammaire arabe", "orthographe arabe", "lecture arabe"};
-            case SCIENCE -> new String[]{"corps humain", "environnement", "matiere", "vivant et non vivant"};
-            case HISTORY -> new String[]{"chronologie", "personnages", "patrimoine tunisien", "reperes historiques"};
-            case GEOGRAPHY -> new String[]{"orientation", "lecture de carte", "climat", "Tunisie et voisins"};
-            case MATH -> new String[]{"calcul", "problemes", "raisonnement", "geometrie"};
+            case FRENCH -> switch (band) {
+                case "debutant" -> new String[]{"letters", "syllabes", "mots", "phrases courtes", "singulier", "pluriel", "lecture", "ecriture", "orthographe", "vocabulaire"};
+                case "intermediaire" -> new String[]{"grammaire", "conjugaison", "accord", "types de phrases", "synonymes", "antonymes", "ponctuation", "lecture de texte", "vocabulaire", "reformulation"};
+                default -> new String[]{"comprehension", "analyse", "inference", "structure", "coherence", "lexique", "texte court", "reformulation", "production", "interpretation"};
+            };
+            case ARABIC -> switch (band) {
+                case "debutant" -> new String[]{"الحروف", "المقاطع", "الكلمات", "الجمل القصيرة", "المفرد", "الجمع", "القراءة", "الكتابة", "الإملاء", "المعجم"};
+                case "intermediaire" -> new String[]{"النحو", "التصريف", "التركيب", "التمييز", "الفهم", "الترقيم", "المعنى", "الأساليب", "القراءة", "الكتابة"};
+                default -> new String[]{"الفهم القرائي", "الاستنتاج", "التحليل", "إعادة الصياغة", "السياق", "الأسلوب", "الاستعمال", "المعجم", "التركيب", "التفسير"};
+            };
+            case SCIENCE -> switch (band) {
+                case "debutant" -> new String[]{"corps humain", "sens", "eau", "air", "plante", "animal", "lumiere", "chaleur", "proprete", "milieu"};
+                case "intermediaire" -> new String[]{"organes", "energie", "matiere", "equilibre", "plantes", "animaux", "meteo", "sante", "transformation", "observation"};
+                default -> new String[]{"cause", "consequence", "phenomenes", "experience", "comparaison", "cycle", "analyse", "interpretation", "sciences du quotidien", "conclusion"};
+            };
+            case HISTORY -> switch (band) {
+                case "debutant" -> new String[]{"passe", "present", "personnages", "evenements", "ordre", "temps", "photos anciennes", "ecole", "pays", "memoire"};
+                case "intermediaire" -> new String[]{"chronologie", "documents", "patrimoine", "faits", "personnages", "epoque", "comparaison", "questions", "cause", "consequence"};
+                default -> new String[]{"analyse historique", "sources", "contexte", "transition", "ordre chronologique", "patrimoine tunisien", "faits", "lien", "sens", "interpretation"};
+            };
+            case GEOGRAPHY -> switch (band) {
+                case "debutant" -> new String[]{"orientation", "carte", "ville", "campagne", "mer", "montagne", "desert", "meteo", "pays", "frontiere"};
+                case "intermediaire" -> new String[]{"climat", "lecture de carte", "paysage", "points cardinaux", "Tunisie", "voisins", "symboles", "localisation", "eaux", "population"};
+                default -> new String[]{"analyse de carte", "lien climat-territoire", "milieux", "frontieres", "activites", "villes", "lecture", "comparaison", "conclusion", "repartition"};
+            };
+            case MATH -> switch (band) {
+                case "debutant" -> new String[]{"calcul", "comptage", "comparaison", "addition", "soustraction", "formes", "ordre", "temps", "nombres", "mesure"};
+                case "intermediaire" -> new String[]{"problemes", "fractions", "multiplication", "division", "raisonnement", "geometrie", "mesure", "motifs", "nombre", "strategie"};
+                default -> new String[]{"raisonnement", "problemes", "verification", "motifs", "representation", "geometrie", "construction", "interpretation", "strategie", "mesure"};
+            };
         };
         return pool[Math.floorMod(offset, pool.length)];
     }
@@ -1405,7 +1459,7 @@ public class QuestionGeneratorService {
             }
 
             String topic = Optional.ofNullable(question.getTopicTag()).orElse("global");
-            int maxPerTopic = question.getSubject() == Subject.MATH ? 2 : 3;
+            int maxPerTopic = selected.size() < limit - 2 ? 1 : 2;
             if (topicCounts.getOrDefault(topic, 0) >= maxPerTopic && selected.size() < limit - 2) {
                 continue;
             }
@@ -1639,13 +1693,17 @@ public class QuestionGeneratorService {
     }
 
     private String questionProfile(int classLevel, Difficulty difficulty, int index, AppLanguage language) {
-        int slot = Math.floorMod(classLevel + difficultyWeight(difficulty) + index, 4);
+        int slot = Math.floorMod(classLevel + difficultyWeight(difficulty) + index, 8);
         if (language == AppLanguage.ARABIC) {
             return switch (slot) {
                 case 0 -> "استرجاع مباشر";
                 case 1 -> "تطبيق عملي";
                 case 2 -> "تفكير وتفسير";
-                default -> "نقل المفهوم";
+                case 3 -> "مقارنة";
+                case 4 -> "تحليل";
+                case 5 -> "نقل المفهوم";
+                case 6 -> "تثبيت مكتسبات";
+                default -> "استنتاج";
             };
         }
 
@@ -1653,7 +1711,11 @@ public class QuestionGeneratorService {
             case 0 -> "rappel direct";
             case 1 -> "application";
             case 2 -> "raisonnement";
-            default -> "transfert";
+            case 3 -> "comparaison";
+            case 4 -> "analyse";
+            case 5 -> "transfert";
+            case 6 -> "consolidation";
+            default -> "inference";
         };
     }
 
@@ -1743,7 +1805,7 @@ public class QuestionGeneratorService {
                 normalized = copyQuestions(expanded);
             }
             if (normalized.size() >= TARGET_QUESTION_COUNT) {
-                return new ArrayList<>(normalized.subList(0, TARGET_QUESTION_COUNT));
+                return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
             }
 
             List<Question> completed = new ArrayList<>(normalized);
@@ -1762,8 +1824,8 @@ public class QuestionGeneratorService {
                 }
             }
 
-            return completed.size() > TARGET_QUESTION_COUNT
-                    ? new ArrayList<>(completed.subList(0, TARGET_QUESTION_COUNT))
+                return completed.size() > TARGET_QUESTION_COUNT
+                    ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
                     : completed;
         }
 
@@ -1850,7 +1912,7 @@ public class QuestionGeneratorService {
             }
 
             if (normalized.size() >= TARGET_QUESTION_COUNT) {
-                return new ArrayList<>(normalized.subList(0, TARGET_QUESTION_COUNT));
+                return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
             }
 
             List<Question> completed = new ArrayList<>(normalized);
@@ -1869,8 +1931,8 @@ public class QuestionGeneratorService {
                 }
             }
 
-            return completed.size() > TARGET_QUESTION_COUNT
-                    ? new ArrayList<>(completed.subList(0, TARGET_QUESTION_COUNT))
+                return completed.size() > TARGET_QUESTION_COUNT
+                    ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
                     : completed;
             }
 
@@ -1892,13 +1954,12 @@ public class QuestionGeneratorService {
             }
 
             index++;
-            Question first = copyQuestion(original);
-            applyFallbackVariant(first, classLevel, subject, difficulty, language, index + seed);
-            expanded.add(first);
-
-            Question second = copyQuestion(original);
-            applyFallbackVariant(second, classLevel, subject, difficulty, language, index + seed + 11);
-            expanded.add(second);
+            int[] offsets = new int[] {0, 11, 23, 37};
+            for (int offset : offsets) {
+                Question variant = copyQuestion(original);
+                applyFallbackVariant(variant, classLevel, subject, difficulty, language, index + seed + offset);
+                expanded.add(variant);
+            }
         }
 
         return expanded;
@@ -1936,6 +1997,8 @@ public class QuestionGeneratorService {
 
         injectContextVariant(question, classLevel, difficulty, language, variantIndex);
 
+        question.setQuestionText(rephraseFallbackQuestion(question.getQuestionText(), language, variantIndex));
+
         String theme = subjectTheme(subject, classLevel, difficulty, variantIndex, language);
         String objective = learningObjective(subject, difficulty, language);
         String explanation = Optional.ofNullable(question.getExplanation()).orElse("").trim();
@@ -1947,6 +2010,71 @@ public class QuestionGeneratorService {
         if (!explanation.contains(add)) {
             question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + add);
         }
+    }
+
+    private List<Question> selectDiverseSlice(List<Question> source, int limit) {
+        if (source == null || source.isEmpty()) {
+            return List.of();
+        }
+        if (source.size() <= limit) {
+            return new ArrayList<>(source);
+        }
+
+        List<Question> pool = copyQuestions(source);
+        int rotate = Math.floorMod(variationSalt() * 3, pool.size());
+        Collections.rotate(pool, rotate);
+
+        List<Question> selected = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (Question q : pool) {
+            if (selected.size() >= limit) {
+                break;
+            }
+            String key = normalizeForContains(q.getQuestionText());
+            if (key.isBlank() || !seen.add(key)) {
+                continue;
+            }
+            selected.add(q);
+        }
+
+        return selected.size() >= limit
+                ? selected
+                : new ArrayList<>(pool.subList(0, limit));
+    }
+
+    private String rephraseFallbackQuestion(String questionText, AppLanguage language, int variantIndex) {
+        if (questionText == null || questionText.isBlank()) {
+            return questionText;
+        }
+
+        String text = questionText.trim();
+        int slot = Math.floorMod(variantIndex, 4);
+
+        if (language == AppLanguage.ARABIC) {
+            if (slot == 1) {
+                text = text.replaceFirst("^ما هو", "حدد");
+                text = text.replaceFirst("^ما هي", "حدد");
+            } else if (slot == 2) {
+                text = text.replaceFirst("^أي", "اختر");
+            } else if (slot == 3) {
+                text = text.replaceFirst("^كم يساوي", "احسب");
+            }
+        } else {
+            if (slot == 1) {
+                text = text.replaceFirst("^Quel", "Lequel");
+                text = text.replaceFirst("^Quelle", "Laquelle");
+            } else if (slot == 2) {
+                text = text.replaceFirst("^Combien font", "Calcule");
+            } else if (slot == 3) {
+                text = text.replaceFirst("^Quel est", "Donne");
+                text = text.replaceFirst("^Quelle est", "Donne");
+            }
+        }
+
+        if (!(text.endsWith("?") || text.endsWith("؟"))) {
+            text = text + (language == AppLanguage.ARABIC ? "؟" : "?");
+        }
+        return text;
     }
 
     private Question createQuestion(String questionText,
