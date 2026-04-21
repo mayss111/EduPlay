@@ -1799,7 +1799,10 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> expanded = expandFallbackPool(questions, classLevel, subject, difficulty, language);
+            List<Question> richQuestions = new ArrayList<>(questions);
+            richQuestions.addAll(buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, language));
+
+            List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, language);
             List<Question> normalized = normalizeAndDiversify(expanded, language);
             if (normalized.isEmpty()) {
                 normalized = copyQuestions(expanded);
@@ -1905,7 +1908,10 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> expanded = expandFallbackPool(questions, classLevel, subject, difficulty, AppLanguage.ARABIC);
+            List<Question> richQuestions = new ArrayList<>(questions);
+            richQuestions.addAll(buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC));
+
+            List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, AppLanguage.ARABIC);
             List<Question> normalized = normalizeAndDiversify(expanded, AppLanguage.ARABIC);
             if (normalized.isEmpty()) {
                 normalized = copyQuestions(expanded);
@@ -2076,6 +2082,350 @@ public class QuestionGeneratorService {
         }
         return text;
     }
+
+        private List<Question> buildProgrammaticFallbackQuestions(int classLevel,
+                                      Subject subject,
+                                      Difficulty difficulty,
+                                      AppLanguage language) {
+        List<Question> generated = new ArrayList<>();
+        int seed = variationSalt() + classLevel * 5 + difficultyWeight(difficulty) * 7;
+
+        for (int i = 0; i < 10; i++) {
+            int idx = seed + i;
+            String theme = subjectTheme(subject, classLevel, difficulty, idx, language);
+            String objective = learningObjective(subject, difficulty, language);
+            Question q = language == AppLanguage.ARABIC
+                ? buildArabicProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective)
+                : buildFrenchProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective);
+            if (q != null) {
+            generated.add(q);
+            }
+        }
+
+        return generated;
+        }
+
+        private Question buildFrenchProgrammaticQuestion(Subject subject,
+                                 int classLevel,
+                                 Difficulty difficulty,
+                                 int idx,
+                                 String theme,
+                                 String objective) {
+        return switch (subject) {
+            case MATH -> {
+            int a = 2 + classLevel + Math.floorMod(idx, 7);
+            int b = 1 + difficultyWeight(difficulty) + Math.floorMod(idx, 6);
+            int mode = Math.floorMod(idx, 3);
+            if (mode == 0) {
+                int r = a + b;
+                yield createQuestion(
+                    "Dans le theme " + theme + ", combien font " + a + " + " + b + "?",
+                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
+                    "A",
+                    "Objectif: " + objective + ". On additionne " + a + " et " + b + " pour obtenir " + r + ".",
+                    subject, classLevel, difficulty
+                );
+            }
+            if (mode == 1) {
+                int r = Math.max(0, a + b - (1 + Math.floorMod(idx, 4)));
+                int left = r + b;
+                yield createQuestion(
+                    "Dans un probleme de calcul, combien font " + left + " - " + b + "?",
+                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
+                    "A",
+                    "Objectif: " + objective + ". En soustraction, " + left + " - " + b + " = " + r + ".",
+                    subject, classLevel, difficulty
+                );
+            }
+            int m1 = 2 + Math.floorMod(idx, 5);
+            int m2 = 2 + Math.floorMod(classLevel + idx, 4);
+            int r = m1 * m2;
+            yield createQuestion(
+                "En mathematiques, combien font " + m1 + " x " + m2 + "?",
+                String.valueOf(r), String.valueOf(r + m2), String.valueOf(Math.max(0, r - m2)), String.valueOf(r + 1),
+                "A",
+                "Objectif: " + objective + ". On multiplie " + m1 + " par " + m2 + " pour trouver " + r + ".",
+                subject, classLevel, difficulty
+            );
+            }
+            case SCIENCE -> {
+            String[] q = {
+                "En science (%s), quel element aide la plante a grandir?",
+                "Quel organe du corps permet la vision en classe %d?",
+                "Dans le theme %s, quel element est necessaire pour respirer?",
+                "Quel exemple correspond a un etre vivant?"
+            };
+            String[][] c = {
+                {"eau et lumiere", "papier", "metal", "plastique"},
+                {"oeil", "genou", "doigt", "epaule"},
+                {"air", "craie", "sable", "carton"},
+                {"chat", "caillou", "table", "verre"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = row == 1 ? q[row].formatted(classLevel) : q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "Objectif: " + objective + ". Cette reponse est correcte pour le theme " + theme + ".",
+                subject, classLevel, difficulty
+            );
+            }
+            case GEOGRAPHY -> {
+            String[] q = {
+                "En geographie (%s), quelle direction est l'oppose du nord?",
+                "Quelle ville est la capitale de la Tunisie?",
+                "Quel outil aide a lire une carte en classe %d?",
+                "Dans le theme %s, quel espace contient de l'eau salee?"
+            };
+            String[][] c = {
+                {"sud", "est", "ouest", "nord"},
+                {"Tunis", "Sfax", "Sousse", "Gabes"},
+                {"legende", "cuillere", "ardoise", "gomme"},
+                {"mer", "lac d'eau douce", "rivere de classe", "fontaine"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = row == 2 ? q[row].formatted(classLevel) : q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "Objectif: " + objective + ". On valide une notion de geographie liee au theme " + theme + ".",
+                subject, classLevel, difficulty
+            );
+            }
+            case HISTORY -> {
+            String[] q = {
+                "En histoire (%s), que signifie 'passe'?",
+                "Quel outil organise les evenements historiques?",
+                "Dans une chronologie, quel moment vient d'abord?",
+                "Quel terme historique designe une periode ancienne?"
+            };
+            String[][] c = {
+                {"ce qui est arrive avant", "ce qui arrivera demain", "une operation de calcul", "un jeu"},
+                {"ligne du temps", "thermometre", "boussole", "regle"},
+                {"avant", "apres", "jamais", "maintenant"},
+                {"epoque ancienne", "reponse rapide", "grande addition", "direction"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "Objectif: " + objective + ". On relie la question au theme " + theme + " en histoire.",
+                subject, classLevel, difficulty
+            );
+            }
+            case FRENCH -> {
+            String[] q = {
+                "En francais (%s), quel mot est un verbe?",
+                "Quel mot est au pluriel?",
+                "Quelle categorie correspond au mot 'rapide'?",
+                "Dans une phrase simple, quel element est un nom?"
+            };
+            String[][] c = {
+                {"manger", "table", "bleu", "ecole"},
+                {"chats", "chat", "maison", "arbre"},
+                {"adjectif", "verbe", "nombre", "direction"},
+                {"maison", "courir", "vite", "joli"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "Objectif: " + objective + ". Cette question travaille le theme " + theme + " en francais.",
+                subject, classLevel, difficulty
+            );
+            }
+            case ARABIC -> {
+            String[] q = {
+                "En arabe (%s), quel mot signifie 'livre'?",
+                "Quel mot arabe signifie 'ecole'?",
+                "Quel terme appartient au vocabulaire arabe?",
+                "Quel mot arabe designe la 'lune'?"
+            };
+            String[][] c = {
+                {"kitab", "bab", "bayt", "nahar"},
+                {"madrasa", "bahr", "shams", "qalam"},
+                {"qalam", "ordinateur", "internet", "football"},
+                {"qamar", "shams", "ma", "walad"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "Objectif: " + objective + ". On enrichit le vocabulaire du theme " + theme + ".",
+                subject, classLevel, difficulty
+            );
+            }
+        };
+        }
+
+        private Question buildArabicProgrammaticQuestion(Subject subject,
+                                 int classLevel,
+                                 Difficulty difficulty,
+                                 int idx,
+                                 String theme,
+                                 String objective) {
+        return switch (subject) {
+            case MATH -> {
+            int a = 2 + classLevel + Math.floorMod(idx, 7);
+            int b = 1 + difficultyWeight(difficulty) + Math.floorMod(idx, 6);
+            int mode = Math.floorMod(idx, 3);
+            if (mode == 0) {
+                int r = a + b;
+                yield createQuestion(
+                    "في محور " + theme + "، كم يساوي " + a + " + " + b + "؟",
+                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
+                    "A",
+                    "هدف التعلم: " + objective + ". نجمع " + a + " و" + b + " لنحصل على " + r + ".",
+                    subject, classLevel, difficulty
+                );
+            }
+            if (mode == 1) {
+                int r = Math.max(0, a + b - (1 + Math.floorMod(idx, 4)));
+                int left = r + b;
+                yield createQuestion(
+                    "في مسألة حساب، كم يساوي " + left + " - " + b + "؟",
+                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
+                    "A",
+                    "هدف التعلم: " + objective + ". في الطرح " + left + " - " + b + " = " + r + ".",
+                    subject, classLevel, difficulty
+                );
+            }
+            int m1 = 2 + Math.floorMod(idx, 5);
+            int m2 = 2 + Math.floorMod(classLevel + idx, 4);
+            int r = m1 * m2;
+            yield createQuestion(
+                "في الرياضيات، كم يساوي " + m1 + " × " + m2 + "؟",
+                String.valueOf(r), String.valueOf(r + m2), String.valueOf(Math.max(0, r - m2)), String.valueOf(r + 1),
+                "A",
+                "هدف التعلم: " + objective + ". نضرب " + m1 + " في " + m2 + " فنحصل على " + r + ".",
+                subject, classLevel, difficulty
+            );
+            }
+            case SCIENCE -> {
+            String[] q = {
+                "في العلوم (%s)، ما الذي يساعد النبات على النمو؟",
+                "أي عضو في الجسم يساعد على الرؤية في الصف %d؟",
+                "في محور %s، ما العنصر الضروري للتنفس؟",
+                "أي مثال يمثل كائنا حيا؟"
+            };
+            String[][] c = {
+                {"الماء والضوء", "الورق", "المعدن", "الحجر"},
+                {"العين", "الركبة", "الإصبع", "الكتف"},
+                {"الهواء", "الطباشير", "الرمل", "الورق"},
+                {"القط", "الحجر", "الطاولة", "الكأس"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = row == 1 ? q[row].formatted(classLevel) : q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "هدف التعلم: " + objective + ". هذه الإجابة صحيحة ضمن محور " + theme + ".",
+                subject, classLevel, difficulty
+            );
+            }
+            case GEOGRAPHY -> {
+            String[] q = {
+                "في الجغرافيا (%s)، ما الجهة المقابلة للشمال؟",
+                "ما هي عاصمة تونس؟",
+                "أي عنصر يساعد على قراءة الخريطة في الصف %d؟",
+                "في محور %s، ما الفضاء الذي يحتوي ماء مالحا؟"
+            };
+            String[][] c = {
+                {"الجنوب", "الشرق", "الغرب", "الشمال"},
+                {"تونس", "صفاقس", "سوسة", "قابس"},
+                {"المفتاح", "الملعقة", "الدفتر", "الممحاة"},
+                {"البحر", "البحيرة العذبة", "النهر", "النافورة"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = row == 2 ? q[row].formatted(classLevel) : q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "هدف التعلم: " + objective + ". السؤال مرتبط بمحور " + theme + " في الجغرافيا.",
+                subject, classLevel, difficulty
+            );
+            }
+            case HISTORY -> {
+            String[] q = {
+                "في التاريخ (%s)، ماذا يعني الماضي؟",
+                "ما الأداة التي ترتب الأحداث التاريخية؟",
+                "في الخط الزمني، أي لحظة تأتي أولا؟",
+                "أي مصطلح يدل على حقبة قديمة؟"
+            };
+            String[][] c = {
+                {"ما حدث قبل الآن", "ما سيحدث غدا", "عملية حساب", "لعبة"},
+                {"الخط الزمني", "ميزان الحرارة", "البوصلة", "المسطرة"},
+                {"قبل", "بعد", "أبدا", "الآن"},
+                {"حقبة قديمة", "إجابة سريعة", "جمع كبير", "اتجاه"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "هدف التعلم: " + objective + ". نربط الفكرة بمحور " + theme + " في التاريخ.",
+                subject, classLevel, difficulty
+            );
+            }
+            case FRENCH -> {
+            String[] q = {
+                "في الفرنسية (%s)، أي كلمة هي فعل؟",
+                "أي كلمة في صيغة الجمع؟",
+                "ما نوع كلمة 'rapide'؟",
+                "في جملة بسيطة، أي عنصر هو اسم؟"
+            };
+            String[][] c = {
+                {"manger", "table", "bleu", "ecole"},
+                {"chats", "chat", "maison", "arbre"},
+                {"adjectif", "verbe", "nombre", "direction"},
+                {"maison", "courir", "vite", "joli"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "هدف التعلم: " + objective + ". السؤال يثري محور " + theme + " في الفرنسية.",
+                subject, classLevel, difficulty
+            );
+            }
+            case ARABIC -> {
+            String[] q = {
+                "في العربية (%s)، أي كلمة معناها كتاب؟",
+                "أي كلمة معناها مدرسة؟",
+                "أي مصطلح ينتمي إلى المعجم العربي؟",
+                "أي كلمة تعني القمر؟"
+            };
+            String[][] c = {
+                {"كتاب", "باب", "بيت", "نهار"},
+                {"مدرسة", "بحر", "شمس", "قلم"},
+                {"قلم", "كمبيوتر", "انترنت", "football"},
+                {"قمر", "شمس", "ماء", "ولد"}
+            };
+            int row = Math.floorMod(idx, q.length);
+            String qt = q[row].formatted(theme);
+            yield createQuestion(
+                qt,
+                c[row][0], c[row][1], c[row][2], c[row][3],
+                "A",
+                "هدف التعلم: " + objective + ". السؤال يثري محور " + theme + " في العربية.",
+                subject, classLevel, difficulty
+            );
+            }
+        };
+        }
 
     private Question createQuestion(String questionText,
                                     String choiceA,
