@@ -44,7 +44,7 @@ public class QuestionGeneratorService {
     private static final long QUESTION_CACHE_TTL_MS = 30_000;
     private static final long VARIATION_BUCKET_MS = 4_000;
     private static final int MIN_QUALITY_SCORE = 70;
-    private static final double DUPLICATE_SIMILARITY_THRESHOLD = 0.74;
+    private static final double DUPLICATE_SIMILARITY_THRESHOLD = 0.68;
 
     @Value("${ollama.base-url:http://localhost:11434}")
     private String ollamaBaseUrl;
@@ -1614,7 +1614,11 @@ public class QuestionGeneratorService {
 
     private String questionSignature(Question question) {
         String combined = Optional.ofNullable(question.getQuestionText()).orElse("") + " "
-                + Optional.ofNullable(question.getExplanation()).orElse("");
+                + Optional.ofNullable(question.getExplanation()).orElse("") + " "
+                + Optional.ofNullable(question.getChoiceA()).orElse("") + " "
+                + Optional.ofNullable(question.getChoiceB()).orElse("") + " "
+                + Optional.ofNullable(question.getChoiceC()).orElse("") + " "
+                + Optional.ofNullable(question.getChoiceD()).orElse("");
         return normalizeSignature(combined);
     }
 
@@ -1799,8 +1803,15 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> richQuestions = new ArrayList<>(questions);
-            richQuestions.addAll(buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, language));
+                List<Question> richQuestions = new ArrayList<>(questions);
+                List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, language);
+                List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, language);
+                richQuestions.addAll(programmatic);
+                richQuestions.addAll(curriculum);
+
+                int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
+                log.info("Fallback pool FR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}"
+                    , subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
 
             List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, language);
             List<Question> normalized = normalizeAndDiversify(expanded, language);
@@ -1908,8 +1919,15 @@ public class QuestionGeneratorService {
                 );
             };
 
-            List<Question> richQuestions = new ArrayList<>(questions);
-            richQuestions.addAll(buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC));
+                List<Question> richQuestions = new ArrayList<>(questions);
+                List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
+                List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
+                richQuestions.addAll(programmatic);
+                richQuestions.addAll(curriculum);
+
+                int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
+                log.info("Fallback pool AR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}"
+                    , subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
 
             List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, AppLanguage.ARABIC);
             List<Question> normalized = normalizeAndDiversify(expanded, AppLanguage.ARABIC);
@@ -1960,7 +1978,7 @@ public class QuestionGeneratorService {
             }
 
             index++;
-            int[] offsets = new int[] {0, 11, 23, 37};
+            int[] offsets = fallbackVariantOffsets();
             for (int offset : offsets) {
                 Question variant = copyQuestion(original);
                 applyFallbackVariant(variant, classLevel, subject, difficulty, language, index + seed + offset);
@@ -2031,21 +2049,26 @@ public class QuestionGeneratorService {
         Collections.rotate(pool, rotate);
 
         List<Question> selected = new ArrayList<>();
-        Set<String> seen = new HashSet<>();
+        List<String> seenSignatures = new ArrayList<>();
         for (Question q : pool) {
             if (selected.size() >= limit) {
                 break;
             }
-            String key = normalizeForContains(q.getQuestionText());
-            if (key.isBlank() || !seen.add(key)) {
+            String signature = questionSignature(q);
+            if (isNearDuplicate(signature, seenSignatures)) {
                 continue;
             }
             selected.add(q);
+            seenSignatures.add(signature);
         }
 
         return selected.size() >= limit
                 ? selected
                 : new ArrayList<>(pool.subList(0, limit));
+    }
+
+    private int[] fallbackVariantOffsets() {
+        return new int[] {0, 7, 13, 19, 29, 43};
     }
 
     private String rephraseFallbackQuestion(String questionText, AppLanguage language, int variantIndex) {
@@ -2054,7 +2077,7 @@ public class QuestionGeneratorService {
         }
 
         String text = questionText.trim();
-        int slot = Math.floorMod(variantIndex, 4);
+        int slot = Math.floorMod(variantIndex, 6);
 
         if (language == AppLanguage.ARABIC) {
             if (slot == 1) {
@@ -2064,6 +2087,10 @@ public class QuestionGeneratorService {
                 text = text.replaceFirst("^أي", "اختر");
             } else if (slot == 3) {
                 text = text.replaceFirst("^كم يساوي", "احسب");
+            } else if (slot == 4) {
+                text = text.replaceFirst("^في", "ضمن");
+            } else if (slot == 5) {
+                text = text.replaceFirst("^ما", "أعط");
             }
         } else {
             if (slot == 1) {
@@ -2074,6 +2101,10 @@ public class QuestionGeneratorService {
             } else if (slot == 3) {
                 text = text.replaceFirst("^Quel est", "Donne");
                 text = text.replaceFirst("^Quelle est", "Donne");
+            } else if (slot == 4) {
+                text = text.replaceFirst("^En ", "Dans ");
+            } else if (slot == 5) {
+                text = text.replaceFirst("^Dans ", "Au sein de ");
             }
         }
 
@@ -2089,20 +2120,549 @@ public class QuestionGeneratorService {
                                       AppLanguage language) {
         List<Question> generated = new ArrayList<>();
         int seed = variationSalt() + classLevel * 5 + difficultyWeight(difficulty) * 7;
+        int targetCount = fallbackProgrammaticCount(subject, classLevel, difficulty, language);
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < targetCount; i++) {
             int idx = seed + i;
             String theme = subjectTheme(subject, classLevel, difficulty, idx, language);
             String objective = learningObjective(subject, difficulty, language);
-            Question q = language == AppLanguage.ARABIC
-                ? buildArabicProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective)
-                : buildFrenchProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective);
+            Question q;
+            if (language == AppLanguage.ARABIC) {
+                q = (i % 2 == 0)
+                        ? buildArabicProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective)
+                        : buildArabicScenarioFallbackQuestion(subject, classLevel, difficulty, idx, theme, objective);
+            } else {
+                q = (i % 2 == 0)
+                        ? buildFrenchProgrammaticQuestion(subject, classLevel, difficulty, idx, theme, objective)
+                        : buildFrenchScenarioFallbackQuestion(subject, classLevel, difficulty, idx, theme, objective);
+            }
             if (q != null) {
             generated.add(q);
             }
         }
 
         return generated;
+        }
+
+        private List<Question> buildCurriculumDatasetQuestions(int classLevel,
+                                                               Subject subject,
+                                                               Difficulty difficulty,
+                                                               AppLanguage language) {
+        List<Question> generated = new ArrayList<>();
+        int seed = variationSalt() + classLevel * 31 + difficultyWeight(difficulty) * 17;
+        int targetCount = fallbackCurriculumCount(subject, classLevel, difficulty, language);
+        for (int i = 0; i < targetCount; i++) {
+            int idx = seed + (i * 3);
+            String theme = subjectTheme(subject, classLevel, difficulty, idx + 5, language);
+            String objective = learningObjective(subject, difficulty, language);
+            Question q = language == AppLanguage.ARABIC
+                    ? buildArabicScenarioFallbackQuestion(subject, classLevel, difficulty, idx, theme, objective)
+                    : buildFrenchScenarioFallbackQuestion(subject, classLevel, difficulty, idx, theme, objective);
+            if (q != null) {
+                generated.add(q);
+            }
+        }
+        return generated;
+        }
+
+        private int fallbackProgrammaticCount(Subject subject,
+                                              int classLevel,
+                                              Difficulty difficulty,
+                                              AppLanguage language) {
+        int base = switch (subject) {
+            case MATH -> 28;
+            case SCIENCE -> 24;
+            case GEOGRAPHY -> 24;
+            case HISTORY -> 24;
+            case FRENCH -> 30;
+            case ARABIC -> 30;
+        };
+        int classBoost = Math.max(0, classLevel - 1) * 2;
+        int difficultyBoost = switch (difficulty) {
+            case SIMPLE -> 0;
+            case MOYEN -> 3;
+            case DIFFICILE -> 5;
+            case EXCELLENT -> 7;
+        };
+        int languageBoost = language == AppLanguage.ARABIC ? 2 : 0;
+        return Math.min(64, base + classBoost + difficultyBoost + languageBoost);
+        }
+
+        private int fallbackCurriculumCount(Subject subject,
+                                            int classLevel,
+                                            Difficulty difficulty,
+                                            AppLanguage language) {
+        int base = switch (subject) {
+            case MATH -> 20;
+            case SCIENCE -> 18;
+            case GEOGRAPHY -> 18;
+            case HISTORY -> 18;
+            case FRENCH -> 24;
+            case ARABIC -> 24;
+        };
+        int classBoost = classLevel >= 4 ? 4 : 2;
+        int difficultyBoost = switch (difficulty) {
+            case SIMPLE -> 0;
+            case MOYEN -> 2;
+            case DIFFICILE -> 4;
+            case EXCELLENT -> 6;
+        };
+        int languageBoost = language == AppLanguage.ARABIC ? 2 : 0;
+        return Math.min(48, base + classBoost + difficultyBoost + languageBoost);
+        }
+
+        private Question buildFrenchScenarioFallbackQuestion(Subject subject,
+                                                             int classLevel,
+                                                             Difficulty difficulty,
+                                                             int idx,
+                                                             String theme,
+                                                             String objective) {
+        int mode = Math.floorMod(idx + classLevel + difficultyWeight(difficulty), 6);
+        return switch (subject) {
+            case MATH -> {
+                int base = 8 + classLevel * 2 + Math.floorMod(idx, 6);
+                int step = 2 + difficultyWeight(difficulty);
+                if (mode == 0) {
+                    int total = base * step;
+                    yield createQuestion(
+                            theme + ": Une classe range " + total + " cahiers dans " + step + " boites identiques. Combien par boite?",
+                            String.valueOf(base), String.valueOf(base + 1), String.valueOf(base - 1), String.valueOf(total),
+                            "A",
+                            objective + ". On divise " + total + " par " + step + " pour obtenir " + base + ".",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    int perimetre = 2 * (base + step);
+                    yield createQuestion(
+                            theme + ": Un rectangle de longueur " + base + " cm et largeur " + step + " cm a quel perimetre?",
+                            String.valueOf(perimetre) + " cm", String.valueOf(base + step) + " cm", String.valueOf(base * step) + " cm", String.valueOf(perimetre + 2) + " cm",
+                            "A",
+                            objective + ". Perimetre = 2 x (L + l) = 2 x (" + base + " + " + step + ") = " + perimetre + " cm.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                int value = base + (step * 3);
+                int result = value - step;
+                yield createQuestion(
+                        theme + ": Le score de Lina passe de " + value + " a " + result + " apres une penalite de combien?",
+                        String.valueOf(step), String.valueOf(step + 1), String.valueOf(result), String.valueOf(value),
+                        "A",
+                        objective + ". La penalite est la difference: " + value + " - " + result + " = " + step + ".",
+                        subject, classLevel, difficulty
+                );
+            }
+            case SCIENCE -> {
+                String q;
+                String a;
+                String b;
+                String c;
+                String d;
+                String e;
+                if (mode == 0) {
+                    q = theme + ": Pourquoi se laver les mains avant de manger est-il important?";
+                    a = "Pour reduire les microbes et eviter les maladies";
+                    b = "Pour rendre les aliments plus chauds";
+                    c = "Pour respirer plus vite";
+                    d = "Pour changer la couleur de la peau";
+                    e = objective + ". L'hygiene limite la transmission des microbes par contact.";
+                } else if (mode == 1) {
+                    q = theme + ": Quel organe filtre surtout le sang et fabrique l'urine?";
+                    a = "Le rein";
+                    b = "Le coeur";
+                    c = "Le poumon";
+                    d = "Le cerveau";
+                    e = objective + ". Les reins filtrent le sang pour eliminer les dechets.";
+                } else {
+                    q = theme + ": Quel facteur influence directement l'evaporation de l'eau?";
+                    a = "La temperature";
+                    b = "La forme du cahier";
+                    c = "La couleur du stylo";
+                    d = "Le nombre de chaises";
+                    e = objective + ". Plus la temperature augmente, plus l'evaporation est rapide.";
+                }
+                yield createQuestion(q, a, b, c, d, "A", e, subject, classLevel, difficulty);
+            }
+            case GEOGRAPHY -> {
+                if (mode == 0) {
+                    yield createQuestion(
+                            theme + ": Pourquoi une legende est-elle indispensable sur une carte?",
+                            "Elle explique la signification des symboles",
+                            "Elle remplace les points cardinaux",
+                            "Elle indique seulement la date",
+                            "Elle supprime l'echelle",
+                            "A",
+                            objective + ". La legende permet d'interpretter correctement chaque symbole cartographique.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    yield createQuestion(
+                            theme + ": Si tu marches vers l'est puis vers le sud, quelle direction as-tu suivie en second?",
+                            "Le sud",
+                            "Le nord",
+                            "L'ouest",
+                            "L'est",
+                            "A",
+                            objective + ". L'enonce indique explicitement que la deuxieme direction est le sud.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                yield createQuestion(
+                        theme + ": Dans quel milieu trouve-t-on le plus souvent une forte salinite naturelle?",
+                        "La mer",
+                        "Le lac d'altitude d'eau douce",
+                        "La plaine agricole",
+                        "La foret humide",
+                        "A",
+                        objective + ". L'eau de mer est naturellement salee en raison des sels mineraux dissous.",
+                        subject, classLevel, difficulty
+                );
+            }
+            case HISTORY -> {
+                if (mode == 0) {
+                    yield createQuestion(
+                            theme + ": Pourquoi utilise-t-on des sources historiques variees (textes, objets, images)?",
+                            "Pour croiser les informations et fiabiliser l'analyse",
+                            "Pour remplacer toute chronologie",
+                            "Pour memoriser sans comprendre",
+                            "Pour eviter les dates",
+                            "A",
+                            objective + ". Croiser plusieurs sources permet de verifier les faits historiques.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    yield createQuestion(
+                            theme + ": Sur une ligne du temps, un evenement place plus a gauche est en general...",
+                            "plus ancien",
+                            "plus recent",
+                            "imaginaire",
+                            "sans date",
+                            "A",
+                            objective + ". La lecture usuelle d'une frise va du plus ancien vers le plus recent.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                yield createQuestion(
+                        theme + ": Quel est l'objectif principal de l'etude de l'histoire a l'ecole?",
+                        "Comprendre les societes du passe et leurs evolutions",
+                        "Apprendre uniquement des noms par coeur",
+                        "Predire precisement l'avenir",
+                        "Remplacer toutes les autres matieres",
+                        "A",
+                        objective + ". L'histoire aide a comprendre les transformations des societes humaines.",
+                        subject, classLevel, difficulty
+                );
+            }
+            case FRENCH -> {
+                yield switch (mode) {
+                    case 0 -> createQuestion(
+                        theme + ": Dans la phrase 'Les eleves lisent calmement', quel mot est un adverbe?",
+                        "calmement", "eleves", "lisent", "les", "A",
+                        objective + ". Un adverbe precise la maniere, ici 'calmement'.",
+                        subject, classLevel, difficulty
+                    );
+                    case 1 -> createQuestion(
+                        theme + ": Quel groupe nominal est correctement accorde?",
+                        "des fleurs rouges", "des fleur rouge", "des fleurs rouge", "des fleur rouges", "A",
+                        objective + ". Nom et adjectif s'accordent en genre et en nombre.",
+                        subject, classLevel, difficulty
+                    );
+                    case 2 -> createQuestion(
+                        theme + ": Quelle phrase contient un verbe au futur simple?",
+                        "Demain, nous visiterons le musee.", "Nous visitons le musee.", "Nous visitions le musee.", "Visiter le musee.", "A",
+                        objective + ". 'Visiterons' marque une action a venir au futur simple.",
+                        subject, classLevel, difficulty
+                    );
+                    case 3 -> createQuestion(
+                        theme + ": Quel mot est un pronom personnel sujet?",
+                        "ils", "classe", "rapidement", "beau", "A",
+                        objective + ". 'Ils' remplace un groupe nominal sujet.",
+                        subject, classLevel, difficulty
+                    );
+                    case 4 -> createQuestion(
+                        theme + ": Dans 'La petite fille chante', quel est l'adjectif qualificatif?",
+                        "petite", "fille", "chante", "la", "A",
+                        objective + ". L'adjectif qualifie le nom 'fille'.",
+                        subject, classLevel, difficulty
+                    );
+                    default -> createQuestion(
+                        theme + ": Quel est le verbe conjugue dans 'Nous finissons notre travail'?",
+                        "finissons", "nous", "travail", "notre", "A",
+                        objective + ". 'Finissons' est le verbe conjugue au present.",
+                        subject, classLevel, difficulty
+                    );
+                };
+            }
+            case ARABIC -> {
+                yield switch (mode) {
+                    case 0 -> createQuestion(
+                        theme + ": Quel element est essentiel pour comprendre une phrase arabe?",
+                        "L'ordre des mots et les marques grammaticales", "La couleur du papier", "La taille du stylo", "Le nombre de pages du livre", "A",
+                        objective + ". Le sens depend de la structure et des indices grammaticaux.",
+                        subject, classLevel, difficulty
+                    );
+                    case 1 -> createQuestion(
+                        theme + ": Quel mot est un nom dans 'كتب التلميذ الدرس' ?",
+                        "التلميذ", "كتب", "في", "ثم", "A",
+                        objective + ". 'التلميذ' est un nom et joue ici le role du sujet.",
+                        subject, classLevel, difficulty
+                    );
+                    case 2 -> createQuestion(
+                        theme + ": Quel est l'antonyme correct du mot arabe 'كبير' ?",
+                        "صغير", "واسع", "قريب", "طويل", "A",
+                        objective + ". 'صغير' est l'antonyme direct de 'كبير'.",
+                        subject, classLevel, difficulty
+                    );
+                    case 3 -> createQuestion(
+                        theme + ": Quel mot est un verbe au present?",
+                        "يكتب", "كتاب", "مكتبة", "كاتب", "A",
+                        objective + ". 'يكتب' est un verbe au present indiquant une action en cours.",
+                        subject, classLevel, difficulty
+                    );
+                    case 4 -> createQuestion(
+                        theme + ": Quel est le mot avec tanwin correct en fin de nom indefini?",
+                        "كتابٌ", "كتابا", "كتابْ", "كتابي", "A",
+                        objective + ". Le tanwin damma marque un nom indefini au nominatif.",
+                        subject, classLevel, difficulty
+                    );
+                    default -> createQuestion(
+                        theme + ": Quel est le pluriel correct de 'معلم' ?",
+                        "معلمون", "معلمات", "تعليم", "تعلم", "A",
+                        objective + ". 'معلمون' est un pluriel masculin regulier usuel.",
+                        subject, classLevel, difficulty
+                    );
+                };
+            }
+        };
+        }
+
+        private Question buildArabicScenarioFallbackQuestion(Subject subject,
+                                                             int classLevel,
+                                                             Difficulty difficulty,
+                                                             int idx,
+                                                             String theme,
+                                                             String objective) {
+        int mode = Math.floorMod(idx + classLevel + difficultyWeight(difficulty), 6);
+        return switch (subject) {
+            case MATH -> {
+                int base = 8 + classLevel * 2 + Math.floorMod(idx, 6);
+                int step = 2 + difficultyWeight(difficulty);
+                if (mode == 0) {
+                    int total = base * step;
+                    yield createQuestion(
+                            theme + ": قسم المعلم " + total + " دفترا على " + step + " مجموعات بالتساوي. كم دفترا لكل مجموعة؟",
+                            String.valueOf(base), String.valueOf(base + 1), String.valueOf(base - 1), String.valueOf(total),
+                            "A",
+                            objective + ". نقسم " + total + " على " + step + " فنحصل على " + base + ".",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    int perimetre = 2 * (base + step);
+                    yield createQuestion(
+                            theme + ": مستطيل طوله " + base + " سم وعرضه " + step + " سم. ما محيطه؟",
+                            String.valueOf(perimetre) + " سم", String.valueOf(base + step) + " سم", String.valueOf(base * step) + " سم", String.valueOf(perimetre + 2) + " سم",
+                            "A",
+                            objective + ". المحيط = 2 × (الطول + العرض) = " + perimetre + " سم.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                int value = base + (step * 3);
+                int result = value - step;
+                yield createQuestion(
+                        theme + ": انخفض رصيد سلمى من " + value + " إلى " + result + ". ما مقدار النقصان؟",
+                        String.valueOf(step), String.valueOf(step + 1), String.valueOf(result), String.valueOf(value),
+                        "A",
+                        objective + ". مقدار النقصان = " + value + " - " + result + " = " + step + ".",
+                        subject, classLevel, difficulty
+                );
+            }
+            case SCIENCE -> {
+                String q;
+                String a;
+                String b;
+                String c;
+                String d;
+                String e;
+                if (mode == 0) {
+                    q = theme + ": لماذا يجب غسل اليدين قبل الاكل؟";
+                    a = "لتقليل الجراثيم وتجنب الامراض";
+                    b = "لتسخين الطعام";
+                    c = "لتنفس اسرع";
+                    d = "لتغيير لون الجلد";
+                    e = objective + ". النظافة تقلل انتقال الجراثيم باللمس.";
+                } else if (mode == 1) {
+                    q = theme + ": ما العضو الذي ينقي الدم ويساعد في تكوين البول؟";
+                    a = "الكلية";
+                    b = "القلب";
+                    c = "الرئة";
+                    d = "الدماغ";
+                    e = objective + ". الكليتان تنقيان الدم من الفضلات.";
+                } else {
+                    q = theme + ": ما العامل الذي يؤثر مباشرة في تبخر الماء؟";
+                    a = "درجة الحرارة";
+                    b = "شكل الدفتر";
+                    c = "لون القلم";
+                    d = "عدد الكراسي";
+                    e = objective + ". بارتفاع الحرارة يزداد التبخر.";
+                }
+                yield createQuestion(q, a, b, c, d, "A", e, subject, classLevel, difficulty);
+            }
+            case GEOGRAPHY -> {
+                if (mode == 0) {
+                    yield createQuestion(
+                            theme + ": لماذا يعد مفتاح الخريطة مهما؟",
+                            "لانه يشرح دلالات الرموز",
+                            "لانه يلغي الاتجاهات",
+                            "لانه يحدد التاريخ فقط",
+                            "لانه يعوض المقياس",
+                            "A",
+                            objective + ". مفتاح الخريطة يساعد على فهم الرموز بشكل صحيح.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    yield createQuestion(
+                            theme + ": اذا اتجهت شرقا ثم جنوبا، فما الاتجاه الثاني؟",
+                            "الجنوب",
+                            "الشمال",
+                            "الغرب",
+                            "الشرق",
+                            "A",
+                            objective + ". الاتجاه الثاني المذكور في المعطى هو الجنوب.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                yield createQuestion(
+                        theme + ": في اي وسط نجد ملوحة طبيعية عالية غالبا؟",
+                        "البحر",
+                        "بحيرة عذبة",
+                        "سهل زراعي",
+                        "غابة رطبة",
+                        "A",
+                        objective + ". مياه البحر مالحة بسبب الاملاح المعدنية الذائبة.",
+                        subject, classLevel, difficulty
+                );
+            }
+            case HISTORY -> {
+                if (mode == 0) {
+                    yield createQuestion(
+                            theme + ": لماذا نستعمل مصادر تاريخية متنوعة؟",
+                            "لمقارنة المعلومات وزيادة الموثوقية",
+                            "لاستبدال التسلسل الزمني",
+                            "للحفظ دون فهم",
+                            "لتجنب التواريخ",
+                            "A",
+                            objective + ". تنويع المصادر يساعد على التثبت من الحدث التاريخي.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                if (mode == 1) {
+                    yield createQuestion(
+                            theme + ": في الخط الزمني، الحدث الاكثر يسارا يكون عادة...",
+                            "اقدم",
+                            "احدث",
+                            "خياليا",
+                            "بلا تاريخ",
+                            "A",
+                            objective + ". غالبا نقرأ الخط الزمني من الاقدم الى الاحدث.",
+                            subject, classLevel, difficulty
+                    );
+                }
+                yield createQuestion(
+                        theme + ": ما الهدف الرئيسي من دراسة التاريخ في المدرسة؟",
+                        "فهم المجتمعات في الماضي وتطورها",
+                        "حفظ الاسماء فقط",
+                        "التنبؤ الدقيق بالمستقبل",
+                        "تعويض كل المواد",
+                        "A",
+                        objective + ". التاريخ يساعد على فهم التحولات الاجتماعية عبر الزمن.",
+                        subject, classLevel, difficulty
+                );
+            }
+            case FRENCH -> {
+                yield switch (mode) {
+                    case 0 -> createQuestion(
+                        theme + ": في الجملة 'Les eleves lisent calmement' ما الظرف؟",
+                        "calmement", "eleves", "lisent", "les", "A",
+                        objective + ". الظرف يبين كيفية الفعل، وهنا 'calmement'.",
+                        subject, classLevel, difficulty
+                    );
+                    case 1 -> createQuestion(
+                        theme + ": اي مجموعة اسمية صحيحة الاتفاق؟",
+                        "des fleurs rouges", "des fleur rouge", "des fleurs rouge", "des fleur rouges", "A",
+                        objective + ". يجب اتفاق الاسم والصفة في الجنس والعدد.",
+                        subject, classLevel, difficulty
+                    );
+                    case 2 -> createQuestion(
+                        theme + ": اي جملة تحتوي فعلا في المستقبل البسيط؟",
+                        "Demain, nous visiterons le musee.", "Nous visitons le musee.", "Nous visitions le musee.", "Visiter le musee.", "A",
+                        objective + ". 'visiterons' فعل في المستقبل البسيط.",
+                        subject, classLevel, difficulty
+                    );
+                    case 3 -> createQuestion(
+                        theme + ": ما الضمير الشخصي الفاعل الصحيح؟",
+                        "ils", "classe", "rapidement", "beau", "A",
+                        objective + ". 'ils' ضمير فاعل يحل محل جماعة مذكر/مختلطة.",
+                        subject, classLevel, difficulty
+                    );
+                    case 4 -> createQuestion(
+                        theme + ": في 'La petite fille chante' ما الصفة؟",
+                        "petite", "fille", "chante", "la", "A",
+                        objective + ". 'petite' صفة توافق الاسم 'fille'.",
+                        subject, classLevel, difficulty
+                    );
+                    default -> createQuestion(
+                        theme + ": ما الفعل المصرف في 'Nous finissons notre travail' ؟",
+                        "finissons", "nous", "travail", "notre", "A",
+                        objective + ". 'finissons' هو الفعل المصرف في الحاضر.",
+                        subject, classLevel, difficulty
+                    );
+                };
+            }
+            case ARABIC -> {
+                yield switch (mode) {
+                    case 0 -> createQuestion(
+                        theme + ": ما العنصر الاساسي لفهم الجملة العربية؟",
+                        "ترتيب الكلمات والعلامات النحوية", "لون الورقة", "حجم القلم", "عدد الصفحات", "A",
+                        objective + ". المعنى يتحدد بالبنية اللغوية والعلامات النحوية.",
+                        subject, classLevel, difficulty
+                    );
+                    case 1 -> createQuestion(
+                        theme + ": ما الاسم في الجملة 'كتب التلميذ الدرس' ؟",
+                        "التلميذ", "كتب", "ثم", "في", "A",
+                        objective + ". 'التلميذ' اسم وهو الفاعل في الجملة.",
+                        subject, classLevel, difficulty
+                    );
+                    case 2 -> createQuestion(
+                        theme + ": ما مضاد كلمة 'كبير'؟",
+                        "صغير", "واسع", "قريب", "طويل", "A",
+                        objective + ". 'صغير' هو المضاد المباشر لكلمة 'كبير'.",
+                        subject, classLevel, difficulty
+                    );
+                    case 3 -> createQuestion(
+                        theme + ": اي كلمة فعل مضارع؟",
+                        "يكتب", "كتاب", "مكتبة", "كاتب", "A",
+                        objective + ". 'يكتب' فعل مضارع يدل على حدث في الحاضر.",
+                        subject, classLevel, difficulty
+                    );
+                    case 4 -> createQuestion(
+                        theme + ": اي صيغة تحتوي تنوين رفع صحيحا؟",
+                        "كتابٌ", "كتابا", "كتابْ", "كتابي", "A",
+                        objective + ". التنوين بالضمة علامة رفع في الاسم النكرة.",
+                        subject, classLevel, difficulty
+                    );
+                    default -> createQuestion(
+                        theme + ": ما الجمع الصحيح لكلمة 'معلم'؟",
+                        "معلمون", "معلمات", "تعليم", "تعلم", "A",
+                        objective + ". 'معلمون' جمع مذكر سالم مستعمل بكثرة.",
+                        subject, classLevel, difficulty
+                    );
+                };
+            }
+        };
         }
 
         private Question buildFrenchProgrammaticQuestion(Subject subject,
