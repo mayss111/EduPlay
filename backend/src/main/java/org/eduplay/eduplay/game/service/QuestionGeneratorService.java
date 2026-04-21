@@ -2113,155 +2113,448 @@ public class QuestionGeneratorService {
                                  String objective) {
         return switch (subject) {
             case MATH -> {
-            int a = 2 + classLevel + Math.floorMod(idx, 7);
-            int b = 1 + difficultyWeight(difficulty) + Math.floorMod(idx, 6);
-            int mode = Math.floorMod(idx, 3);
-            if (mode == 0) {
-                int r = a + b;
-                yield createQuestion(
-                    "Dans le theme " + theme + ", combien font " + a + " + " + b + "?",
-                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
-                    "A",
-                    "Objectif: " + objective + ". On additionne " + a + " et " + b + " pour obtenir " + r + ".",
-                    subject, classLevel, difficulty
-                );
-            }
-            if (mode == 1) {
-                int r = Math.max(0, a + b - (1 + Math.floorMod(idx, 4)));
-                int left = r + b;
-                yield createQuestion(
-                    "Dans un probleme de calcul, combien font " + left + " - " + b + "?",
-                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
-                    "A",
-                    "Objectif: " + objective + ". En soustraction, " + left + " - " + b + " = " + r + ".",
-                    subject, classLevel, difficulty
-                );
-            }
-            int m1 = 2 + Math.floorMod(idx, 5);
-            int m2 = 2 + Math.floorMod(classLevel + idx, 4);
-            int r = m1 * m2;
-            yield createQuestion(
-                "En mathematiques, combien font " + m1 + " x " + m2 + "?",
-                String.valueOf(r), String.valueOf(r + m2), String.valueOf(Math.max(0, r - m2)), String.valueOf(r + 1),
-                "A",
-                "Objectif: " + objective + ". On multiplie " + m1 + " par " + m2 + " pour trouver " + r + ".",
-                subject, classLevel, difficulty
-            );
+                int seed = classLevel * 13 + difficultyWeight(difficulty) * 7 + idx;
+                int mode = Math.floorMod(seed, 5);
+                
+                if (mode == 0) {
+                    // Problème de partage (contexte réel)
+                    int total = 20 + classLevel * 5;
+                    int personnes = 2 + Math.floorMod(seed, 4);
+                    int result = total / personnes;
+                    int distractorA = result + 1;
+                    int distractorB = total - result;
+                    int distractorC = result * 2;
+                    yield createQuestion(
+                        theme + ": On partage " + total + " bonbons entre " + personnes + " enfants equitablement. Combien de bonbons aura chaque enfant?",
+                        String.valueOf(result),
+                        String.valueOf(distractorA),
+                        String.valueOf(distractorB),
+                        String.valueOf(distractorC),
+                        "A",
+                        objective + ". Pour partager equitablement, on divise le nombre total par le nombre de personnes: " + total + " ÷ " + personnes + " = " + result + ".",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 1) {
+                    // Problème de comparaison (hauteurs, distances, prix)
+                    int quantiteA = 10 + classLevel * 3;
+                    int quantiteB = quantiteA + Math.floorMod(seed, 6) + 1;
+                    int difference = quantiteB - quantiteA;
+                    yield createQuestion(
+                        theme + ": Ahmed a " + quantiteA + "€ et sa soeur a " + quantiteB + "€. Quelle est la difference?",
+                        String.valueOf(difference),
+                        String.valueOf(difference + 1),
+                        String.valueOf(quantiteA),
+                        String.valueOf(quantiteB),
+                        "A",
+                        objective + ". Pour trouver la difference, on soustrait: " + quantiteB + " - " + quantiteA + " = " + difference + "€.",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 2) {
+                    // Calcul de surface/périmètre
+                    int longueur = 3 + Math.floorMod(seed, 4);
+                    int largeur = 2 + Math.floorMod(seed + 1, 3);
+                    int surface = longueur * largeur;
+                    yield createQuestion(
+                        theme + ": Un rectangle mesure " + longueur + "m de long et " + largeur + "m de large. Quelle est sa surface?",
+                        String.valueOf(surface) + " m²",
+                        String.valueOf((longueur + largeur) * 2) + " m²",
+                        String.valueOf(longueur + largeur) + " m²",
+                        String.valueOf(surface + 2) + " m²",
+                        "A",
+                        objective + ". Surface = longueur × largeur = " + longueur + " × " + largeur + " = " + surface + " m².",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 3) {
+                    // Fraction/pourcentage
+                    int total = 100;
+                    int pourcentage = 25 * (1 + Math.floorMod(seed, 3));
+                    int result = total * pourcentage / 100;
+                    yield createQuestion(
+                        theme + ": Combien fait " + pourcentage + "% de " + total + "?",
+                        String.valueOf(result),
+                        String.valueOf(result + 10),
+                        String.valueOf(result - 5),
+                        String.valueOf(result * 2),
+                        "A",
+                        objective + ". " + pourcentage + "% de " + total + " = (" + pourcentage + " ÷ 100) × " + total + " = " + result + ".",
+                        subject, classLevel, difficulty
+                    );
+                } else {
+                    // Problème avec temps/vitesse
+                    int distance = 20 + classLevel * 10;
+                    int vitesse = 5 + Math.floorMod(seed, 4);
+                    int temps = distance / vitesse;
+                    yield createQuestion(
+                        theme + ": Une voiture parcourt " + distance + "km à " + vitesse + "km/h. Combien de temps en heures?",
+                        String.valueOf(temps) + "h",
+                        String.valueOf(temps + 1) + "h",
+                        String.valueOf(vitesse) + "h",
+                        String.valueOf(distance - vitesse) + "h",
+                        "A",
+                        objective + ". Temps = Distance ÷ Vitesse = " + distance + " ÷ " + vitesse + " = " + temps + " heures.",
+                        subject, classLevel, difficulty
+                    );
+                }
             }
             case SCIENCE -> {
-            String[] q = {
-                "En science (%s), quel element aide la plante a grandir?",
-                "Quel organe du corps permet la vision en classe %d?",
-                "Dans le theme %s, quel element est necessaire pour respirer?",
-                "Quel exemple correspond a un etre vivant?"
-            };
-            String[][] c = {
-                {"eau et lumiere", "papier", "metal", "plastique"},
-                {"oeil", "genou", "doigt", "epaule"},
-                {"air", "craie", "sable", "carton"},
-                {"chat", "caillou", "table", "verre"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = row == 1 ? q[row].formatted(classLevel) : q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "Objectif: " + objective + ". Cette reponse est correcte pour le theme " + theme + ".",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": Pourquoi les plantes ont-elles besoin de lumiere?";
+                        choiceA = "Pour faire la photosynthèse et produire leur nourriture";
+                        choiceB = "Pour boire l'eau plus rapidement";
+                        choiceC = "Pour dormir la nuit";
+                        choiceD = "Pour faire du bruit";
+                        explanation = objective + ". La photosynthèse est le processus où les plantes transforment la lumière en énergie chimique pour créer leur propre nourriture.";
+                    }
+                    case 1 -> {
+                        question = theme + ": Quel gaz les plantes rejettent lors de la photosynthèse?";
+                        choiceA = "L'oxygène (O2)";
+                        choiceB = "Le dioxyde de carbone (CO2)";
+                        choiceC = "L'azote (N2)";
+                        choiceD = "L'hydrogène (H2)";
+                        explanation = objective + ". Les plantes absorbent CO2 et libèrent O2, qui permet la respiration des animaux.";
+                    }
+                    case 2 -> {
+                        question = theme + ": Quels sont les trois états de la matière?";
+                        choiceA = "Solide, liquide, gazeux";
+                        choiceB = "Chaud, froid, normal";
+                        choiceC = "Dur, mou, flexible";
+                        choiceD = "Léger, lourd, moyen";
+                        explanation = objective + ". L'eau en est le meilleur exemple: glaçon (solide), eau (liquide), vapeur (gaz).";
+                    }
+                    case 3 -> {
+                        question = theme + ": Quelle température l'eau bout-elle normalement?";
+                        choiceA = "100°C";
+                        choiceB = "50°C";
+                        choiceC = "0°C";
+                        choiceD = "150°C";
+                        explanation = objective + ". À 100°C au niveau de la mer, l'eau liquide se transforme en vapeur d'eau (gaz).";
+                    }
+                    case 4 -> {
+                        question = theme + ": Que signifie 'biodiversité'?";
+                        choiceA = "La variété d'espèces vivantes dans un écosystème";
+                        choiceB = "Le nombre de plantes dans une forêt";
+                        choiceC = "La diversité des couleurs";
+                        choiceD = "La distance entre les animaux";
+                        explanation = objective + ". La biodiversité inclut tous les êtres vivants: plantes, animaux, insectes, bactéries...";
+                    }
+                    case 5 -> {
+                        question = theme + ": Quel organe chez l'humain pompe le sang?";
+                        choiceA = "Le cœur";
+                        choiceB = "Le foie";
+                        choiceC = "Les poumons";
+                        choiceD = "L'estomac";
+                        explanation = objective + ". Le cœur est une pompe musculaire qui propulse le sang à travers les vaisseaux.";
+                    }
+                    case 6 -> {
+                        question = theme + ": Que produisent les cellules lors de la respiration cellulaire?";
+                        choiceA = "De l'énergie (ATP) et du dioxyde de carbone";
+                        choiceB = "De l'oxygène uniquement";
+                        choiceC = "De l'eau et du sucre";
+                        choiceD = "De la lumière";
+                        explanation = objective + ". La respiration cellulaire libère l'énergie stockée dans les molécules pour les cellules.";
+                    }
+                    case 7 -> {
+                        question = theme + ": Quel type de reproduction crée des individus génétiquement identiques?";
+                        choiceA = "La reproduction asexuée";
+                        choiceB = "La reproduction sexuée";
+                        choiceC = "La reproduction hybride";
+                        choiceD = "La reproduction somatique";
+                        explanation = objective + ". Exemples: division cellulaire des bactéries, bouturage des plantes, qui donnent des clones.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case GEOGRAPHY -> {
-            String[] q = {
-                "En geographie (%s), quelle direction est l'oppose du nord?",
-                "Quelle ville est la capitale de la Tunisie?",
-                "Quel outil aide a lire une carte en classe %d?",
-                "Dans le theme %s, quel espace contient de l'eau salee?"
-            };
-            String[][] c = {
-                {"sud", "est", "ouest", "nord"},
-                {"Tunis", "Sfax", "Sousse", "Gabes"},
-                {"legende", "cuillere", "ardoise", "gomme"},
-                {"mer", "lac d'eau douce", "rivere de classe", "fontaine"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = row == 2 ? q[row].formatted(classLevel) : q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "Objectif: " + objective + ". On valide une notion de geographie liee au theme " + theme + ".",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": Quel est le plus grand desert du monde?";
+                        choiceA = "Le Sahara";
+                        choiceB = "Le Kalahari";
+                        choiceC = "Le Gobi";
+                        choiceD = "L'Atacama";
+                        explanation = objective + ". Le Sahara s'étend sur plus de 9 millions de km² en Afrique du Nord.";
+                    }
+                    case 1 -> {
+                        question = theme + ": Quelle est la capitale de la France?";
+                        choiceA = "Paris";
+                        choiceB = "Lyon";
+                        choiceC = "Marseille";
+                        choiceD = "Nice";
+                        explanation = objective + ". Paris est la capitale et la plus grande ville de France, située sur la Seine.";
+                    }
+                    case 2 -> {
+                        question = theme + ": Quel ocean couvre la plus grande surface terrestre?";
+                        choiceA = "L'océan Pacifique";
+                        choiceB = "L'océan Atlantique";
+                        choiceC = "L'océan Indien";
+                        choiceD = "L'océan Arctique";
+                        explanation = objective + ". Le Pacifique couvre environ 165 millions de km², presque un tiers de la Terre.";
+                    }
+                    case 3 -> {
+                        question = theme + ": Qu'est-ce qu'une latitude?";
+                        choiceA = "Une ligne imaginaire parallèle à l'équateur";
+                        choiceB = "Une ligne imaginaire perpendiculaire à l'équateur";
+                        choiceC = "Une montagne très haute";
+                        choiceD = "Une distance en kilomètres";
+                        explanation = objective + ". Les latitudes sont mesurées de 0° (équateur) à 90° (pôles), nord ou sud.";
+                    }
+                    case 4 -> {
+                        question = theme + ": Quel continent est le plus populous?";
+                        choiceA = "L'Asie";
+                        choiceB = "L'Afrique";
+                        choiceC = "L'Europe";
+                        choiceD = "L'Amérique du Nord";
+                        explanation = objective + ". L'Asie abrite environ 60% de la population mondiale (4,7 milliards).";
+                    }
+                    case 5 -> {
+                        question = theme + ": Qu'est-ce qu'une zone tempérée?";
+                        choiceA = "Une région avec des saisons marquées et un climat modéré";
+                        choiceB = "Une région toujours chaude";
+                        choiceC = "Une région toujours froide";
+                        choiceD = "Une région sous l'équateur";
+                        explanation = objective + ". Entre les tropiques et les pôles, avec 4 saisons: printemps, été, automne, hiver.";
+                    }
+                    case 6 -> {
+                        question = theme + ": Quel fleuve est le plus long du monde?";
+                        choiceA = "Le Nil";
+                        choiceB = "L'Amazone";
+                        choiceC = "Le Yangtze";
+                        choiceD = "Le Danube";
+                        explanation = objective + ". Le Nil en Afrique mesure environ 6 650 km. L'Amazone le suit de peu.";
+                    }
+                    case 7 -> {
+                        question = theme + ": Qu'est-ce qu'une chaine de montagnes?";
+                        choiceA = "Un ensemble de montagnes reliées les unes aux autres";
+                        choiceB = "Une seule très haute montagne";
+                        choiceC = "Un plateau élevé";
+                        choiceD = "Une vallée profonde";
+                        explanation = objective + ". Exemples: les Alpes, les Rocheuses, l'Himalaya (plus haute du monde).";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case HISTORY -> {
-            String[] q = {
-                "En histoire (%s), que signifie 'passe'?",
-                "Quel outil organise les evenements historiques?",
-                "Dans une chronologie, quel moment vient d'abord?",
-                "Quel terme historique designe une periode ancienne?"
-            };
-            String[][] c = {
-                {"ce qui est arrive avant", "ce qui arrivera demain", "une operation de calcul", "un jeu"},
-                {"ligne du temps", "thermometre", "boussole", "regle"},
-                {"avant", "apres", "jamais", "maintenant"},
-                {"epoque ancienne", "reponse rapide", "grande addition", "direction"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "Objectif: " + objective + ". On relie la question au theme " + theme + " en histoire.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": En quelle année l'homme a-t-il marché sur la Lune?";
+                        choiceA = "1969";
+                        choiceB = "1960";
+                        choiceC = "1975";
+                        choiceD = "1980";
+                        explanation = objective + ". Neil Armstrong a été le premier humain à poser pied sur la Lune le 20 juillet 1969.";
+                    }
+                    case 1 -> {
+                        question = theme + ": Quel empire a construit les pyramides d'Égypte?";
+                        choiceA = "L'empire égyptien antique";
+                        choiceB = "L'empire romain";
+                        choiceC = "L'empire ottoman";
+                        choiceD = "L'empire grecque";
+                        explanation = objective + ". Les pyramides, notamment celle de Khufu, ont été construites il y a plus de 4500 ans.";
+                    }
+                    case 2 -> {
+                        question = theme + ": En quelle année la Révolution française a-t-elle commencé?";
+                        choiceA = "1789";
+                        choiceB = "1776";
+                        choiceC = "1799";
+                        choiceD = "1815";
+                        explanation = objective + ". La Prise de la Bastille le 14 juillet 1789 marque le début de la Révolution française.";
+                    }
+                    case 3 -> {
+                        question = theme + ": Qui était le premier Président des États-Unis?";
+                        choiceA = "George Washington";
+                        choiceB = "Thomas Jefferson";
+                        choiceC = "Abraham Lincoln";
+                        choiceD = "Benjamin Franklin";
+                        explanation = objective + ". George Washington a servi comme premier Président de 1789 à 1797.";
+                    }
+                    case 4 -> {
+                        question = theme + ": Quel explorateur a découvert l'Amérique en 1492?";
+                        choiceA = "Christophe Colomb";
+                        choiceB = "Vasco da Gama";
+                        choiceC = "Ferdinand Magellan";
+                        choiceD = "Jean Cabot";
+                        explanation = objective + ". Colomb a atteint les Caraïbes en traversant l'Atlantique pour la Reine d'Espagne.";
+                    }
+                    case 5 -> {
+                        question = theme + ": En quelle année la Seconde Guerre mondiale a-t-elle débuté?";
+                        choiceA = "1939";
+                        choiceB = "1933";
+                        choiceC = "1945";
+                        choiceD = "1929";
+                        explanation = objective + ". L'invasion de la Pologne par l'Allemagne le 1er septembre 1939 marque le début de la WWII.";
+                    }
+                    case 6 -> {
+                        question = theme + ": Quel était le nom du philosophe grec qui a enseigné Aristote?";
+                        choiceA = "Platon";
+                        choiceB = "Socrate";
+                        choiceC = "Héraclite";
+                        choiceD = "Anaxagore";
+                        explanation = objective + ". Platon était le maître d'Aristote à l'Académie d'Athènes.";
+                    }
+                    case 7 -> {
+                        question = theme + ": Que signifie 'Moyen Âge' dans l'histoire européenne?";
+                        choiceA = "La période entre l'Antiquité et la Renaissance (Ve-XVe siècles)";
+                        choiceB = "La période moderne";
+                        choiceC = "L'Antiquité classique";
+                        choiceD = "L'époque préhistorique";
+                        explanation = objective + ". Le Moyen Âge couvre environ mille ans, marquepar la féodalité et l'Église.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case FRENCH -> {
-            String[] q = {
-                "En francais (%s), quel mot est un verbe?",
-                "Quel mot est au pluriel?",
-                "Quelle categorie correspond au mot 'rapide'?",
-                "Dans une phrase simple, quel element est un nom?"
-            };
-            String[][] c = {
-                {"manger", "table", "bleu", "ecole"},
-                {"chats", "chat", "maison", "arbre"},
-                {"adjectif", "verbe", "nombre", "direction"},
-                {"maison", "courir", "vite", "joli"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "Objectif: " + objective + ". Cette question travaille le theme " + theme + " en francais.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": Quel mot est un verbe dans cette phrase: 'Le chat noir dort sur le lit'?";
+                        choiceA = "dort";
+                        choiceB = "chat";
+                        choiceC = "noir";
+                        choiceD = "lit";
+                        explanation = objective + ". 'Dormir' est un verbe d'action conjugué à la 3e personne du singulier.";
+                    }
+                    case 1 -> {
+                        question = theme + ": Quel est le pluriel du mot 'cheval'?";
+                        choiceA = "chevaux";
+                        choiceB = "chevals";
+                        choiceC = "cheval";
+                        choiceD = "chevale";
+                        explanation = objective + ". 'Cheval' est un nom qui se termine par -al; au pluriel, il devient -aux.";
+                    }
+                    case 2 -> {
+                        question = theme + ": Quelle est la fonction du mot 'rouge' dans: 'Elle porte une robe rouge'?";
+                        choiceA = "Adjectif qualificatif";
+                        choiceB = "Nom";
+                        choiceC = "Verbe";
+                        choiceD = "Adverbe";
+                        explanation = objective + ". 'Rouge' décrit la qualité du nom 'robe'; c'est un adjectif.";
+                    }
+                    case 3 -> {
+                        question = theme + ": Quel pronom peut remplacer 'Marie et Jean' dans une phrase?";
+                        choiceA = "Ils";
+                        choiceB = "Il";
+                        choiceC = "Elles";
+                        choiceD = "Elle";
+                        explanation = objective + ". 'Marie' (féminin) et 'Jean' (masculin) forment un groupe au pluriel = 'Ils' (mixte).";
+                    }
+                    case 4 -> {
+                        question = theme + ": Identifiez l'adverbe: 'Elle marche lentement dans la rue'";
+                        choiceA = "lentement";
+                        choiceB = "marche";
+                        choiceC = "rue";
+                        choiceD = "elle";
+                        explanation = objective + ". 'Lentement' décrit la manière de marcher; c'est un adverbe de manière.";
+                    }
+                    case 5 -> {
+                        question = theme + ": Quel est le féminin de l'adjectif 'actif'?";
+                        choiceA = "active";
+                        choiceB = "activé";
+                        choiceC = "activité";
+                        choiceD = "activement";
+                        explanation = objective + ". Les adjectifs en -if deviennent -ive au féminin: actif → active.";
+                    }
+                    case 6 -> {
+                        question = theme + ": Complétez: 'Je voudrais que tu _____ à la réunion'";
+                        choiceA = "viennes";
+                        choiceB = "viens";
+                        choiceC = "venir";
+                        choiceD = "venue";
+                        explanation = objective + ". Après 'je voudrais que', on utilise le subjonctif: tu viennes.";
+                    }
+                    case 7 -> {
+                        question = theme + ": Quel temps verbal est utilisé dans: 'Demain, nous irons au cinema'?";
+                        choiceA = "Futur simple";
+                        choiceB = "Présent";
+                        choiceC = "Imparfait";
+                        choiceD = "Passé composé";
+                        explanation = objective + ". 'Irons' indique une action future: 'aller' au futur, 1ère personne du pluriel.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case ARABIC -> {
-            String[] q = {
-                "En arabe (%s), quel mot signifie 'livre'?",
-                "Quel mot arabe signifie 'ecole'?",
-                "Quel terme appartient au vocabulaire arabe?",
-                "Quel mot arabe designe la 'lune'?"
-            };
-            String[][] c = {
-                {"kitab", "bab", "bayt", "nahar"},
-                {"madrasa", "bahr", "shams", "qalam"},
-                {"qalam", "ordinateur", "internet", "football"},
-                {"qamar", "shams", "ma", "walad"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "Objectif: " + objective + ". On enrichit le vocabulaire du theme " + theme + ".",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": ما معنى كلمة 'الكتاب' باللغة العربية؟";
+                        choiceA = "اسم جماد يدل على مجموعة أوراق مكتوب عليها";
+                        choiceB = "أداة للكتابة";
+                        choiceC = "مكان للدراسة";
+                        choiceD = "شخص يكتب";
+                        explanation = objective + ". 'الكتاب' اسم جماد معروف، يستعمل في كل وقت.";
+                    }
+                    case 1 -> {
+                        question = theme + ": ما صيغة الجمع من 'بيت'؟";
+                        choiceA = "بيوت";
+                        choiceB = "بيات";
+                        choiceC = "بيتات";
+                        choiceD = "بيوتة";
+                        explanation = objective + ". 'بيت' → 'بيوت' (جمع تكسير)، وهي صيغة قياسية في العربية.";
+                    }
+                    case 2 -> {
+                        question = theme + ": أي من هذه الكلمات فعل ماضي؟";
+                        choiceA = "ذهب";
+                        choiceB = "يذهب";
+                        choiceC = "اذهب";
+                        choiceD = "ذاهب";
+                        explanation = objective + ". 'ذهب' فعل ماضي ثلاثي، يدل على حدث انقضى.";
+                    }
+                    case 3 -> {
+                        question = theme + ": كم عدد حروف اللغة العربية؟";
+                        choiceA = "28 حرفا";
+                        choiceB = "26 حرفا";
+                        choiceC = "30 حرفا";
+                        choiceD = "25 حرفا";
+                        explanation = objective + ". اللغة العربية تتكون من 28 حرفا، بما فيها الهمزة إن عددت منفصلة.";
+                    }
+                    case 4 -> {
+                        question = theme + ": ما الفاعل في الجملة: 'أكل الطفل التفاحة'؟";
+                        choiceA = "الطفل";
+                        choiceB = "التفاحة";
+                        choiceC = "أكل";
+                        choiceD = "ال (أداة التعريف)";
+                        explanation = objective + ". 'الطفل' هو من قام بالفعل، أي الفاعل.";
+                    }
+                    case 5 -> {
+                        question = theme + ": ما معنى 'المفعول به' في الجملة؟";
+                        choiceA = "الاسم الذي يقع عليه الفعل";
+                        choiceB = "الشخص الذي يفعل";
+                        choiceC = "الصفة التي تصف الاسم";
+                        choiceD = "كلمة تربط بين كلمتين";
+                        explanation = objective + ". المفعول به هو ما وقع عليه الفعل، مثل 'التفاحة' في 'أكل الطفل التفاحة'.";
+                    }
+                    case 6 -> {
+                        question = theme + ": كيف تصرف الفعل 'كتب' في صيغة المضارع، الشخص 'أنا'؟";
+                        choiceA = "أكتب";
+                        choiceB = "يكتب";
+                        choiceC = "تكتب";
+                        choiceD = "نكتب";
+                        explanation = objective + ". 'أكتب' تصريف الفعل 'كتب' في المضارع، المتكلم (أنا).";
+                    }
+                    case 7 -> {
+                        question = theme + ": ما نوع الكلمة 'سريع' في: 'هذا الكتاب سريع الفهم'؟";
+                        choiceA = "نعت (صفة)";
+                        choiceB = "فعل";
+                        choiceC = "اسم";
+                        choiceD = "حرف";
+                        explanation = objective + ". 'سريع' صفة تصف الكتاب، وتسمى النعت في اللغة العربية.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
         };
         }
@@ -2274,155 +2567,448 @@ public class QuestionGeneratorService {
                                  String objective) {
         return switch (subject) {
             case MATH -> {
-            int a = 2 + classLevel + Math.floorMod(idx, 7);
-            int b = 1 + difficultyWeight(difficulty) + Math.floorMod(idx, 6);
-            int mode = Math.floorMod(idx, 3);
-            if (mode == 0) {
-                int r = a + b;
-                yield createQuestion(
-                    "في محور " + theme + "، كم يساوي " + a + " + " + b + "؟",
-                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
-                    "A",
-                    "هدف التعلم: " + objective + ". نجمع " + a + " و" + b + " لنحصل على " + r + ".",
-                    subject, classLevel, difficulty
-                );
-            }
-            if (mode == 1) {
-                int r = Math.max(0, a + b - (1 + Math.floorMod(idx, 4)));
-                int left = r + b;
-                yield createQuestion(
-                    "في مسألة حساب، كم يساوي " + left + " - " + b + "؟",
-                    String.valueOf(r), String.valueOf(r + 1), String.valueOf(Math.max(0, r - 1)), String.valueOf(r + 2),
-                    "A",
-                    "هدف التعلم: " + objective + ". في الطرح " + left + " - " + b + " = " + r + ".",
-                    subject, classLevel, difficulty
-                );
-            }
-            int m1 = 2 + Math.floorMod(idx, 5);
-            int m2 = 2 + Math.floorMod(classLevel + idx, 4);
-            int r = m1 * m2;
-            yield createQuestion(
-                "في الرياضيات، كم يساوي " + m1 + " × " + m2 + "؟",
-                String.valueOf(r), String.valueOf(r + m2), String.valueOf(Math.max(0, r - m2)), String.valueOf(r + 1),
-                "A",
-                "هدف التعلم: " + objective + ". نضرب " + m1 + " في " + m2 + " فنحصل على " + r + ".",
-                subject, classLevel, difficulty
-            );
+                int seed = classLevel * 13 + difficultyWeight(difficulty) * 7 + idx;
+                int mode = Math.floorMod(seed, 5);
+                
+                if (mode == 0) {
+                    // مسألة قسمة (توزيع عادل)
+                    int total = 20 + classLevel * 5;
+                    int personnes = 2 + Math.floorMod(seed, 4);
+                    int result = total / personnes;
+                    int distractorA = result + 1;
+                    int distractorB = total - result;
+                    int distractorC = result * 2;
+                    yield createQuestion(
+                        theme + ": نقسّم " + total + " تفاحة بالتساوي على " + personnes + " أطفال. كم تفاحة يأخذ كل طفل؟",
+                        String.valueOf(result),
+                        String.valueOf(distractorA),
+                        String.valueOf(distractorB),
+                        String.valueOf(distractorC),
+                        "A",
+                        objective + ". عندما نقسّم بالتساوي: " + total + " ÷ " + personnes + " = " + result + " تفاحات.",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 1) {
+                    // مسألة مقارنة
+                    int quantiteA = 10 + classLevel * 3;
+                    int quantiteB = quantiteA + Math.floorMod(seed, 6) + 1;
+                    int difference = quantiteB - quantiteA;
+                    yield createQuestion(
+                        theme + ": أحمد لديه " + quantiteA + " ريال وأخته لديها " + quantiteB + " ريال. ما الفرق بينهما؟",
+                        String.valueOf(difference),
+                        String.valueOf(difference + 1),
+                        String.valueOf(quantiteA),
+                        String.valueOf(quantiteB),
+                        "A",
+                        objective + ". الفرق يحسب بالطرح: " + quantiteB + " - " + quantiteA + " = " + difference + " ريالات.",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 2) {
+                    // حساب المساحة
+                    int longueur = 3 + Math.floorMod(seed, 4);
+                    int largeur = 2 + Math.floorMod(seed + 1, 3);
+                    int surface = longueur * largeur;
+                    yield createQuestion(
+                        theme + ": مستطيل طوله " + longueur + "م وعرضه " + largeur + "م. ما مساحته؟",
+                        String.valueOf(surface) + " م²",
+                        String.valueOf((longueur + largeur) * 2) + " م²",
+                        String.valueOf(longueur + largeur) + " م²",
+                        String.valueOf(surface + 2) + " م²",
+                        "A",
+                        objective + ". المساحة = الطول × العرض = " + longueur + " × " + largeur + " = " + surface + " م².",
+                        subject, classLevel, difficulty
+                    );
+                } else if (mode == 3) {
+                    // نسبة مئوية
+                    int total = 100;
+                    int pourcentage = 25 * (1 + Math.floorMod(seed, 3));
+                    int result = total * pourcentage / 100;
+                    yield createQuestion(
+                        theme + ": كم يساوي " + pourcentage + "% من " + total + "؟",
+                        String.valueOf(result),
+                        String.valueOf(result + 10),
+                        String.valueOf(result - 5),
+                        String.valueOf(result * 2),
+                        "A",
+                        objective + ". " + pourcentage + "% من " + total + " = (" + pourcentage + " ÷ 100) × " + total + " = " + result + ".",
+                        subject, classLevel, difficulty
+                    );
+                } else {
+                    // مسألة السرعة والوقت
+                    int distance = 20 + classLevel * 10;
+                    int vitesse = 5 + Math.floorMod(seed, 4);
+                    int temps = distance / vitesse;
+                    yield createQuestion(
+                        theme + ": سيارة تقطع " + distance + "كم بسرعة " + vitesse + "كم/س. كم ساعة تحتاج؟",
+                        String.valueOf(temps) + "س",
+                        String.valueOf(temps + 1) + "س",
+                        String.valueOf(vitesse) + "س",
+                        String.valueOf(distance - vitesse) + "س",
+                        "A",
+                        objective + ". الوقت = المسافة ÷ السرعة = " + distance + " ÷ " + vitesse + " = " + temps + " ساعات.",
+                        subject, classLevel, difficulty
+                    );
+                }
             }
             case SCIENCE -> {
-            String[] q = {
-                "في العلوم (%s)، ما الذي يساعد النبات على النمو؟",
-                "أي عضو في الجسم يساعد على الرؤية في الصف %d؟",
-                "في محور %s، ما العنصر الضروري للتنفس؟",
-                "أي مثال يمثل كائنا حيا؟"
-            };
-            String[][] c = {
-                {"الماء والضوء", "الورق", "المعدن", "الحجر"},
-                {"العين", "الركبة", "الإصبع", "الكتف"},
-                {"الهواء", "الطباشير", "الرمل", "الورق"},
-                {"القط", "الحجر", "الطاولة", "الكأس"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = row == 1 ? q[row].formatted(classLevel) : q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "هدف التعلم: " + objective + ". هذه الإجابة صحيحة ضمن محور " + theme + ".",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": لماذا تحتاج النباتات إلى الضوء؟";
+                        choiceA = "لإجراء عملية البناء الضوئي وإنتاج غذائها";
+                        choiceB = "لشرب الماء بسرعة أكبر";
+                        choiceC = "للنوم في الليل";
+                        choiceD = "لإصدار أصوات";
+                        explanation = objective + ". البناء الضوئي هو عملية تحويل الضوء إلى طاقة كيميائية لإنتاج الغذاء.";
+                    }
+                    case 1 -> {
+                        question = theme + ": ما الغاز الذي تطرحه النباتات أثناء البناء الضوئي؟";
+                        choiceA = "الأكسجين (O2)";
+                        choiceB = "ثاني أكسيد الكربون (CO2)";
+                        choiceC = "النيتروجين (N2)";
+                        choiceD = "الهيدروجين (H2)";
+                        explanation = objective + ". النباتات تمتص CO2 وتطرح O2، الذي يستنشقه الحيوانات.";
+                    }
+                    case 2 -> {
+                        question = theme + ": ما الحالات الثلاث للمادة؟";
+                        choiceA = "صلبة وسائلة وغازية";
+                        choiceB = "ساخنة وباردة ومعتدلة";
+                        choiceC = "صلبة وطرية ومرنة";
+                        choiceD = "خفيفة وثقيلة ومتوسطة";
+                        explanation = objective + ". الماء هو أفضل مثال: جليد (صلب)، ماء (سائل)، بخار (غاز).";
+                    }
+                    case 3 -> {
+                        question = theme + ": ما درجة الحرارة التي يغلي عندها الماء عادة؟";
+                        choiceA = "100°م";
+                        choiceB = "50°م";
+                        choiceC = "0°م";
+                        choiceD = "150°م";
+                        explanation = objective + ". عند 100°م على مستوى سطح البحر، يتحول الماء السائل إلى بخار ماء (غاز).";
+                    }
+                    case 4 -> {
+                        question = theme + ": ما معنى 'التنوع البيولوجي'؟";
+                        choiceA = "تنوع الكائنات الحية في النظام البيئي";
+                        choiceB = "عدد النباتات في الغابة";
+                        choiceC = "تنوع الألوان";
+                        choiceD = "المسافة بين الحيوانات";
+                        explanation = objective + ". التنوع البيولوجي يشمل كل الكائنات: نباتات وحيوانات وحشرات وبكتيريا...";
+                    }
+                    case 5 -> {
+                        question = theme + ": أي عضو في جسم الإنسان يضخ الدم؟";
+                        choiceA = "القلب";
+                        choiceB = "الكبد";
+                        choiceC = "الرئتان";
+                        choiceD = "المعدة";
+                        explanation = objective + ". القلب هو مضخة عضلية تدفع الدم عبر الأوعية الدموية.";
+                    }
+                    case 6 -> {
+                        question = theme + ": ما الذي تنتجه الخلايا أثناء التنفس الخلوي؟";
+                        choiceA = "طاقة (ATP) وثاني أكسيد الكربون";
+                        choiceB = "أكسجين فقط";
+                        choiceC = "ماء وسكر";
+                        choiceD = "ضوء";
+                        explanation = objective + ". التنفس الخلوي يطلق الطاقة المخزنة في جزيئات الطعام.";
+                    }
+                    case 7 -> {
+                        question = theme + ": أي نوع من التكاثر ينتج عنه كائنات متطابقة وراثياً؟";
+                        choiceA = "التكاثر اللاجنسي";
+                        choiceB = "التكاثر الجنسي";
+                        choiceC = "التكاثر الهجين";
+                        choiceD = "التكاثر الجسدي";
+                        explanation = objective + ". أمثلة: انقسام البكتيريا، عقل النبات، التي تنتج نسخ متطابقة (استنساخ).";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case GEOGRAPHY -> {
-            String[] q = {
-                "في الجغرافيا (%s)، ما الجهة المقابلة للشمال؟",
-                "ما هي عاصمة تونس؟",
-                "أي عنصر يساعد على قراءة الخريطة في الصف %d؟",
-                "في محور %s، ما الفضاء الذي يحتوي ماء مالحا؟"
-            };
-            String[][] c = {
-                {"الجنوب", "الشرق", "الغرب", "الشمال"},
-                {"تونس", "صفاقس", "سوسة", "قابس"},
-                {"المفتاح", "الملعقة", "الدفتر", "الممحاة"},
-                {"البحر", "البحيرة العذبة", "النهر", "النافورة"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = row == 2 ? q[row].formatted(classLevel) : q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "هدف التعلم: " + objective + ". السؤال مرتبط بمحور " + theme + " في الجغرافيا.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": ما أكبر صحراء في العالم؟";
+                        choiceA = "الصحراء الكبرى (الصحراء)";
+                        choiceB = "صحراء كالاهاري";
+                        choiceC = "صحراء جوبي";
+                        choiceD = "صحراء أتاكاما";
+                        explanation = objective + ". الصحراء الكبرى تغطي أكثر من 9 ملايين كم² في شمال إفريقيا.";
+                    }
+                    case 1 -> {
+                        question = theme + ": ما عاصمة فرنسا؟";
+                        choiceA = "باريس";
+                        choiceB = "ليون";
+                        choiceC = "مرسيليا";
+                        choiceD = "نيس";
+                        explanation = objective + ". باريس هي عاصمة فرنسا وأكبر مدنها، تقع على نهر السين.";
+                    }
+                    case 2 -> {
+                        question = theme + ": أي محيط يغطي أكبر مساحة على الأرض؟";
+                        choiceA = "المحيط الهادئ";
+                        choiceB = "المحيط الأطلسي";
+                        choiceC = "المحيط الهندي";
+                        choiceD = "المحيط المتجمد الشمالي";
+                        explanation = objective + ". المحيط الهادئ يغطي حوالي 165 مليون كم²، أي ثلث الأرض تقريباً.";
+                    }
+                    case 3 -> {
+                        question = theme + ": ما هي خطوط العرض؟";
+                        choiceA = "خطوط وهمية موازية لخط الاستواء";
+                        choiceB = "خطوط وهمية عمودية على خط الاستواء";
+                        choiceC = "جبل عالي جداً";
+                        choiceD = "مسافة بالكيلومترات";
+                        explanation = objective + ". خطوط العرض تقاس من 0° (الاستواء) إلى 90° (الأقطاب)، شمالاً أو جنوباً.";
+                    }
+                    case 4 -> {
+                        question = theme + ": أي قارة هي الأكثر سكاناً؟";
+                        choiceA = "آسيا";
+                        choiceB = "إفريقيا";
+                        choiceC = "أوروبا";
+                        choiceD = "أمريكا الشمالية";
+                        explanation = objective + ". تستضيف آسيا حوالي 60% من سكان العالم (4.7 مليارات نسمة).";
+                    }
+                    case 5 -> {
+                        question = theme + ": ما المنطقة المعتدلة؟";
+                        choiceA = "منطقة بفصول واضحة ومناخ معتدل";
+                        choiceB = "منطقة حارة دائماً";
+                        choiceC = "منطقة باردة دائماً";
+                        choiceD = "منطقة تحت خط الاستواء";
+                        explanation = objective + ". بين المناطق الاستوائية والأقطاب، بـ 4 فصول: ربيع وصيف وخريف وشتاء.";
+                    }
+                    case 6 -> {
+                        question = theme + ": ما أطول نهر في العالم؟";
+                        choiceA = "نهر النيل";
+                        choiceB = "الأمازون";
+                        choiceC = "ينجتسه";
+                        choiceD = "الدانوب";
+                        explanation = objective + ". نهر النيل في إفريقيا يبلغ حوالي 6650 كم. الأمازون يأتي تالياً بقرب.";
+                    }
+                    case 7 -> {
+                        question = theme + ": ما السلسلة الجبلية؟";
+                        choiceA = "مجموعة من الجبال المتصلة ببعضها";
+                        choiceB = "جبل واحد عالي جداً";
+                        choiceC = "هضبة عالية";
+                        choiceD = "وادي عميق";
+                        explanation = objective + ". أمثلة: الألب والروكي والهملايا (أعلى جبل في العالم).";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case HISTORY -> {
-            String[] q = {
-                "في التاريخ (%s)، ماذا يعني الماضي؟",
-                "ما الأداة التي ترتب الأحداث التاريخية؟",
-                "في الخط الزمني، أي لحظة تأتي أولا؟",
-                "أي مصطلح يدل على حقبة قديمة؟"
-            };
-            String[][] c = {
-                {"ما حدث قبل الآن", "ما سيحدث غدا", "عملية حساب", "لعبة"},
-                {"الخط الزمني", "ميزان الحرارة", "البوصلة", "المسطرة"},
-                {"قبل", "بعد", "أبدا", "الآن"},
-                {"حقبة قديمة", "إجابة سريعة", "جمع كبير", "اتجاه"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "هدف التعلم: " + objective + ". نربط الفكرة بمحور " + theme + " في التاريخ.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": في أي سنة مشى الإنسان على القمر؟";
+                        choiceA = "1969";
+                        choiceB = "1960";
+                        choiceC = "1975";
+                        choiceD = "1980";
+                        explanation = objective + ". نيل أرمسترونج كان أول إنسان يمشي على القمر في 20 يوليو 1969.";
+                    }
+                    case 1 -> {
+                        question = theme + ": أي حضارة بنت أهرام مصر؟";
+                        choiceA = "الحضارة المصرية القديمة";
+                        choiceB = "الحضارة الرومانية";
+                        choiceC = "الحضارة العثمانية";
+                        choiceD = "الحضارة اليونانية";
+                        explanation = objective + ". الأهرامات، خاصة هرم خوفو، بنيت قبل أكثر من 4500 سنة.";
+                    }
+                    case 2 -> {
+                        question = theme + ": في أي سنة بدأت الثورة الفرنسية؟";
+                        choiceA = "1789";
+                        choiceB = "1776";
+                        choiceC = "1799";
+                        choiceD = "1815";
+                        explanation = objective + ". اقتحام الباستيل في 14 يوليو 1789 يعلن بداية الثورة الفرنسية.";
+                    }
+                    case 3 -> {
+                        question = theme + ": من كان الرئيس الأول للولايات المتحدة؟";
+                        choiceA = "جورج واشنطن";
+                        choiceB = "توماس جيفرسون";
+                        choiceC = "إبراهام لينكولن";
+                        choiceD = "بنجامين فرانكلين";
+                        explanation = objective + ". جورج واشنطن كان الرئيس الأول من 1789 إلى 1797.";
+                    }
+                    case 4 -> {
+                        question = theme + ": أي مستكشف اكتشف أمريكا سنة 1492؟";
+                        choiceA = "كريستوفر كولمبس";
+                        choiceB = "فاسكو دا جاما";
+                        choiceC = "فرديناند ماجلان";
+                        choiceD = "جان كابوت";
+                        explanation = objective + ". وصل كولمبس إلى الكاريبي بعد عبوره المحيط الأطلسي لملكة إسبانيا.";
+                    }
+                    case 5 -> {
+                        question = theme + ": في أي سنة بدأت الحرب العالمية الثانية؟";
+                        choiceA = "1939";
+                        choiceB = "1933";
+                        choiceC = "1945";
+                        choiceD = "1929";
+                        explanation = objective + ". غزو ألمانيا لبولندا في 1 سبتمبر 1939 يعلن بداية الحرب العالمية الثانية.";
+                    }
+                    case 6 -> {
+                        question = theme + ": من كان الفيلسوف اليوناني الذي درّس أرسطو؟";
+                        choiceA = "أفلاطون";
+                        choiceB = "سقراط";
+                        choiceC = "هيراقليطس";
+                        choiceD = "أناكسا غوراس";
+                        explanation = objective + ". أفلاطون كان معلم أرسطو في أكاديمية أثينا.";
+                    }
+                    case 7 -> {
+                        question = theme + ": ما معنى 'العصور الوسطى' في التاريخ الأوروبي؟";
+                        choiceA = "الفترة بين العصور القديمة والنهضة (القرن 5-15)";
+                        choiceB = "العصر الحديث";
+                        choiceC = "العصور القديمة الكلاسيكية";
+                        choiceD = "الفترة ما قبل التاريخ";
+                        explanation = objective + ". العصور الوسطى تغطي حوالي ألف سنة، اتسمت بالإقطاعية والكنيسة.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case FRENCH -> {
-            String[] q = {
-                "في الفرنسية (%s)، أي كلمة هي فعل؟",
-                "أي كلمة في صيغة الجمع؟",
-                "ما نوع كلمة 'rapide'؟",
-                "في جملة بسيطة، أي عنصر هو اسم؟"
-            };
-            String[][] c = {
-                {"manger", "table", "bleu", "ecole"},
-                {"chats", "chat", "maison", "arbre"},
-                {"adjectif", "verbe", "nombre", "direction"},
-                {"maison", "courir", "vite", "joli"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "هدف التعلم: " + objective + ". السؤال يثري محور " + theme + " في الفرنسية.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": أي كلمة هي فعل في الجملة: 'القط الأسود ينام على السرير'؟";
+                        choiceA = "ينام";
+                        choiceB = "قط";
+                        choiceC = "أسود";
+                        choiceD = "سرير";
+                        explanation = objective + ". 'النوم' فعل يعبر عن عمل بصيغة 'ينام' للمفرد الغائب.";
+                    }
+                    case 1 -> {
+                        question = theme + ": ما صيغة الجمع من كلمة 'حصان'؟";
+                        choiceA = "خيول";
+                        choiceB = "حصانات";
+                        choiceC = "حصان";
+                        choiceD = "حصانة";
+                        explanation = objective + ". 'الحصان' اسم ينتهي بـ -ال؛ الجمع -ول (جمع تكسير قياسي).";
+                    }
+                    case 2 -> {
+                        question = theme + ": ما دور كلمة 'أحمر' في: 'ترتدي ثوباً أحمر'؟";
+                        choiceA = "صفة توصيفية";
+                        choiceB = "اسم";
+                        choiceC = "فعل";
+                        choiceD = "ظرف";
+                        explanation = objective + ". 'الأحمر' يصف جودة الاسم 'الثوب'؛ إنها صفة.";
+                    }
+                    case 3 -> {
+                        question = theme + ": أي ضمير يمكن أن يحل مكان 'فاطمة وأحمد' في جملة؟";
+                        choiceA = "هم";
+                        choiceB = "هو";
+                        choiceC = "هن";
+                        choiceD = "هي";
+                        explanation = objective + ". 'فاطمة' (مؤنث) و'أحمد' (مذكر) يشكلان مجموعة جمع = 'هم' (مختلط).";
+                    }
+                    case 4 -> {
+                        question = theme + ": حدد الظرف: 'تمشي ببطء في الشارع'";
+                        choiceA = "ببطء";
+                        choiceB = "تمشي";
+                        choiceC = "شارع";
+                        choiceD = "هي";
+                        explanation = objective + ". 'ببطء' يصف طريقة المشي؛ إنه ظرف يدل على الكيفية.";
+                    }
+                    case 5 -> {
+                        question = theme + ": ما المؤنث من الصفة 'نشيط'؟";
+                        choiceA = "نشيطة";
+                        choiceB = "نشطة";
+                        choiceC = "نشاط";
+                        choiceD = "نشيطاً";
+                        explanation = objective + ". الصفات في -ف تصبح -فة بالمؤنث: نشيط → نشيطة.";
+                    }
+                    case 6 -> {
+                        question = theme + ": أكمل: 'أود أن تأتي إلى الاجتماع'";
+                        choiceA = "تأتي";
+                        choiceB = "تأتين";
+                        choiceC = "تأتيان";
+                        choiceD = "تأتون";
+                        explanation = objective + ". بعد 'أود أن' نستخدم المضارع المنصوب: 'تأتي' (للمخاطبة).";
+                    }
+                    case 7 -> {
+                        question = theme + ": ما الزمن اللغوي المستخدم في: 'غداً سنذهب إلى السينما'؟";
+                        choiceA = "الفعل المستقبل البسيط";
+                        choiceB = "الحاضر";
+                        choiceC = "الماضي القريب";
+                        choiceD = "الماضي البعيد";
+                        explanation = objective + ". 'سنذهب' يدل على عمل مستقبلي: الذهاب بصيغة المستقبل، الشخص الأول الجمع.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
             case ARABIC -> {
-            String[] q = {
-                "في العربية (%s)، أي كلمة معناها كتاب؟",
-                "أي كلمة معناها مدرسة؟",
-                "أي مصطلح ينتمي إلى المعجم العربي؟",
-                "أي كلمة تعني القمر؟"
-            };
-            String[][] c = {
-                {"كتاب", "باب", "بيت", "نهار"},
-                {"مدرسة", "بحر", "شمس", "قلم"},
-                {"قلم", "كمبيوتر", "انترنت", "football"},
-                {"قمر", "شمس", "ماء", "ولد"}
-            };
-            int row = Math.floorMod(idx, q.length);
-            String qt = q[row].formatted(theme);
-            yield createQuestion(
-                qt,
-                c[row][0], c[row][1], c[row][2], c[row][3],
-                "A",
-                "هدف التعلم: " + objective + ". السؤال يثري محور " + theme + " في العربية.",
-                subject, classLevel, difficulty
-            );
+                int mode = Math.floorMod(idx, 8);
+                String question = "", choiceA = "", choiceB = "", choiceC = "", choiceD = "", explanation = "";
+                
+                switch (mode) {
+                    case 0 -> {
+                        question = theme + ": ما معنى كلمة 'كتاب' في اللغة العربية؟";
+                        choiceA = "اسم جماد يدل على أوراق مكتوب عليها";
+                        choiceB = "أداة للكتابة";
+                        choiceC = "مكان الدراسة";
+                        choiceD = "شخص يكتب";
+                        explanation = objective + ". 'الكتاب' اسم جماد معروف يستعمل في كل الأوقات.";
+                    }
+                    case 1 -> {
+                        question = theme + ": ما صيغة الجمع من 'بيت'؟";
+                        choiceA = "بيوت";
+                        choiceB = "بيات";
+                        choiceC = "بيتات";
+                        choiceD = "بيوتة";
+                        explanation = objective + ". 'بيت' → 'بيوت' (جمع تكسير)، وهي صيغة قياسية في العربية.";
+                    }
+                    case 2 -> {
+                        question = theme + ": أي من هذه الكلمات فعل ماضي؟";
+                        choiceA = "ذهب";
+                        choiceB = "يذهب";
+                        choiceC = "اذهب";
+                        choiceD = "ذاهب";
+                        explanation = objective + ". 'ذهب' فعل ماضي ثلاثي يدل على حدث انقضى.";
+                    }
+                    case 3 -> {
+                        question = theme + ": كم عدد حروف اللغة العربية؟";
+                        choiceA = "28 حرفاً";
+                        choiceB = "26 حرفاً";
+                        choiceC = "30 حرفاً";
+                        choiceD = "25 حرفاً";
+                        explanation = objective + ". اللغة العربية تتكون من 28 حرفاً بما فيها الهمزة إن عددت منفصلة.";
+                    }
+                    case 4 -> {
+                        question = theme + ": ما الفاعل في الجملة: 'أكل الطفل التفاحة'؟";
+                        choiceA = "الطفل";
+                        choiceB = "التفاحة";
+                        choiceC = "أكل";
+                        choiceD = "ال (أداة التعريف)";
+                        explanation = objective + ". 'الطفل' هو من قام بالفعل، أي الفاعل.";
+                    }
+                    case 5 -> {
+                        question = theme + ": ما معنى 'المفعول به' في الجملة؟";
+                        choiceA = "الاسم الذي يقع عليه الفعل";
+                        choiceB = "الشخص الذي يفعل";
+                        choiceC = "الصفة التي تصف الاسم";
+                        choiceD = "كلمة تربط بين كلمتين";
+                        explanation = objective + ". المفعول به هو ما وقع عليه الفعل، مثل 'التفاحة' في 'أكل الطفل التفاحة'.";
+                    }
+                    case 6 -> {
+                        question = theme + ": كيف تصرف الفعل 'كتب' في المضارع، الشخص 'أنا'؟";
+                        choiceA = "أكتب";
+                        choiceB = "يكتب";
+                        choiceC = "تكتب";
+                        choiceD = "نكتب";
+                        explanation = objective + ". 'أكتب' تصريف الفعل 'كتب' في المضارع، المتكلم (أنا).";
+                    }
+                    case 7 -> {
+                        question = theme + ": ما نوع الكلمة 'سريع' في: 'هذا الكتاب سريع الفهم'؟";
+                        choiceA = "صفة (نعت)";
+                        choiceB = "فعل";
+                        choiceC = "اسم";
+                        choiceD = "حرف";
+                        explanation = objective + ". 'سريع' صفة تصف الكتاب، وتسمى النعت في اللغة العربية.";
+                    }
+                }
+                yield createQuestion(question, choiceA, choiceB, choiceC, choiceD, "A", explanation, subject, classLevel, difficulty);
             }
         };
         }
