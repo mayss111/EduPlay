@@ -1861,19 +1861,6 @@ public class QuestionGeneratorService {
         return expanded;
     }
 
-    private Question buildFrenchProgrammaticQuestion(Subject subject, int classLevel, Difficulty difficulty, int idx, String theme, String objective) {
-        int mode = Math.floorMod(idx, 4);
-        int baseVal = 5 + classLevel + idx % 10;
-        String qText = theme + ": ";
-        return createQuestion(qText + "Quelle est la valeur de " + baseVal + " + 2?", String.valueOf(baseVal + 1), String.valueOf(baseVal + 2), String.valueOf(baseVal + 3), String.valueOf(baseVal + 4), "B", objective, subject, classLevel, difficulty);
-    }
-    
-    private Question buildArabicProgrammaticQuestion(Subject subject, int classLevel, Difficulty difficulty, int idx, String theme, String objective) {
-        int mode = Math.floorMod(idx, 4);
-        int baseVal = 5 + classLevel + idx % 10;
-        String qText = theme + ": ";
-        return createQuestion(qText + "كم تساوي " + baseVal + " + 2؟", String.valueOf(baseVal + 1), String.valueOf(baseVal + 2), String.valueOf(baseVal + 3), String.valueOf(baseVal + 4), "B", objective, subject, classLevel, difficulty);
-    }
 
     private List<Question> buildProgrammaticFallbackQuestions(int classLevel,
                                       Subject subject,
