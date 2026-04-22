@@ -54,7 +54,9 @@ public class GameController {
             try {
                 List<Question> generated = questionGeneratorService
                     .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
-                questions = generated;
+                if (generated != null && !generated.isEmpty()) {
+                    questions = generated;
+                }
             } catch (Exception e) {
                 // Garder les questions existantes même si moins de 10
             }
