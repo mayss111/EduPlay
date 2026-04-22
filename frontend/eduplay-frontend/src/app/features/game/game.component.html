@@ -73,9 +73,14 @@
              [style.width]="((currentIndex+1)/questions.length*100)+'%'">
         </div>
       </div>
-      <div class="timer" [class.danger]="timeLeft <= 10">
+      <div class="timer" [class.danger]="timeLeft <= 10" [class.pulse]="timeLeft <= 5">
         ⏱ {{ timeLeft }}s
       </div>
+    </div>
+
+    <!-- COMBO OVERLAY -->
+    <div class="combo-overlay" *ngIf="showCombo">
+      <div class="combo-text">🔥 COMBO x{{ currentStreak }} 🔥</div>
     </div>
 
     <!-- QUESTION -->

@@ -27,6 +27,9 @@ export class GameComponent implements OnInit, OnDestroy {
   gameResult: GameResult | null = null;
   timeLeft = 30;
   timer: any;
+  currentStreak = 0;
+  maxStreak = 0;
+  showCombo = false;
 
   subject = '';
   difficulty = '';
@@ -186,7 +189,19 @@ export class GameComponent implements OnInit, OnDestroy {
     clearInterval(this.timer);
     this.selectedAnswer = key;
     this.isCorrect = key === this.currentQuestion.correctChoice;
-    if (this.isCorrect) this.score++;
+    
+    if (this.isCorrect) {
+      this.score++;
+      this.currentStreak++;
+      if (this.currentStreak > this.maxStreak) this.maxStreak = this.currentStreak;
+      if (this.currentStreak >= 3) {
+        this.showCombo = true;
+        setTimeout(() => this.showCombo = false, 1500);
+      }
+    } else {
+      this.currentStreak = 0;
+    }
+
     this.showResult = true;
     this.answers.push(key);
   }

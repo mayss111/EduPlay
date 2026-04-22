@@ -58,6 +58,7 @@
 
     <!-- PLAY BUTTON -->
     <button class="play-btn"
+            [class.ready]="selectedSubject && selectedDifficulty"
             [disabled]="!selectedSubject || !selectedDifficulty"
             (click)="startGame()">
       {{ t('🚀 Lancer la partie !', '🚀 ابدأ اللعبة!') }}

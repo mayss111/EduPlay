@@ -21,6 +21,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedSubject = '';
   selectedDifficulty = '';
 
+  get userLevel(): number {
+    if (!this.user) return 1;
+    // Simple level formula: Level 1 = 0-200 XP, Level 2 = 201-500 XP, Level 3 = 501-900 XP, etc.
+    return Math.floor(Math.sqrt(this.user.totalXp / 100)) + 1;
+  }
+
+  get xpForNextLevel(): number {
+    const nextLevel = this.userLevel;
+    return Math.pow(nextLevel, 2) * 100;
+  }
+
+  get xpProgress(): number {
+    if (!this.user) return 0;
+    const currentLevelXp = Math.pow(this.userLevel - 1, 2) * 100;
+    const nextLevelXp = this.xpForNextLevel;
+    const progress = ((this.user.totalXp - currentLevelXp) / (nextLevelXp - currentLevelXp)) * 100;
+    return Math.min(Math.max(progress, 0), 100);
+  }
+
   avatars = ['🐰', '🦔', '🐿️', '🦁', '🐯', '🦊'];
 
   subjects = [
