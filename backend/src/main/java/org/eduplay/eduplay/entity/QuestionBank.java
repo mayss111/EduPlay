@@ -1,5 +1,6 @@
 package org.eduplay.eduplay.entity;
 
+import org.eduplay.eduplay.enums.AppLanguage;
 import org.eduplay.eduplay.enums.Difficulty;
 import org.eduplay.eduplay.enums.Subject;
 import jakarta.persistence.*;
@@ -54,6 +55,11 @@ public class QuestionBank implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Difficulty difficulty;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private AppLanguage language = AppLanguage.FRENCH;
 
     private String topicTag;
 

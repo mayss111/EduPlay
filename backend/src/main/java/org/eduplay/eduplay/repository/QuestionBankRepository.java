@@ -1,6 +1,7 @@
 package org.eduplay.eduplay.repository;
 
 import org.eduplay.eduplay.entity.QuestionBank;
+import org.eduplay.eduplay.enums.AppLanguage;
 import org.eduplay.eduplay.enums.Difficulty;
 import org.eduplay.eduplay.enums.Subject;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long> {
@@ -19,6 +21,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query("SELECT q FROM QuestionBank q WHERE q.subject = :subject " +
            "AND q.classLevel = :classLevel AND q.difficulty = :difficulty " +
+           "AND q.language = :language " +
            "AND q.id NOT IN (SELECT uqh.questionId FROM UserQuestionHistory uqh " +
            "WHERE uqh.userId = :userId AND uqh.answeredAt > :daysAgo) " +
            "ORDER BY q.usageCount ASC, FUNCTION('RANDOM')")
@@ -27,6 +30,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
         @Param("subject") Subject subject,
         @Param("classLevel") Integer classLevel,
         @Param("difficulty") Difficulty difficulty,
+        @Param("language") AppLanguage language,
         @Param("daysAgo") LocalDateTime daysAgo
     );
 
@@ -35,11 +39,13 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query("SELECT q FROM QuestionBank q WHERE q.subject = :subject " +
            "AND q.classLevel = :classLevel AND q.difficulty = :difficulty " +
+           "AND q.language = :language " +
            "ORDER BY q.usageCount ASC, FUNCTION('RANDOM')")
     List<QuestionBank> findLeastUsed(
         @Param("subject") Subject subject,
         @Param("classLevel") Integer classLevel,
-        @Param("difficulty") Difficulty difficulty
+        @Param("difficulty") Difficulty difficulty,
+        @Param("language") AppLanguage language
     );
 
     /**
@@ -56,11 +62,13 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query(value = "SELECT * FROM question_bank q WHERE q.subject = :subject " +
            "AND q.class_level = :classLevel AND q.difficulty = :difficulty " +
+           "AND q.language = :language " +
            "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<QuestionBank> findRandom(
         @Param("subject") Subject subject,
         @Param("classLevel") Integer classLevel,
         @Param("difficulty") Difficulty difficulty,
+        @Param("language") String language,
         @Param("limit") int limit
     );
 
@@ -83,4 +91,5 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
         @Param("userId") Long userId,
         @Param("daysAgo") LocalDateTime daysAgo
     );
+    Optional<QuestionBank> findByQuestionText(String questionText);
 }

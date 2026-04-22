@@ -42,14 +42,14 @@ public class SmartQuestionService {
         
         // 1. Essayer de trouver des questions jamais vues ou pas récemment
         List<QuestionBank> questions = questionBankRepository.findLeastUsedNotRecentlySeen(
-            userId, subject, classLevel, difficulty, daysAgo
+            userId, subject, classLevel, difficulty, language, daysAgo
         );
 
         // 2. Si pas assez, prendre les moins utilisées globalement
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Pas assez de questions uniques, fallback sur les moins utilisées");
             List<QuestionBank> leastUsed = questionBankRepository.findLeastUsed(
-                subject, classLevel, difficulty
+                subject, classLevel, difficulty, language
             );
             
             // Fusionner en évitant les doublons
@@ -70,7 +70,7 @@ public class SmartQuestionService {
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Fallback sur sélection aléatoire");
             List<QuestionBank> random = questionBankRepository.findRandom(
-                subject, classLevel, difficulty, TARGET_QUESTION_COUNT - questions.size()
+                subject, classLevel, difficulty, language.name(), TARGET_QUESTION_COUNT - questions.size()
             );
             
             Set<Long> existingIds = questions.stream()
@@ -103,12 +103,12 @@ public class SmartQuestionService {
     public List<Question> selectQuestions(int classLevel, Subject subject, 
                                           Difficulty difficulty, AppLanguage language) {
         List<QuestionBank> questions = questionBankRepository.findLeastUsed(
-            subject, classLevel, difficulty
+            subject, classLevel, difficulty, language
         );
 
         if (questions.size() < TARGET_QUESTION_COUNT) {
             List<QuestionBank> random = questionBankRepository.findRandom(
-                subject, classLevel, difficulty, TARGET_QUESTION_COUNT
+                subject, classLevel, difficulty, language.name(), TARGET_QUESTION_COUNT
             );
             
             Set<Long> existingIds = questions.stream()
@@ -227,9 +227,6 @@ public class SmartQuestionService {
     }
 
     private Optional<QuestionBank> findQuestionBankByText(String questionText) {
-        // Recherche simplifiée - dans une implémentation réelle, utiliser une recherche full-text
-        return questionBankRepository.findAll().stream()
-            .filter(qb -> qb.getQuestionText().equals(questionText))
-            .findFirst();
+        return questionBankRepository.findByQuestionText(questionText);
     }
 }

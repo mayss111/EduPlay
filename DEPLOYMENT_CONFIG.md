@@ -18,7 +18,7 @@ spring.datasource.hikari.idle-timeout=600000
 spring.datasource.hikari.max-lifetime=1800000
 
 # JPA/Hibernate Optimization
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect
+spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.properties.hibernate.format_sql=false
 spring.jpa.properties.hibernate.jdbc.batch_size=20
 spring.jpa.properties.hibernate.order_inserts=true
