@@ -496,11 +496,12 @@ public class QuestionGeneratorService {
             log.error("FINAL FAILURE: Aucune question finale pour {} {} {} {}", classLevel, subject, difficulty, language);
         }
 
-        // Si on a moins de 10 questions, on complète en utilisant des variations ou le pool de secours
-        if (!finalized.isEmpty() && finalized.size() < TARGET_QUESTION_COUNT) {
-            log.warn("COMPLETION: Recherche de questions additionnelles pour atteindre {} questions", TARGET_QUESTION_COUNT);
+        // Si on a moins de 10 questions, on complète impérativement pour garantir la jouabilité
+        if (finalized.size() < TARGET_QUESTION_COUNT) {
+            log.warn("COMPLETION: Recherche de questions additionnelles pour atteindre {} questions (actuel: {})", 
+                TARGET_QUESTION_COUNT, finalized.size());
             
-            // 1. Essayer de piocher dans le pool de secours (fallback) sans validation stricte
+            // 1. Essayer de piocher dans le pool de secours (fallback)
             List<Question> fallback = buildFallbackQuestions(classLevel, subject, difficulty, language);
             for (Question f : fallback) {
                 if (finalized.size() >= TARGET_QUESTION_COUNT) break;
@@ -512,12 +513,26 @@ public class QuestionGeneratorService {
                 }
             }
 
-            // 2. Si toujours pas assez, on autorise exceptionnellement les doublons (ultime recours)
-            if (finalized.size() < TARGET_QUESTION_COUNT) {
+            // 2. Si toujours pas assez (ou si finalized était vide au départ), on autorise les doublons
+            if (finalized.size() < TARGET_QUESTION_COUNT && !finalized.isEmpty()) {
                 log.warn("COMPLETION FORCEE: Ajout de copies (doublons) pour atteindre {} questions", TARGET_QUESTION_COUNT);
                 List<Question> base = new ArrayList<>(finalized);
                 while (finalized.size() < TARGET_QUESTION_COUNT) {
                     finalized.add(copyQuestion(base.get(finalized.size() % base.size())));
+                }
+            }
+            
+            // 3. Cas extrême : finalized est toujours vide (ne devrait jamais arriver avec le pool fallback)
+            if (finalized.isEmpty()) {
+                log.error("URGENT: Pool fallback vide ou totalement rejeté pour {} {} {} {}", classLevel, subject, difficulty, language);
+                // On ajoute une question "bouchon" pour éviter le crash
+                Question emergency = createQuestion(
+                    language == AppLanguage.ARABIC ? "سؤال طوارئ: ما هو 1 + 1؟" : "Question d'urgence : Combien font 1 + 1 ?",
+                    "1", "2", "3", "4", "B", 
+                    "1 + 1 = 2", subject, classLevel, difficulty
+                );
+                while (finalized.size() < TARGET_QUESTION_COUNT) {
+                    finalized.add(copyQuestion(emergency));
                 }
             }
         }
@@ -889,19 +904,30 @@ public class QuestionGeneratorService {
     }
 
     private void shuffleChoices(Question q) {
+        if (q == null) return;
+        
         List<Map.Entry<String, String>> choices = new ArrayList<>();
         choices.add(new AbstractMap.SimpleEntry<>("A", Optional.ofNullable(q.getChoiceA()).orElse("")));
         choices.add(new AbstractMap.SimpleEntry<>("B", Optional.ofNullable(q.getChoiceB()).orElse("")));
         choices.add(new AbstractMap.SimpleEntry<>("C", Optional.ofNullable(q.getChoiceC()).orElse("")));
         choices.add(new AbstractMap.SimpleEntry<>("D", Optional.ofNullable(q.getChoiceD()).orElse("")));
         
-        String correctText = "";
         String correctKey = q.getCorrectChoice();
+        if (correctKey == null || correctKey.isBlank()) {
+            correctKey = "A"; // Par défaut si non spécifié
+        }
+        
+        String correctText = "";
         for (Map.Entry<String, String> entry : choices) {
-            if (entry.getKey().equals(correctKey)) {
+            if (entry.getKey().equalsIgnoreCase(correctKey.trim())) {
                 correctText = entry.getValue();
                 break;
             }
+        }
+        
+        // Si le texte correct est vide, on prend celui de A par défaut pour éviter de perdre la question
+        if (correctText.isEmpty()) {
+            correctText = choices.get(0).getValue();
         }
         
         Collections.shuffle(choices);
@@ -911,6 +937,7 @@ public class QuestionGeneratorService {
         q.setChoiceC(choices.get(2).getValue());
         q.setChoiceD(choices.get(3).getValue());
         
+        boolean found = false;
         for (int i = 0; i < 4; i++) {
             if (choices.get(i).getValue().equals(correctText)) {
                 q.setCorrectChoice(switch(i) {
@@ -919,8 +946,14 @@ public class QuestionGeneratorService {
                     case 2 -> "C";
                     default -> "D";
                 });
+                found = true;
                 break;
             }
+        }
+        
+        // Si non trouvé après mélange (cas bizarre de doublons de texte), on met A
+        if (!found) {
+            q.setCorrectChoice("A");
         }
     }
 
