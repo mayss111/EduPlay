@@ -890,70 +890,78 @@ public class QuestionGeneratorService {
             return questions;
         }
         
-        List<Question> result = new ArrayList<>(questions);
-        
-        // Mélange aléatoire complet pour que les questions ne soient jamais dans le même ordre
-        Collections.shuffle(result, new Random());
-        
-        // Mélange également les choix de chaque question pour plus de variété
-        for (Question q : result) {
-            shuffleChoices(q);
+        try {
+            List<Question> result = new ArrayList<>(questions);
+            
+            // Mélange aléatoire complet pour que les questions ne soient jamais dans le même ordre
+            Collections.shuffle(result, new Random());
+            
+            // Mélange également les choix de chaque question pour plus de variété
+            for (Question q : result) {
+                if (q != null) {
+                    shuffleChoices(q);
+                }
+            }
+            
+            return result;
+        } catch (Exception e) {
+            log.error("ERREUR lors de la rotation/mélange: {}", e.getMessage());
+            return questions;
         }
-        
-        return result;
     }
 
     private void shuffleChoices(Question q) {
         if (q == null) return;
         
-        List<Map.Entry<String, String>> choices = new ArrayList<>();
-        choices.add(new AbstractMap.SimpleEntry<>("A", Optional.ofNullable(q.getChoiceA()).orElse("")));
-        choices.add(new AbstractMap.SimpleEntry<>("B", Optional.ofNullable(q.getChoiceB()).orElse("")));
-        choices.add(new AbstractMap.SimpleEntry<>("C", Optional.ofNullable(q.getChoiceC()).orElse("")));
-        choices.add(new AbstractMap.SimpleEntry<>("D", Optional.ofNullable(q.getChoiceD()).orElse("")));
-        
-        String correctKey = q.getCorrectChoice();
-        if (correctKey == null || correctKey.isBlank()) {
-            correctKey = "A"; // Par défaut si non spécifié
-        }
-        
-        String correctText = "";
-        for (Map.Entry<String, String> entry : choices) {
-            if (entry.getKey().equalsIgnoreCase(correctKey.trim())) {
-                correctText = entry.getValue();
-                break;
+        try {
+            List<Map.Entry<String, String>> choices = new ArrayList<>();
+            choices.add(new AbstractMap.SimpleEntry<>("A", Optional.ofNullable(q.getChoiceA()).orElse("")));
+            choices.add(new AbstractMap.SimpleEntry<>("B", Optional.ofNullable(q.getChoiceB()).orElse("")));
+            choices.add(new AbstractMap.SimpleEntry<>("C", Optional.ofNullable(q.getChoiceC()).orElse("")));
+            choices.add(new AbstractMap.SimpleEntry<>("D", Optional.ofNullable(q.getChoiceD()).orElse("")));
+            
+            String correctKey = q.getCorrectChoice();
+            if (correctKey == null || correctKey.isBlank()) {
+                correctKey = "A"; // Par défaut si non spécifié
             }
-        }
-        
-        // Si le texte correct est vide, on prend celui de A par défaut pour éviter de perdre la question
-        if (correctText.isEmpty()) {
-            correctText = choices.get(0).getValue();
-        }
-        
-        Collections.shuffle(choices);
-        
-        q.setChoiceA(choices.get(0).getValue());
-        q.setChoiceB(choices.get(1).getValue());
-        q.setChoiceC(choices.get(2).getValue());
-        q.setChoiceD(choices.get(3).getValue());
-        
-        boolean found = false;
-        for (int i = 0; i < 4; i++) {
-            if (choices.get(i).getValue().equals(correctText)) {
-                q.setCorrectChoice(switch(i) {
-                    case 0 -> "A";
-                    case 1 -> "B";
-                    case 2 -> "C";
-                    default -> "D";
-                });
-                found = true;
-                break;
+            
+            String correctText = "";
+            for (Map.Entry<String, String> entry : choices) {
+                if (entry.getKey().equalsIgnoreCase(correctKey.trim())) {
+                    correctText = entry.getValue();
+                    break;
+                }
             }
-        }
-        
-        // Si non trouvé après mélange (cas bizarre de doublons de texte), on met A
-        if (!found) {
-            q.setCorrectChoice("A");
+            
+            // Si le texte correct est vide, on prend celui de A par défaut pour éviter de perdre la question
+            if (correctText.isEmpty()) {
+                correctText = choices.get(0).getValue();
+            }
+            
+            Collections.shuffle(choices);
+            
+            q.setChoiceA(choices.get(0).getValue());
+            q.setChoiceB(choices.get(1).getValue());
+            q.setChoiceC(choices.get(2).getValue());
+            q.setChoiceD(choices.get(3).getValue());
+            
+            boolean found = false;
+            for (int i = 0; i < 4; i++) {
+                String choiceValue = choices.get(i).getValue();
+                if (choiceValue != null && choiceValue.equals(correctText)) {
+                    final int idx = i;
+                    q.setCorrectChoice(idx == 0 ? "A" : idx == 1 ? "B" : idx == 2 ? "C" : "D");
+                    found = true;
+                    break;
+                }
+            }
+            
+            // Si non trouvé après mélange (cas bizarre de doublons de texte), on met A
+            if (!found) {
+                q.setCorrectChoice("A");
+            }
+        } catch (Exception e) {
+            log.warn("Erreur silencieuse lors du mélange des choix: {}", e.getMessage());
         }
     }
 

@@ -58,12 +58,14 @@ public class GameController {
                     // Fusionner les questions existantes avec les nouvelles en évitant les doublons
                     Set<String> seenTexts = new HashSet<>();
                     for (Question q : questions) {
-                        seenTexts.add(q.getQuestionText().trim().toLowerCase());
+                        if (q.getQuestionText() != null) {
+                            seenTexts.add(q.getQuestionText().trim().toLowerCase());
+                        }
                     }
                     
                     for (Question g : generated) {
                         if (questions.size() >= 10) break;
-                        if (seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
+                        if (g.getQuestionText() != null && seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
                             questions.add(g);
                         }
                     }
