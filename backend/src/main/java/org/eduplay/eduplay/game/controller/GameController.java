@@ -203,12 +203,18 @@ public class GameController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User introuvable"));
 
-        Map<String, Double> successRates = smartQuestionService.getSuccessRatesBySubject(user.getId());
+        Map<Subject, Double> successRates = smartQuestionService.getSuccessRatesBySubject(user.getId());
+        
+        // Convert Map<Subject, Double> to Map<String, Double> for JSON serialization
+        Map<String, Double> successRatesString = new HashMap<>();
+        for (Map.Entry<Subject, Double> entry : successRates.entrySet()) {
+            successRatesString.put(entry.getKey().name(), entry.getValue());
+        }
         
         Map<String, Object> response = new LinkedHashMap<>();
         response.put("totalQuestionsAnswered", historyRepository.countByUserId(user.getId()));
         response.put("totalCorrectAnswers", historyRepository.countByUserIdAndIsCorrectTrue(user.getId()));
-        response.put("successRatesBySubject", successRates);
+        response.put("successRatesBySubject", successRatesString);
 
         return ResponseEntity.ok(response);
     }
