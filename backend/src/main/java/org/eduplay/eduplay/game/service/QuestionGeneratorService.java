@@ -1818,6 +1818,17 @@ public class QuestionGeneratorService {
         return new ArrayList<>();
     }
 
+    private int[] fallbackVariantOffsets() {
+        return new int[]{0, 2, 5};
+    }
+
+    private List<Question> selectDiverseSlice(List<Question> questions, int count) {
+        if (questions == null || questions.isEmpty()) return new ArrayList<>();
+        List<Question> copy = new ArrayList<>(questions);
+        Collections.shuffle(copy);
+        return copy.subList(0, Math.min(copy.size(), count));
+    }
+
     private List<Question> expandFallbackPool(List<Question> base,
                                               int classLevel,
                                               Subject subject,
@@ -1852,9 +1863,9 @@ public class QuestionGeneratorService {
                 variant.setChoiceD(q.getChoiceD());
                 variant.setCorrectChoice(q.getCorrectChoice());
                 variant.setExplanation(q.getExplanation());
-                variant.setGeneratedBy("fallback_variant");
-                variant.setValidationScore(q.getValidationScore());
-                variant.setPedagogicalFocus(q.getPedagogicalFocus());
+                variant.setGenerationProfile("fallback_variant");
+                variant.setQualityScore(q.getQualityScore());
+                variant.setTopicTag(q.getTopicTag());
                 expanded.add(variant);
             }
         }
