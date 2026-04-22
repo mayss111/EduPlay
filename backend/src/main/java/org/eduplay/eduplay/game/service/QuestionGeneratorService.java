@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Locale;
@@ -142,7 +144,16 @@ public class QuestionGeneratorService {
             return rotateForVariety(safe);
         }
 
-        throw new IllegalStateException("Generation indisponible temporairement.");
+        // Ultimate safety: return the base fallback even if it's not tailored
+        if (!fallback.isEmpty()) {
+            log.warn("FAILSAFE ULTIME: Retour du fallback brut pour {} {} {}", subject, classLevel, difficulty);
+            return rotateForVariety(fallback.size() > TARGET_QUESTION_COUNT 
+                ? new ArrayList<>(fallback.subList(0, TARGET_QUESTION_COUNT)) 
+                : fallback);
+        }
+
+        log.error("CATASTROPHE: Aucune question possible pour {} {} {} {}", subject, classLevel, difficulty, language);
+        return new ArrayList<>(); // Return empty list instead of throwing exception to avoid 500 error
     }
 
         private String buildPrompt(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
@@ -485,9 +496,53 @@ public class QuestionGeneratorService {
             log.error("FINAL FAILURE: Aucune question finale pour {} {} {} {}", classLevel, subject, difficulty, language);
         }
 
+        // Si on a moins de 10 questions, on complète en utilisant des variations ou le pool de secours
+        if (!finalized.isEmpty() && finalized.size() < TARGET_QUESTION_COUNT) {
+            log.warn("COMPLETION: Recherche de questions additionnelles pour atteindre {} questions", TARGET_QUESTION_COUNT);
+            
+            // 1. Essayer de piocher dans le pool de secours (fallback) sans validation stricte
+            List<Question> fallback = buildFallbackQuestions(classLevel, subject, difficulty, language);
+            for (Question f : fallback) {
+                if (finalized.size() >= TARGET_QUESTION_COUNT) break;
+                String key = normalizeForContains(f.getQuestionText());
+                if (seen.add(key)) {
+                    sanitize(f);
+                    ensureCorrectChoiceIsValid(f);
+                    finalized.add(f);
+                }
+            }
+
+            // 2. Si toujours pas assez, on autorise exceptionnellement les doublons (ultime recours)
+            if (finalized.size() < TARGET_QUESTION_COUNT) {
+                log.warn("COMPLETION FORCEE: Ajout de copies (doublons) pour atteindre {} questions", TARGET_QUESTION_COUNT);
+                List<Question> base = new ArrayList<>(finalized);
+                while (finalized.size() < TARGET_QUESTION_COUNT) {
+                    finalized.add(copyQuestion(base.get(finalized.size() % base.size())));
+                }
+            }
+        }
+
         return finalized.size() > TARGET_QUESTION_COUNT
                 ? new ArrayList<>(finalized.subList(0, TARGET_QUESTION_COUNT))
                 : finalized;
+    }
+
+    private Question copyQuestion(Question q) {
+        return Question.builder()
+                .questionText(q.getQuestionText())
+                .choiceA(q.getChoiceA())
+                .choiceB(q.getChoiceB())
+                .choiceC(q.getChoiceC())
+                .choiceD(q.getChoiceD())
+                .correctChoice(q.getCorrectChoice())
+                .explanation(q.getExplanation())
+                .subject(q.getSubject())
+                .classLevel(q.getClassLevel())
+                .difficulty(q.getDifficulty())
+                .qualityScore(q.getQualityScore())
+                .topicTag(q.getTopicTag())
+                .generationProfile(q.getGenerationProfile())
+                .build();
     }
 
     private int addValidatedQuestions(List<Question> source,
@@ -816,16 +871,57 @@ public class QuestionGeneratorService {
     }
 
     private List<Question> rotateForVariety(List<Question> questions) {
-        List<Question> copies = copyQuestions(questions);
-        if (copies.size() <= 1) {
-            return copies;
+        if (questions == null || questions.isEmpty()) {
+            return questions;
         }
+        
+        List<Question> result = new ArrayList<>(questions);
+        
+        // Mélange aléatoire complet pour que les questions ne soient jamais dans le même ordre
+        Collections.shuffle(result, new Random());
+        
+        // Mélange également les choix de chaque question pour plus de variété
+        for (Question q : result) {
+            shuffleChoices(q);
+        }
+        
+        return result;
+    }
 
-        int shift = (int) ((System.currentTimeMillis() / 2000L) % copies.size());
-        if (shift != 0) {
-            Collections.rotate(copies, shift);
+    private void shuffleChoices(Question q) {
+        List<Map.Entry<String, String>> choices = new ArrayList<>();
+        choices.add(new AbstractMap.SimpleEntry<>("A", Optional.ofNullable(q.getChoiceA()).orElse("")));
+        choices.add(new AbstractMap.SimpleEntry<>("B", Optional.ofNullable(q.getChoiceB()).orElse("")));
+        choices.add(new AbstractMap.SimpleEntry<>("C", Optional.ofNullable(q.getChoiceC()).orElse("")));
+        choices.add(new AbstractMap.SimpleEntry<>("D", Optional.ofNullable(q.getChoiceD()).orElse("")));
+        
+        String correctText = "";
+        String correctKey = q.getCorrectChoice();
+        for (Map.Entry<String, String> entry : choices) {
+            if (entry.getKey().equals(correctKey)) {
+                correctText = entry.getValue();
+                break;
+            }
         }
-        return copies;
+        
+        Collections.shuffle(choices);
+        
+        q.setChoiceA(choices.get(0).getValue());
+        q.setChoiceB(choices.get(1).getValue());
+        q.setChoiceC(choices.get(2).getValue());
+        q.setChoiceD(choices.get(3).getValue());
+        
+        for (int i = 0; i < 4; i++) {
+            if (choices.get(i).getValue().equals(correctText)) {
+                q.setCorrectChoice(switch(i) {
+                    case 0 -> "A";
+                    case 1 -> "B";
+                    case 2 -> "C";
+                    default -> "D";
+                });
+                break;
+            }
+        }
     }
 
     private List<Question> copyQuestions(List<Question> questions) {
@@ -1399,8 +1495,13 @@ public class QuestionGeneratorService {
         uniqueChoices.add(d.toLowerCase());
 
         if (uniqueChoices.size() < 4) {
-            log.warn("Rejet doublons choix: {}", uniqueChoices);
-            return false;
+            log.warn("Rejet doublons choix ({}): {}", uniqueChoices.size(), uniqueChoices);
+            // Relax for MATH or fallback scenarios where we just need playable content
+            if (question.getSubject() == Subject.MATH || uniqueChoices.size() >= 2) {
+                log.info("Autorisation exceptionnelle: {} choix uniques acceptés pour {}", uniqueChoices.size(), question.getSubject());
+            } else {
+                return false;
+            }
         }
 
         // All choices must be reasonably short
@@ -1658,7 +1759,10 @@ public class QuestionGeneratorService {
             q.setDifficulty(difficulty);
             sanitize(q);
             ensureCorrectChoiceIsValid(q);
-            if (isPedagogicallyValid(q)) {
+            
+            // Ultra-relaxed validation for last resort
+            String text = Optional.ofNullable(q.getQuestionText()).orElse("").trim();
+            if (text.length() >= 2) {
                 result.add(q);
             }
         }
@@ -1795,7 +1899,12 @@ public class QuestionGeneratorService {
                         createQuestion("Combien font 5 + 4?", "8", "9", "7", "6", "B", "5 + 4 = 9.", subject, classLevel, difficulty),
                         createQuestion("Combien font 9 - 3?", "5", "7", "6", "8", "C", "9 - 3 = 6.", subject, classLevel, difficulty),
                         createQuestion("Quelle forme a quatre cotes egales?", "Triangle", "Carre", "Cercle", "Ligne", "B", "Un carre a quatre cotes egales.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 1 + 7?", "6", "7", "8", "9", "C", "1 + 7 = 8.", subject, classLevel, difficulty)
+                        createQuestion("Combien font 1 + 7?", "6", "7", "8", "9", "C", "1 + 7 = 8.", subject, classLevel, difficulty),
+                        createQuestion("Quel est le triple de 3?", "6", "9", "12", "15", "B", "Le triple de 3 est 9.", subject, classLevel, difficulty),
+                        createQuestion("Combien font 10 - 4?", "5", "6", "7", "8", "B", "10 - 4 = 6.", subject, classLevel, difficulty),
+                        createQuestion("Quel nombre est pair?", "1", "3", "4", "5", "C", "4 est un nombre pair.", subject, classLevel, difficulty),
+                        createQuestion("Quel nombre est impair?", "2", "4", "6", "7", "D", "7 est un nombre impair.", subject, classLevel, difficulty),
+                        createQuestion("Combien font 4 x 2?", "6", "8", "10", "12", "B", "4 x 2 = 8.", subject, classLevel, difficulty)
                 );
                 case SCIENCE -> List.of(
                         createQuestion("Quel organe nous permet de voir?", "Oreille", "Nez", "Oeil", "Main", "C", "En science, l'oeil est l'organe de la vue.", subject, classLevel, difficulty),
@@ -1807,7 +1916,12 @@ public class QuestionGeneratorService {
                         createQuestion("Que boit-on pour rester en bonne sante?", "Du sable", "De l'eau", "Du carton", "De la craie", "B", "L'eau est importante pour le corps.", subject, classLevel, difficulty),
                         createQuestion("Quel est le moment entre le jour et la nuit?", "Matin", "Midi", "Soir", "Minuit", "C", "Le soir vient avant la nuit.", subject, classLevel, difficulty),
                         createQuestion("Quel animal pond des oeufs?", "Chat", "Vache", "Poule", "Cheval", "C", "La poule pond des oeufs.", subject, classLevel, difficulty),
-                        createQuestion("Quel objet emet de la lumiere?", "Lampe", "Cahier", "Chaise", "Stylo", "A", "Une lampe peut emettre de la lumiere.", subject, classLevel, difficulty)
+                        createQuestion("Quel objet emet de la lumiere?", "Lampe", "Cahier", "Chaise", "Stylo", "A", "Une lampe peut emettre de la lumiere.", subject, classLevel, difficulty),
+                        createQuestion("Lequel est un fruit?", "Carotte", "Pomme", "Patate", "Oignon", "B", "La pomme est un fruit.", subject, classLevel, difficulty),
+                        createQuestion("Lequel est un legume?", "Banane", "Fraise", "Carotte", "Orange", "C", "La carotte est un legume.", subject, classLevel, difficulty),
+                        createQuestion("Ou vit le poisson?", "Dans l'air", "Dans l'eau", "Sur terre", "Dans le feu", "B", "Le poisson vit dans l'eau.", subject, classLevel, difficulty),
+                        createQuestion("Que fait le soleil?", "Il eclaire la Terre", "Il refroidit la Terre", "Il dort tout le jour", "Il est en bois", "A", "Le soleil eclaire et chauffe la Terre.", subject, classLevel, difficulty),
+                        createQuestion("Comment appelle-t-on un jeune chat?", "Chiot", "Chaton", "Poussin", "Veau", "B", "Un jeune chat est un chaton.", subject, classLevel, difficulty)
                 );
                 case GEOGRAPHY -> List.of(
                         createQuestion("Quelle est la capitale de la Tunisie?", "Sfax", "Tunis", "Sousse", "Bizerte", "B", "La capitale de la Tunisie est Tunis.", subject, classLevel, difficulty),

@@ -44,10 +44,10 @@ public class GameController {
             userRepository.save(user);
         }
 
-        // Utiliser SmartQuestionService pour une sélection intelligente
-        List<Question> questions = smartQuestionService.selectQuestionsForUser(
+        // Utiliser SmartQuestionService pour une sélection intelligente (copie mutable)
+        List<Question> questions = new ArrayList<>(smartQuestionService.selectQuestionsForUser(
             user.getId(), classLevel, subject, difficulty, effectiveLanguage
-        );
+        ));
 
         // Si pas assez de questions, fallback sur QuestionGeneratorService (Ollama)
         if (questions.size() < 10) {
@@ -55,10 +55,29 @@ public class GameController {
                 List<Question> generated = questionGeneratorService
                     .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
                 if (generated != null && !generated.isEmpty()) {
-                    questions = generated;
+                    // Fusionner les questions existantes avec les nouvelles en évitant les doublons
+                    Set<String> seenTexts = new HashSet<>();
+                    for (Question q : questions) {
+                        seenTexts.add(q.getQuestionText().trim().toLowerCase());
+                    }
+                    
+                    for (Question g : generated) {
+                        if (questions.size() >= 10) break;
+                        if (seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
+                            questions.add(g);
+                        }
+                    }
+                    
+                    // Si on a toujours moins de 10, on accepte les doublons du set généré
+                    if (questions.size() < 10) {
+                        for (Question g : generated) {
+                            if (questions.size() >= 10) break;
+                            questions.add(g);
+                        }
+                    }
                 }
             } catch (Exception e) {
-                // Garder les questions existantes même si moins de 10
+                // Garder les questions existantes
             }
         }
 
