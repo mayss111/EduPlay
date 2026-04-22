@@ -4,6 +4,7 @@ package org.eduplay.eduplay.game.controller;
 import org.eduplay.eduplay.entity.*;
 import org.eduplay.eduplay.enums.*;
 import org.eduplay.eduplay.game.service.QuestionGeneratorService;
+import org.eduplay.eduplay.game.service.SmartQuestionService;
 import org.eduplay.eduplay.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,10 @@ import java.util.*;
 public class GameController {
 
     private final QuestionGeneratorService questionGeneratorService;
+    private final SmartQuestionService smartQuestionService;
     private final UserRepository userRepository;
     private final ScoreRepository scoreRepository;
+    private final UserQuestionHistoryRepository historyRepository;
 
     @GetMapping("/questions")
     public ResponseEntity<List<Question>> getQuestions(
@@ -41,8 +44,22 @@ public class GameController {
             userRepository.save(user);
         }
 
-        List<Question> questions = questionGeneratorService
-                .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
+        // Utiliser SmartQuestionService pour une sélection intelligente
+        List<Question> questions = smartQuestionService.selectQuestionsForUser(
+            user.getId(), classLevel, subject, difficulty, effectiveLanguage
+        );
+
+        // Si pas assez de questions, fallback sur QuestionGeneratorService (Ollama)
+        if (questions.size() < 10) {
+            try {
+                List<Question> generated = questionGeneratorService
+                    .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
+                questions = generated;
+            } catch (Exception e) {
+                // Garder les questions existantes même si moins de 10
+            }
+        }
+
         return ResponseEntity.ok(questions);
     }
 
@@ -74,6 +91,17 @@ public class GameController {
                 .build();
         scoreRepository.save(score);
 
+        // Enregistrer l'historique des réponses si fourni
+        @SuppressWarnings("unchecked")
+        List<String> answers = payload.get("answers") != null 
+            ? (List<String>) payload.get("answers") 
+            : new ArrayList<>();
+        
+        if (!answers.isEmpty()) {
+            // Récupérer les questions de la session (devrait être passé dans le payload)
+            // Pour l'instant, on enregistre juste le score global
+        }
+
         return ResponseEntity.ok(Map.of(
                 "xpEarned", xp,
                 "totalXp", user.getTotalXp(),
@@ -89,8 +117,9 @@ public class GameController {
             @RequestParam Difficulty difficulty,
             @RequestParam(defaultValue = "FRENCH") AppLanguage language) {
         
-        List<Question> questions = questionGeneratorService
-                .generateQuestions(1, subject, difficulty, language);
+        List<Question> questions = smartQuestionService.selectQuestions(
+            1, subject, difficulty, language
+        );
 
         int totalQuestions = questions.size();
         int withFourChoices = 0;
@@ -164,6 +193,22 @@ public class GameController {
         response.put("averageQualityScore", averageQualityScore);
         response.put("lowConfidenceQuestions", lowConfidence);
         response.put("distinctTopics", topics.size());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<Map<String, Object>> getUserStats(Authentication auth) {
+        String username = auth.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User introuvable"));
+
+        Map<String, Double> successRates = smartQuestionService.getSuccessRatesBySubject(user.getId());
+        
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("totalQuestionsAnswered", historyRepository.countByUserId(user.getId()));
+        response.put("totalCorrectAnswers", historyRepository.countByUserIdAndIsCorrectTrue(user.getId()));
+        response.put("successRatesBySubject", successRates);
 
         return ResponseEntity.ok(response);
     }
