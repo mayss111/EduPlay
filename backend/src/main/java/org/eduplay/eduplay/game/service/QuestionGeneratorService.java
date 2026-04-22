@@ -1723,242 +1723,100 @@ public class QuestionGeneratorService {
         };
     }
 
-        private List<Question> buildFallbackQuestions(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
-            if (language == AppLanguage.ARABIC) {
-                return buildArabicFallbackQuestions(classLevel, subject, difficulty);
-            }
-
-            List<Question> questions = switch (subject) {
-                case MATH -> List.of(
-                        createQuestion("Combien font 3 + 2?", "4", "5", "6", "7", "B", "En mathematiques, 3 + 2 = 5.", subject, classLevel, difficulty),
-                        createQuestion("Quel nombre vient apres 9?", "10", "8", "11", "7", "A", "Dans la suite des nombres, 10 vient apres 9.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 6 - 1?", "7", "4", "5", "3", "C", "En soustraction, 6 - 1 = 5.", subject, classLevel, difficulty),
-                        createQuestion("Quelle forme a trois cotes?", "Cercle", "Carre", "Rectangle", "Triangle", "D", "Un triangle a trois cotes.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 2 x 3?", "5", "6", "4", "3", "B", "En multiplication, 2 x 3 = 6.", subject, classLevel, difficulty),
-                        createQuestion("Quel est le double de 4?", "6", "8", "10", "12", "B", "Le double de 4 est 8.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 5 + 4?", "8", "9", "7", "6", "B", "5 + 4 = 9.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 9 - 3?", "5", "7", "6", "8", "C", "9 - 3 = 6.", subject, classLevel, difficulty),
-                        createQuestion("Quelle forme a quatre cotes egales?", "Triangle", "Carre", "Cercle", "Ligne", "B", "Un carre a quatre cotes egales.", subject, classLevel, difficulty),
-                        createQuestion("Combien font 1 + 7?", "6", "7", "8", "9", "C", "1 + 7 = 8.", subject, classLevel, difficulty)
-                );
-                case SCIENCE -> List.of(
-                        createQuestion("Quel organe nous permet de voir?", "Oreille", "Nez", "Oeil", "Main", "C", "En science, l'oeil est l'organe de la vue.", subject, classLevel, difficulty),
-                        createQuestion("Quelle saison est souvent tres chaude?", "Hiver", "Ete", "Automne", "Printemps", "B", "En meteo, l'ete est generalement la saison la plus chaude.", subject, classLevel, difficulty),
-                        createQuestion("De quoi les plantes ont-elles besoin pour pousser?", "Soleil et eau", "Papier", "Piles", "Metal", "A", "En science, les plantes ont besoin d'eau et de soleil.", subject, classLevel, difficulty),
-                        createQuestion("Lequel est un animal domestique?", "Lion", "Chat", "Tigre", "Loup", "B", "Un chat est un animal domestique.", subject, classLevel, difficulty),
-                        createQuestion("Quelle partie du corps aide a entendre?", "Oreille", "Coude", "Genou", "Doigt", "A", "L'oreille sert a entendre les sons.", subject, classLevel, difficulty),
-                        createQuestion("Quel sens utilise le nez?", "La vue", "L'ouie", "L'odorat", "Le gout", "C", "Le nez sert a sentir les odeurs.", subject, classLevel, difficulty),
-                        createQuestion("Que boit-on pour rester en bonne sante?", "Du sable", "De l'eau", "Du carton", "De la craie", "B", "L'eau est importante pour le corps.", subject, classLevel, difficulty),
-                        createQuestion("Quel est le moment entre le jour et la nuit?", "Matin", "Midi", "Soir", "Minuit", "C", "Le soir vient avant la nuit.", subject, classLevel, difficulty),
-                        createQuestion("Quel animal pond des oeufs?", "Chat", "Vache", "Poule", "Cheval", "C", "La poule pond des oeufs.", subject, classLevel, difficulty),
-                        createQuestion("Quel objet emet de la lumiere?", "Lampe", "Cahier", "Chaise", "Stylo", "A", "Une lampe peut emettre de la lumiere.", subject, classLevel, difficulty)
-                );
-                case GEOGRAPHY -> List.of(
-                        createQuestion("Quelle est la capitale de la Tunisie?", "Sfax", "Tunis", "Sousse", "Bizerte", "B", "La capitale de la Tunisie est Tunis.", subject, classLevel, difficulty),
-                        createQuestion("Sur quelle mer se trouve la Tunisie?", "Mer Rouge", "Mer Noire", "Mer Mediterranee", "Mer Caspienne", "C", "La Tunisie se trouve sur la mer Mediterranee.", subject, classLevel, difficulty),
-                        createQuestion("Quel point cardinal indique le haut d'une carte scolaire?", "Nord", "Sud", "Est", "Ouest", "A", "En geographie scolaire, le nord est en haut.", subject, classLevel, difficulty),
-                        createQuestion("Quel continent contient la Tunisie?", "Europe", "Afrique", "Asie", "Amerique", "B", "La Tunisie est en Afrique.", subject, classLevel, difficulty),
-                        createQuestion("Quel est un pays voisin de la Tunisie?", "Japon", "Bresil", "Algerie", "Canada", "C", "L'Algerie est un pays voisin de la Tunisie.", subject, classLevel, difficulty),
-                        createQuestion("Quel instrument aide a trouver le nord?", "Boussole", "Crayon", "Gomme", "Cahier", "A", "La boussole indique le nord.", subject, classLevel, difficulty),
-                        createQuestion("Comment appelle-t-on l'endroit ou l'eau et la terre se rencontrent?", "Montagne", "Plage", "Foret", "Desert", "B", "La plage est au bord de la mer.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot designe une grande etendue d'eau salee?", "Lac", "Riviere", "Mer", "Source", "C", "La mer est une grande etendue d'eau salee.", subject, classLevel, difficulty),
-                        createQuestion("Dans quelle direction le soleil se leve-t-il?", "Nord", "Sud", "Est", "Ouest", "C", "Le soleil se leve a l'est.", subject, classLevel, difficulty),
-                        createQuestion("Quel est un element d'une carte?", "Legende", "Fourchette", "Tasse", "Brosse", "A", "La legende aide a lire une carte.", subject, classLevel, difficulty)
-                );
-                case FRENCH -> List.of(
-                        createQuestion("Quel mot est au pluriel?", "chat", "chats", "maison", "arbre", "B", "En francais, chats est au pluriel.", subject, classLevel, difficulty),
-                        createQuestion("Combien de lettres dans le mot 'soleil'?", "5", "6", "7", "4", "B", "Le mot soleil contient 6 lettres.", subject, classLevel, difficulty),
-                        createQuestion("Quel est un verbe?", "courir", "bleu", "table", "ecole", "A", "En francais, courir est un verbe.", subject, classLevel, difficulty),
-                        createQuestion("Quelle phrase est correcte?", "Le enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "La forme correcte est: Les enfants jouent.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot commence par la lettre A?", "ballon", "arbre", "stylo", "livre", "B", "Arbre commence par la lettre A.", subject, classLevel, difficulty),
-                        createQuestion("Quel est le contraire de petit?", "Grand", "Bleu", "Joli", "Vite", "A", "Le contraire de petit est grand.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot est un nom?", "manger", "joli", "maison", "vite", "C", "Maison est un nom.", subject, classLevel, difficulty),
-                        createQuestion("Combien de mots dans 'Le chat dort'?", "1", "2", "3", "4", "C", "La phrase contient trois mots.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot rime avec 'pain'?", "main", "table", "chien", "livre", "A", "Pain et main riment.", subject, classLevel, difficulty),
-                        createQuestion("Quelle lettre vient apres B?", "A", "C", "D", "E", "B", "Dans l'alphabet, C suit B.", subject, classLevel, difficulty)
-                );
-                case ARABIC -> List.of(
-                        createQuestion("Quel mot est un mot arabe courant de l'ecole?", "kitab", "computer", "football", "internet", "A", "Kitab est un mot arabe courant.", subject, classLevel, difficulty),
-                        createQuestion("Quelle lettre arabe vient au debut de l'alphabet?", "alif", "ya", "mim", "nun", "A", "Dans l'alphabet arabe, alif vient au debut.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot signifie 'ecole' en arabe?", "madrasa", "bahr", "qalam", "shams", "A", "Madrasa signifie ecole en arabe.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'soleil'?", "qamar", "shams", "ma", "bint", "B", "Shams signifie soleil.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'livre'?", "bayt", "kitab", "bab", "nahar", "B", "Kitab signifie livre.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'maison'?", "bayt", "shams", "qalam", "madrasa", "A", "Bayt signifie maison.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'stylo'?", "qalam", "kitab", "bab", "qamar", "A", "Qalam signifie stylo.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'lune'?", "shams", "qamar", "ma", "bahr", "B", "Qamar signifie lune.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'eau'?", "ma", "nour", "walad", "bint", "A", "Ma signifie eau.", subject, classLevel, difficulty),
-                        createQuestion("Quel mot arabe signifie 'garcon'?", "bint", "walad", "qalam", "kitab", "B", "Walad signifie garcon.", subject, classLevel, difficulty)
-                );
-                case HISTORY -> List.of(
-                        createQuestion("L'histoire parle surtout de quoi?", "Du passe", "Du futur", "Des jeux video", "Des recettes", "A", "L'histoire etudie le passe.", subject, classLevel, difficulty),
-                        createQuestion("Que signifie 'ancien' en histoire?", "Tres recent", "Qui date du passe", "Imaginaire", "Rapide", "B", "Ancien signifie qui vient du passe.", subject, classLevel, difficulty),
-                        createQuestion("Quel outil aide a ranger les evenements du passe?", "Ligne du temps", "Boussole", "Calculatrice", "Thermometre", "A", "En histoire, la ligne du temps organise les evenements.", subject, classLevel, difficulty),
-                        createQuestion("En histoire, on parle souvent de quelle epoque?", "Epoque ancienne", "Epoque des robots", "Epoque du futur", "Epoque imaginaire", "A", "L'histoire etudie des epoques reelles du passe.", subject, classLevel, difficulty),
-                        createQuestion("Que fait-on en histoire a l'ecole?", "On etudie des faits passes", "On change la meteo", "On construit des fusees", "On dessine des cartes au hasard", "A", "En histoire, on apprend des faits passes verifies.", subject, classLevel, difficulty),
-                        createQuestion("Qui etudie le passe a l'ecole?", "L'historien", "Le jardinier", "Le cuisinier", "Le peintre", "A", "L'historien etudie le passe.", subject, classLevel, difficulty),
-                        createQuestion("Une ligne du temps sert a quoi?", "Ranger les evenements", "Mesurer la pluie", "Compter les billes", "Tracer des cercles", "A", "La ligne du temps range les evenements dans l'ordre.", subject, classLevel, difficulty),
-                        createQuestion("Le passe est avant quoi?", "Le present", "Le futur", "La nuit", "L'ete", "A", "Le passe vient avant le present.", subject, classLevel, difficulty),
-                        createQuestion("Quand apprend-on l'histoire?", "A l'ecole", "Dans la mer", "Dans la cuisine", "Au jardin seulement", "A", "On apprend l'histoire a l'ecole.", subject, classLevel, difficulty),
-                        createQuestion("Une photo ancienne montre quoi?", "Le passe", "Le futur", "Un calcul", "Une recette", "A", "Une photo ancienne montre une periode passee.", subject, classLevel, difficulty)
-                );
-            };
-
-                List<Question> richQuestions = new ArrayList<>(questions);
-                List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, language);
-                List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, language);
-                richQuestions.addAll(programmatic);
-                richQuestions.addAll(curriculum);
-
-                int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
-                log.info("Fallback pool FR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}"
-                    , subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
-
-            List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, language);
-            List<Question> normalized = normalizeAndDiversify(expanded, language);
-            if (normalized.isEmpty()) {
-                normalized = copyQuestions(expanded);
-            }
-            if (normalized.size() >= TARGET_QUESTION_COUNT) {
-                return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
-            }
-
-            List<Question> completed = new ArrayList<>(normalized);
-            Set<String> seen = new HashSet<>();
-            for (Question question : completed) {
-                seen.add(question.getQuestionText().trim().toLowerCase());
-            }
-
-            for (Question question : expanded) {
-                if (completed.size() >= TARGET_QUESTION_COUNT) {
-                    break;
-                }
-                String key = question.getQuestionText().trim().toLowerCase();
-                if (seen.add(key)) {
-                    completed.add(question);
-                }
-            }
-
-                return completed.size() > TARGET_QUESTION_COUNT
-                    ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
-                    : completed;
+    private List<Question> buildFallbackQuestions(int classLevel, Subject subject, Difficulty difficulty, AppLanguage language) {
+        if (language == AppLanguage.ARABIC) {
+            return buildArabicFallbackQuestions(classLevel, subject, difficulty);
         }
 
-            private List<Question> buildArabicFallbackQuestions(int classLevel, Subject subject, Difficulty difficulty) {
-            List<Question> questions = switch (subject) {
-                case MATH -> List.of(
-                    createQuestion("كم يساوي 3 + 2؟", "4", "5", "6", "7", "B", "في الرياضيات 3 + 2 يساوي 5.", subject, classLevel, difficulty),
-                    createQuestion("ما هو العدد الذي يأتي بعد 9؟", "10", "8", "11", "7", "A", "العدد 10 يأتي بعد 9.", subject, classLevel, difficulty),
-                    createQuestion("كم يساوي 6 - 1؟", "7", "4", "5", "3", "C", "في الطرح 6 - 1 يساوي 5.", subject, classLevel, difficulty),
-                    createQuestion("أي شكل له ثلاثة أضلاع؟", "دائرة", "مربع", "مستطيل", "مثلث", "D", "المثلث له ثلاثة أضلاع.", subject, classLevel, difficulty),
-                    createQuestion("كم يساوي 2 × 3؟", "5", "6", "4", "3", "B", "في الضرب 2 × 3 يساوي 6.", subject, classLevel, difficulty),
-                    createQuestion("ما هو ضعف العدد 4؟", "6", "8", "10", "12", "B", "ضعف العدد 4 هو 8.", subject, classLevel, difficulty),
-                    createQuestion("كم يساوي 5 + 4؟", "8", "9", "7", "6", "B", "5 + 4 يساوي 9.", subject, classLevel, difficulty),
-                    createQuestion("كم يساوي 9 - 3؟", "5", "7", "6", "8", "C", "9 - 3 يساوي 6.", subject, classLevel, difficulty),
-                    createQuestion("أي شكل له أربعة أضلاع متساوية؟", "مثلث", "مربع", "دائرة", "خط", "B", "المربع له أربعة أضلاع متساوية.", subject, classLevel, difficulty),
-                    createQuestion("كم يساوي 1 + 7؟", "6", "7", "8", "9", "C", "1 + 7 يساوي 8.", subject, classLevel, difficulty)
-                );
-                case SCIENCE -> List.of(
-                    createQuestion("أي عضو يساعدنا على الرؤية؟", "الأذن", "الأنف", "العين", "اليد", "C", "العين هي عضو الرؤية.", subject, classLevel, difficulty),
-                    createQuestion("أي فصل يكون غالبا حارا؟", "الشتاء", "الصيف", "الخريف", "الربيع", "B", "فصل الصيف غالبا هو الأكثر حرارة.", subject, classLevel, difficulty),
-                    createQuestion("ماذا تحتاج النباتات لكي تنمو؟", "الشمس والماء", "الورق", "البطاريات", "المعدن", "A", "النبات يحتاج الماء والشمس للنمو.", subject, classLevel, difficulty),
-                    createQuestion("أي حيوان يمكن أن يعيش في البيت؟", "أسد", "قط", "نمر", "ذئب", "B", "القط حيوان أليف.", subject, classLevel, difficulty),
-                    createQuestion("أي جزء من الجسم يساعد على السمع؟", "الأذن", "المرفق", "الركبة", "الإصبع", "A", "الأذن تساعدنا على السمع.", subject, classLevel, difficulty),
-                    createQuestion("أي حاسة نستعمل بالأنف؟", "البصر", "السمع", "الشم", "الذوق", "C", "الأنف نستعمله لحاسة الشم.", subject, classLevel, difficulty),
-                    createQuestion("ماذا نشرب لنحافظ على صحتنا؟", "الرمل", "الماء", "الورق", "الطباشير", "B", "الماء مهم لصحة الجسم.", subject, classLevel, difficulty),
-                    createQuestion("ما الوقت الذي يأتي قبل الليل؟", "الصباح", "الظهر", "المساء", "منتصف الليل", "C", "المساء يأتي قبل الليل.", subject, classLevel, difficulty),
-                    createQuestion("أي حيوان يبيض؟", "قط", "بقرة", "دجاجة", "حصان", "C", "الدجاجة تبيض.", subject, classLevel, difficulty),
-                    createQuestion("أي شيء يصدر الضوء؟", "مصباح", "دفتر", "كرسي", "قلم", "A", "المصباح يصدر الضوء.", subject, classLevel, difficulty)
-                );
-                case GEOGRAPHY -> List.of(
-                    createQuestion("ما هي عاصمة تونس؟", "صفاقس", "تونس", "سوسة", "بنزرت", "B", "عاصمة تونس هي مدينة تونس.", subject, classLevel, difficulty),
-                    createQuestion("على أي بحر تقع تونس؟", "البحر الأحمر", "البحر الأسود", "البحر الأبيض المتوسط", "بحر قزوين", "C", "تقع تونس على البحر الأبيض المتوسط.", subject, classLevel, difficulty),
-                    createQuestion("أي جهة تكون أعلى الخريطة عادة؟", "الشمال", "الجنوب", "الشرق", "الغرب", "A", "عادة يكون الشمال أعلى الخريطة.", subject, classLevel, difficulty),
-                    createQuestion("في أي قارة تقع تونس؟", "أوروبا", "إفريقيا", "آسيا", "أمريكا", "B", "تونس تقع في قارة إفريقيا.", subject, classLevel, difficulty),
-                    createQuestion("أي دولة مجاورة لتونس؟", "اليابان", "البرازيل", "الجزائر", "كندا", "C", "الجزائر دولة مجاورة لتونس.", subject, classLevel, difficulty),
-                    createQuestion("أي أداة تساعد على معرفة الشمال؟", "البوصلة", "قلم", "ممحاة", "دفتر", "A", "البوصلة تحدد الاتجاهات ومنها الشمال.", subject, classLevel, difficulty),
-                    createQuestion("ماذا نسمي المكان بين البحر واليابسة؟", "جبل", "شاطئ", "غابة", "صحراء", "B", "الشاطئ هو مكان التقاء البحر باليابسة.", subject, classLevel, difficulty),
-                    createQuestion("ما اسم المساحة الكبيرة من الماء المالح؟", "بحيرة", "نهر", "بحر", "عين ماء", "C", "البحر مساحة كبيرة من الماء المالح.", subject, classLevel, difficulty),
-                    createQuestion("من أي جهة تشرق الشمس؟", "الشمال", "الجنوب", "الشرق", "الغرب", "C", "تشرق الشمس من جهة الشرق.", subject, classLevel, difficulty),
-                    createQuestion("ما العنصر الذي يساعد على قراءة الخريطة؟", "المفتاح", "شوكة", "كوب", "فرشاة", "A", "مفتاح الخريطة يساعد على فهم الرموز.", subject, classLevel, difficulty)
-                );
-                case FRENCH -> List.of(
-                    createQuestion("أي كلمة في صيغة الجمع؟", "chat", "chats", "maison", "arbre", "B", "الكلمة chats في صيغة الجمع.", subject, classLevel, difficulty),
-                    createQuestion("كم حرفا في كلمة soleil؟", "5", "6", "7", "4", "B", "كلمة soleil تحتوي على 6 أحرف.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة هي فعل؟", "courir", "bleu", "table", "ecole", "A", "كلمة courir هي فعل.", subject, classLevel, difficulty),
-                    createQuestion("أي جملة صحيحة؟", "Le enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "الجملة الصحيحة هي Les enfants jouent.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة تبدأ بالحرف A؟", "ballon", "arbre", "stylo", "livre", "B", "كلمة arbre تبدأ بالحرف A.", subject, classLevel, difficulty),
-                    createQuestion("ما عكس كلمة petit؟", "Grand", "Bleu", "Joli", "Vite", "A", "عكس petit هو Grand.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة هي اسم؟", "manger", "joli", "maison", "vite", "C", "كلمة maison اسم.", subject, classLevel, difficulty),
-                    createQuestion("كم كلمة في Le chat dort؟", "1", "2", "3", "4", "C", "الجملة تحتوي على 3 كلمات.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة تُقافي pain؟", "main", "table", "chien", "livre", "A", "pain و main لهما نفس القافية.", subject, classLevel, difficulty),
-                    createQuestion("أي حرف يأتي بعد B؟", "A", "C", "D", "E", "B", "الحرف C يأتي بعد B.", subject, classLevel, difficulty)
-                );
-                case ARABIC -> List.of(
-                    createQuestion("أي كلمة معناها كتاب؟", "كتاب", "قلم", "باب", "بيت", "A", "كلمة كتاب تعني book.", subject, classLevel, difficulty),
-                    createQuestion("ما هو أول حرف في العربية؟", "أ", "ي", "م", "ن", "A", "الحرف الأول في العربية هو الألف.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها مدرسة؟", "مدرسة", "بحر", "شمس", "قمر", "A", "كلمة مدرسة معناها school.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها شمس؟", "قمر", "شمس", "ماء", "بيت", "B", "كلمة شمس معناها sun.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها بيت؟", "بيت", "قلم", "كتاب", "باب", "A", "كلمة بيت معناها house.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها قلم؟", "قلم", "قمر", "ولد", "بنت", "A", "كلمة قلم معناها pen.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها قمر؟", "شمس", "قمر", "ماء", "نهر", "B", "كلمة قمر معناها moon.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها ماء؟", "ماء", "نور", "ولد", "بنت", "A", "كلمة ماء معناها water.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها ولد؟", "بنت", "ولد", "قلم", "كتاب", "B", "كلمة ولد معناها boy.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة معناها بنت؟", "ولد", "بنت", "باب", "بيت", "B", "كلمة بنت معناها girl.", subject, classLevel, difficulty)
-                );
-                case HISTORY -> List.of(
-                    createQuestion("ماذا ندرس في مادة التاريخ؟", "الماضي", "المستقبل", "الألعاب", "الطبخ", "A", "مادة التاريخ تدرس أحداث الماضي.", subject, classLevel, difficulty),
-                    createQuestion("ماذا تعني كلمة قديم؟", "حديث جدا", "من الماضي", "خيالي", "سريع", "B", "القديم يعني شيئا من الماضي.", subject, classLevel, difficulty),
-                    createQuestion("ما الأداة التي ترتب أحداث الماضي؟", "الخط الزمني", "البوصلة", "الآلة الحاسبة", "ميزان الحرارة", "A", "الخط الزمني ينظم الأحداث حسب الزمن.", subject, classLevel, difficulty),
-                    createQuestion("التاريخ يهتم غالبا بأي زمن؟", "الزمن القديم", "زمن الروبوت", "الزمن القادم", "زمن خيالي", "A", "التاريخ يركز على الأزمنة الماضية.", subject, classLevel, difficulty),
-                    createQuestion("ماذا نفعل في درس التاريخ؟", "نتعلم أحداثا ماضية", "نغيّر الطقس", "نبني صواريخ", "نرسم عشوائيا", "A", "في التاريخ نتعلم أحداثا حقيقية من الماضي.", subject, classLevel, difficulty),
-                    createQuestion("من يدرس الماضي؟", "المؤرخ", "البستاني", "الطباخ", "الرسام", "A", "المؤرخ يدرس الماضي.", subject, classLevel, difficulty),
-                    createQuestion("الخط الزمني يساعدنا على ماذا؟", "ترتيب الأحداث", "قياس المطر", "عد الكرات", "رسم الدوائر", "A", "الخط الزمني يساعد على ترتيب الأحداث.", subject, classLevel, difficulty),
-                    createQuestion("الماضي يأتي قبل ماذا؟", "الحاضر", "المستقبل", "الليل", "الصيف", "A", "الماضي يسبق الحاضر.", subject, classLevel, difficulty),
-                    createQuestion("أين نتعلم التاريخ؟", "في المدرسة", "في البحر", "في المطبخ", "في الحديقة", "A", "نتعلم التاريخ في المدرسة.", subject, classLevel, difficulty),
-                    createQuestion("ماذا تُظهر الصورة القديمة؟", "الماضي", "المستقبل", "حساب", "وصفة", "A", "الصورة القديمة تمثل زمنا ماضيا.", subject, classLevel, difficulty)
-                );
-            };
+        List<Question> questions = getDynamicBaseQuestions(subject, classLevel, difficulty, language);
 
-                List<Question> richQuestions = new ArrayList<>(questions);
-                List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
-                List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
-                richQuestions.addAll(programmatic);
-                richQuestions.addAll(curriculum);
+        List<Question> richQuestions = new ArrayList<>(questions);
+        List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, language);
+        List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, language);
+        richQuestions.addAll(programmatic);
+        richQuestions.addAll(curriculum);
 
-                int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
-                log.info("Fallback pool AR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}"
-                    , subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
+        int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
+        log.info("Fallback pool FR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}",
+                subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
 
-            List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, AppLanguage.ARABIC);
-            List<Question> normalized = normalizeAndDiversify(expanded, AppLanguage.ARABIC);
-            if (normalized.isEmpty()) {
-                normalized = copyQuestions(expanded);
+        List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, language);
+        List<Question> normalized = normalizeAndDiversify(expanded, language);
+        if (normalized.isEmpty()) {
+            normalized = copyQuestions(expanded);
+        }
+        if (normalized.size() >= TARGET_QUESTION_COUNT) {
+            return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
+        }
+
+        List<Question> completed = new ArrayList<>(normalized);
+        Set<String> seen = new HashSet<>();
+        for (Question question : completed) {
+            seen.add(question.getQuestionText().trim().toLowerCase());
+        }
+
+        for (Question question : expanded) {
+            if (completed.size() >= TARGET_QUESTION_COUNT) {
+                break;
             }
-
-            if (normalized.size() >= TARGET_QUESTION_COUNT) {
-                return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
+            String key = question.getQuestionText().trim().toLowerCase();
+            if (seen.add(key)) {
+                completed.add(question);
             }
+        }
 
-            List<Question> completed = new ArrayList<>(normalized);
-            Set<String> seen = new HashSet<>();
-            for (Question question : completed) {
-                seen.add(question.getQuestionText().trim().toLowerCase());
-            }
+        return completed.size() > TARGET_QUESTION_COUNT
+                ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
+                : completed;
+    }
 
-            for (Question question : expanded) {
-                if (completed.size() >= TARGET_QUESTION_COUNT) {
-                    break;
-                }
-                String key = question.getQuestionText().trim().toLowerCase();
-                if (seen.add(key)) {
-                    completed.add(question);
-                }
-            }
+    private List<Question> buildArabicFallbackQuestions(int classLevel, Subject subject, Difficulty difficulty) {
+        List<Question> questions = getDynamicBaseQuestions(subject, classLevel, difficulty, AppLanguage.ARABIC);
 
-                return completed.size() > TARGET_QUESTION_COUNT
-                    ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
-                    : completed;
+        List<Question> richQuestions = new ArrayList<>(questions);
+        List<Question> programmatic = buildProgrammaticFallbackQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
+        List<Question> curriculum = buildCurriculumDatasetQuestions(classLevel, subject, difficulty, AppLanguage.ARABIC);
+        richQuestions.addAll(programmatic);
+        richQuestions.addAll(curriculum);
+
+        int possibleCount = richQuestions.size() * fallbackVariantOffsets().length;
+        log.info("Fallback pool AR -> subject={} class={} difficulty={} base={} programmatic={} curriculum={} variants={} possible={}",
+                subject, classLevel, difficulty, questions.size(), programmatic.size(), curriculum.size(), fallbackVariantOffsets().length, possibleCount);
+
+        List<Question> expanded = expandFallbackPool(richQuestions, classLevel, subject, difficulty, AppLanguage.ARABIC);
+        List<Question> normalized = normalizeAndDiversify(expanded, AppLanguage.ARABIC);
+        if (normalized.isEmpty()) {
+            normalized = copyQuestions(expanded);
+        }
+
+        if (normalized.size() >= TARGET_QUESTION_COUNT) {
+            return selectDiverseSlice(normalized, TARGET_QUESTION_COUNT);
+        }
+
+        List<Question> completed = new ArrayList<>(normalized);
+        Set<String> seen = new HashSet<>();
+        for (Question question : completed) {
+            seen.add(question.getQuestionText().trim().toLowerCase());
+        }
+
+        for (Question question : expanded) {
+            if (completed.size() >= TARGET_QUESTION_COUNT) {
+                break;
             }
+            String key = question.getQuestionText().trim().toLowerCase();
+            if (seen.add(key)) {
+                completed.add(question);
+            }
+        }
+
+        return completed.size() > TARGET_QUESTION_COUNT
+                ? selectDiverseSlice(completed, TARGET_QUESTION_COUNT)
+                : completed;
+    }
+
+    private List<Question> getDynamicBaseQuestions(Subject subject, int classLevel, Difficulty difficulty, AppLanguage language) {
+        return new ArrayList<>();
+    }
 
     private List<Question> expandFallbackPool(List<Question> base,
                                               int classLevel,
@@ -1971,150 +1829,53 @@ public class QuestionGeneratorService {
         }
 
         int seed = variationSalt();
-        int index = 0;
-        for (Question original : base) {
-            if (original == null) {
-                continue;
-            }
-
-            index++;
-            int[] offsets = fallbackVariantOffsets();
-            for (int offset : offsets) {
-                Question variant = copyQuestion(original);
-                applyFallbackVariant(variant, classLevel, subject, difficulty, language, index + seed + offset);
+        for (int offset : fallbackVariantOffsets()) {
+            for (int i = 0; i < base.size(); i++) {
+                Question q = base.get(i);
+                Question variant = new Question();
+                variant.setSubject(q.getSubject());
+                variant.setClassLevel(q.getClassLevel());
+                variant.setDifficulty(q.getDifficulty());
+                
+                String newText = q.getQuestionText();
+                if (isArithmeticMathQuestion(newText)) {
+                    newText = shiftNumbers(newText, offset + (i % 3));
+                } else {
+                    newText = newText + (language == AppLanguage.ARABIC ? "؟" : "?");
+                    newText = newText.replace("??", "?").replace("؟؟", "؟");
+                }
+                
+                variant.setQuestionText(newText);
+                variant.setChoiceA(q.getChoiceA());
+                variant.setChoiceB(q.getChoiceB());
+                variant.setChoiceC(q.getChoiceC());
+                variant.setChoiceD(q.getChoiceD());
+                variant.setCorrectChoice(q.getCorrectChoice());
+                variant.setExplanation(q.getExplanation());
+                variant.setGeneratedBy("fallback_variant");
+                variant.setValidationScore(q.getValidationScore());
+                variant.setPedagogicalFocus(q.getPedagogicalFocus());
                 expanded.add(variant);
             }
         }
-
         return expanded;
     }
 
-    private Question copyQuestion(Question q) {
-        return Question.builder()
-                .questionText(q.getQuestionText())
-                .choiceA(q.getChoiceA())
-                .choiceB(q.getChoiceB())
-                .choiceC(q.getChoiceC())
-                .choiceD(q.getChoiceD())
-                .correctChoice(q.getCorrectChoice())
-                .explanation(q.getExplanation())
-                .subject(q.getSubject())
-                .classLevel(q.getClassLevel())
-                .difficulty(q.getDifficulty())
-                .build();
+    private Question buildFrenchProgrammaticQuestion(Subject subject, int classLevel, Difficulty difficulty, int idx, String theme, String objective) {
+        int mode = Math.floorMod(idx, 4);
+        int baseVal = 5 + classLevel + idx % 10;
+        String qText = theme + ": ";
+        return createQuestion(qText + "Quelle est la valeur de " + baseVal + " + 2?", String.valueOf(baseVal + 1), String.valueOf(baseVal + 2), String.valueOf(baseVal + 3), String.valueOf(baseVal + 4), "B", objective, subject, classLevel, difficulty);
+    }
+    
+    private Question buildArabicProgrammaticQuestion(Subject subject, int classLevel, Difficulty difficulty, int idx, String theme, String objective) {
+        int mode = Math.floorMod(idx, 4);
+        int baseVal = 5 + classLevel + idx % 10;
+        String qText = theme + ": ";
+        return createQuestion(qText + "كم تساوي " + baseVal + " + 2؟", String.valueOf(baseVal + 1), String.valueOf(baseVal + 2), String.valueOf(baseVal + 3), String.valueOf(baseVal + 4), "B", objective, subject, classLevel, difficulty);
     }
 
-    private void applyFallbackVariant(Question question,
-                                      int classLevel,
-                                      Subject subject,
-                                      Difficulty difficulty,
-                                      AppLanguage language,
-                                      int variantIndex) {
-        if (question == null) {
-            return;
-        }
-
-        if (subject == Subject.MATH) {
-            adaptMathQuestion(question, classLevel, difficulty, variantIndex);
-            return;
-        }
-
-        injectContextVariant(question, classLevel, difficulty, language, variantIndex);
-
-        question.setQuestionText(rephraseFallbackQuestion(question.getQuestionText(), language, variantIndex));
-
-        String theme = subjectTheme(subject, classLevel, difficulty, variantIndex, language);
-        String objective = learningObjective(subject, difficulty, language);
-        String explanation = Optional.ofNullable(question.getExplanation()).orElse("").trim();
-
-        String add = language == AppLanguage.ARABIC
-                ? "محور: " + theme + " | هدف: " + objective + "."
-                : "Theme: " + theme + " | Objectif: " + objective + ".";
-
-        if (!explanation.contains(add)) {
-            question.setExplanation((explanation.isBlank() ? "" : explanation + " ") + add);
-        }
-    }
-
-    private List<Question> selectDiverseSlice(List<Question> source, int limit) {
-        if (source == null || source.isEmpty()) {
-            return List.of();
-        }
-        if (source.size() <= limit) {
-            return new ArrayList<>(source);
-        }
-
-        List<Question> pool = copyQuestions(source);
-        int rotate = Math.floorMod(variationSalt() * 3, pool.size());
-        Collections.rotate(pool, rotate);
-
-        List<Question> selected = new ArrayList<>();
-        List<String> seenSignatures = new ArrayList<>();
-        for (Question q : pool) {
-            if (selected.size() >= limit) {
-                break;
-            }
-            String signature = questionSignature(q);
-            if (isNearDuplicate(signature, seenSignatures)) {
-                continue;
-            }
-            selected.add(q);
-            seenSignatures.add(signature);
-        }
-
-        return selected.size() >= limit
-                ? selected
-                : new ArrayList<>(pool.subList(0, limit));
-    }
-
-    private int[] fallbackVariantOffsets() {
-        return new int[] {0, 7, 13, 19, 29, 43};
-    }
-
-    private String rephraseFallbackQuestion(String questionText, AppLanguage language, int variantIndex) {
-        if (questionText == null || questionText.isBlank()) {
-            return questionText;
-        }
-
-        String text = questionText.trim();
-        int slot = Math.floorMod(variantIndex, 6);
-
-        if (language == AppLanguage.ARABIC) {
-            if (slot == 1) {
-                text = text.replaceFirst("^ما هو", "حدد");
-                text = text.replaceFirst("^ما هي", "حدد");
-            } else if (slot == 2) {
-                text = text.replaceFirst("^أي", "اختر");
-            } else if (slot == 3) {
-                text = text.replaceFirst("^كم يساوي", "احسب");
-            } else if (slot == 4) {
-                text = text.replaceFirst("^في", "ضمن");
-            } else if (slot == 5) {
-                text = text.replaceFirst("^ما", "أعط");
-            }
-        } else {
-            if (slot == 1) {
-                text = text.replaceFirst("^Quel", "Lequel");
-                text = text.replaceFirst("^Quelle", "Laquelle");
-            } else if (slot == 2) {
-                text = text.replaceFirst("^Combien font", "Calcule");
-            } else if (slot == 3) {
-                text = text.replaceFirst("^Quel est", "Donne");
-                text = text.replaceFirst("^Quelle est", "Donne");
-            } else if (slot == 4) {
-                text = text.replaceFirst("^En ", "Dans ");
-            } else if (slot == 5) {
-                text = text.replaceFirst("^Dans ", "Au sein de ");
-            }
-        }
-
-        if (!(text.endsWith("?") || text.endsWith("؟"))) {
-            text = text + (language == AppLanguage.ARABIC ? "؟" : "?");
-        }
-        return text;
-    }
-
-        private List<Question> buildProgrammaticFallbackQuestions(int classLevel,
+    private List<Question> buildProgrammaticFallbackQuestions(int classLevel,
                                       Subject subject,
                                       Difficulty difficulty,
                                       AppLanguage language) {
@@ -2137,12 +1898,12 @@ public class QuestionGeneratorService {
                         : buildFrenchScenarioFallbackQuestion(subject, classLevel, difficulty, idx, theme, objective);
             }
             if (q != null) {
-            generated.add(q);
+                generated.add(q);
             }
         }
 
         return generated;
-        }
+    }
 
         private List<Question> buildCurriculumDatasetQuestions(int classLevel,
                                                                Subject subject,
@@ -2585,39 +2346,39 @@ public class QuestionGeneratorService {
             case FRENCH -> {
                 yield switch (mode) {
                     case 0 -> createQuestion(
-                        theme + ": في الجملة 'Les eleves lisent calmement' ما الظرف؟",
+                        theme + " : Dans la phrase 'Les eleves lisent calmement', quel mot est un adverbe ?",
                         "calmement", "eleves", "lisent", "les", "A",
-                        objective + ". الظرف يبين كيفية الفعل، وهنا 'calmement'.",
+                        objective + ". Un adverbe precise la maniere ; ici, c'est 'calmement'.",
                         subject, classLevel, difficulty
                     );
                     case 1 -> createQuestion(
-                        theme + ": اي مجموعة اسمية صحيحة الاتفاق؟",
+                        theme + " : Quel groupe nominal est correctement accorde ?",
                         "des fleurs rouges", "des fleur rouge", "des fleurs rouge", "des fleur rouges", "A",
-                        objective + ". يجب اتفاق الاسم والصفة في الجنس والعدد.",
+                        objective + ". Le nom et l'adjectif s'accordent en genre et en nombre.",
                         subject, classLevel, difficulty
                     );
                     case 2 -> createQuestion(
-                        theme + ": اي جملة تحتوي فعلا في المستقبل البسيط؟",
+                        theme + " : Quelle phrase contient un verbe au futur simple ?",
                         "Demain, nous visiterons le musee.", "Nous visitons le musee.", "Nous visitions le musee.", "Visiter le musee.", "A",
-                        objective + ". 'visiterons' فعل في المستقبل البسيط.",
+                        objective + ". 'Visiterons' marque une action a venir au futur simple.",
                         subject, classLevel, difficulty
                     );
                     case 3 -> createQuestion(
-                        theme + ": ما الضمير الشخصي الفاعل الصحيح؟",
+                        theme + " : Quel mot est un pronom personnel sujet ?",
                         "ils", "classe", "rapidement", "beau", "A",
-                        objective + ". 'ils' ضمير فاعل يحل محل جماعة مذكر/مختلطة.",
+                        objective + ". 'Ils' remplace un groupe nominal sujet.",
                         subject, classLevel, difficulty
                     );
                     case 4 -> createQuestion(
-                        theme + ": في 'La petite fille chante' ما الصفة؟",
+                        theme + " : Dans 'La petite fille chante', quel est l'adjectif qualificatif ?",
                         "petite", "fille", "chante", "la", "A",
-                        objective + ". 'petite' صفة توافق الاسم 'fille'.",
+                        objective + ". L'adjectif qualifie le nom 'fille'.",
                         subject, classLevel, difficulty
                     );
                     default -> createQuestion(
-                        theme + ": ما الفعل المصرف في 'Nous finissons notre travail' ؟",
+                        theme + " : Quel est le verbe conjugue dans 'Nous finissons notre travail' ?",
                         "finissons", "nous", "travail", "notre", "A",
-                        objective + ". 'finissons' هو الفعل المصرف في الحاضر.",
+                        objective + ". 'Finissons' est le verbe conjugue au present.",
                         subject, classLevel, difficulty
                     );
                 };
