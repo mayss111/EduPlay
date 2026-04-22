@@ -3484,4 +3484,33 @@ public class QuestionGeneratorService {
             case EXCELLENT -> "Excellent";
         };
     }
+
+    private int[] fallbackVariantOffsets() {
+        return new int[]{1, 2};
+    }
+
+    private List<Question> selectDiverseSlice(List<Question> questions, int count) {
+        if (questions == null || questions.isEmpty() || count <= 0) {
+            return new ArrayList<>();
+        }
+        if (questions.size() <= count) {
+            return new ArrayList<>(questions);
+        }
+
+        List<Question> result = new ArrayList<>();
+        double step = (double) questions.size() / count;
+        for (int i = 0; i < count; i++) {
+            int index = (int) (i * step);
+            if (index < questions.size()) {
+                result.add(questions.get(index));
+            }
+        }
+
+        // Si on n'a pas tout à fait le compte à cause des arrondis
+        while (result.size() < count && result.size() < questions.size()) {
+            result.add(questions.get(result.size()));
+        }
+
+        return result;
+    }
 }
