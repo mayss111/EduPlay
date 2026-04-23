@@ -24,7 +24,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
            "AND q.language = :language " +
            "AND q.id NOT IN (SELECT uqh.questionId FROM UserQuestionHistory uqh " +
            "WHERE uqh.userId = :userId AND uqh.answeredAt > :daysAgo) " +
-           "ORDER BY q.usageCount ASC, FUNCTION('RANDOM')")
+           "ORDER BY q.usageCount ASC")
     List<QuestionBank> findLeastUsedNotRecentlySeen(
         @Param("userId") Long userId,
         @Param("subject") Subject subject,
@@ -40,7 +40,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
     @Query("SELECT q FROM QuestionBank q WHERE q.subject = :subject " +
            "AND q.classLevel = :classLevel AND q.difficulty = :difficulty " +
            "AND q.language = :language " +
-           "ORDER BY q.usageCount ASC, FUNCTION('RANDOM')")
+           "ORDER BY q.usageCount ASC")
     List<QuestionBank> findLeastUsed(
         @Param("subject") Subject subject,
         @Param("classLevel") Integer classLevel,
@@ -60,14 +60,14 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
     /**
      * Trouve des questions aléatoires pour une combinaison donnée
      */
-    @Query(value = "SELECT * FROM question_bank q WHERE q.subject = :subject " +
-           "AND q.class_level = :classLevel AND q.difficulty = :difficulty " +
-           "AND q.language = :language " +
-           "ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    @Query(value = "SELECT * FROM question_bank WHERE subject = :subject " +
+           "AND class_level = :classLevel AND difficulty = :difficulty " +
+           "AND language = :language " +
+           "LIMIT :limit", nativeQuery = true)
     List<QuestionBank> findRandom(
-        @Param("subject") Subject subject,
+        @Param("subject") String subject,
         @Param("classLevel") Integer classLevel,
-        @Param("difficulty") Difficulty difficulty,
+        @Param("difficulty") String difficulty,
         @Param("language") String language,
         @Param("limit") int limit
     );

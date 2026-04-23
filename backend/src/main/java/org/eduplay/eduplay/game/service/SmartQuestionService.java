@@ -44,6 +44,7 @@ public class SmartQuestionService {
         List<QuestionBank> questions = questionBankRepository.findLeastUsedNotRecentlySeen(
             userId, subject, classLevel, difficulty, language, daysAgo
         );
+        Collections.shuffle(questions);
 
         // 2. Si pas assez, prendre les moins utilisées globalement
         if (questions.size() < TARGET_QUESTION_COUNT) {
@@ -51,6 +52,7 @@ public class SmartQuestionService {
             List<QuestionBank> leastUsed = questionBankRepository.findLeastUsed(
                 subject, classLevel, difficulty, language
             );
+            Collections.shuffle(leastUsed);
             
             // Fusionner en évitant les doublons
             Set<Long> existingIds = questions.stream()
@@ -70,7 +72,11 @@ public class SmartQuestionService {
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Fallback sur sélection aléatoire");
             List<QuestionBank> random = questionBankRepository.findRandom(
-                subject, classLevel, difficulty, language.name(), TARGET_QUESTION_COUNT - questions.size()
+                subject.name(), 
+                classLevel, 
+                difficulty.name(), 
+                language.name(), 
+                TARGET_QUESTION_COUNT - questions.size()
             );
             
             Set<Long> existingIds = questions.stream()
@@ -84,6 +90,7 @@ public class SmartQuestionService {
                     existingIds.add(qb.getId());
                 }
             }
+            Collections.shuffle(random);
         }
 
         // 4. Convertir en entité Question
@@ -108,7 +115,11 @@ public class SmartQuestionService {
 
         if (questions.size() < TARGET_QUESTION_COUNT) {
             List<QuestionBank> random = questionBankRepository.findRandom(
-                subject, classLevel, difficulty, language.name(), TARGET_QUESTION_COUNT
+                subject.name(), 
+                classLevel, 
+                difficulty.name(), 
+                language.name(), 
+                TARGET_QUESTION_COUNT
             );
             
             Set<Long> existingIds = questions.stream()

@@ -2,7 +2,7 @@
 -- 500+ questions pour classes 1-6, toutes matières, tous niveaux, toutes langues
 
 -- Désactiver les contraintes pour insertion en masse
-SET session_replication_role = replica;
+SET FOREIGN_KEY_CHECKS = 0;
 
 -- ==================== MATH - CLASSE 1 - FRENCH ====================
 
@@ -271,4 +271,4 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 ('ما هو الجبل؟', 'مساحة كبيرة مسطحة', 'ارتفاع مهم في التضاريس', 'نهر', 'غابة', 'B', 'الجبل هو ارتفاع مهم في التضاريس.', 'GEOGRAPHY', 1, 'SIMPLE', 'relief', 80, 0, 'ARABIC');
 
 -- Réactiver les contraintes
-SET session_replication_role = origin;
+SET FOREIGN_KEY_CHECKS = 1;

@@ -44,16 +44,18 @@ public class GameController {
             userRepository.save(user);
         }
 
-        // Utiliser SmartQuestionService pour une sélection intelligente (copie mutable)
-        List<Question> questions = new ArrayList<>(smartQuestionService.selectQuestionsForUser(
-            user.getId(), classLevel, subject, difficulty, effectiveLanguage
-        ));
+        List<Question> questions = new ArrayList<>();
+        
+        try {
+            // 1. Essayer de récupérer les questions de la base de données
+            questions.addAll(smartQuestionService.selectQuestionsForUser(
+                user.getId(), classLevel, subject, difficulty, effectiveLanguage
+            ));
 
-        // Si pas assez de questions, fallback sur QuestionGeneratorService (Ollama)
-        if (questions.size() < 10) {
-            try {
-                List<Question> generated = questionGeneratorService
-                    .generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
+            // 2. Si pas assez de questions, fallback sur l'IA (Ollama)
+            if (questions.size() < 10) {
+                List<Question> generated = questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
+                
                 if (generated != null && !generated.isEmpty()) {
                     // Fusionner les questions existantes avec les nouvelles en évitant les doublons
                     Set<String> seenTexts = new HashSet<>();
@@ -64,23 +66,24 @@ public class GameController {
                     }
                     
                     for (Question g : generated) {
-                        if (questions.size() >= 10) break;
+                        if (g == null || g.getQuestionText() == null || questions.size() >= 10) continue;
                         if (g.getQuestionText() != null && seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
                             questions.add(g);
                         }
                     }
                     
-                    // Si on a toujours moins de 10, on accepte les doublons du set généré
+                    // En dernier recours, ajouter sans vérifier l'unicité du texte
                     if (questions.size() < 10) {
                         for (Question g : generated) {
-                            if (questions.size() >= 10) break;
+                            if (g == null || g.getQuestionText() == null || questions.size() >= 10) continue;
                             questions.add(g);
                         }
                     }
                 }
-            } catch (Exception e) {
-                // Garder les questions existantes
             }
+        } catch (Exception e) {
+            // Log l'erreur mais ne pas faire planter l'application (renvoie une liste vide ou partielle)
+            System.err.println("Erreur lors de la récupération des questions: " + e.getMessage());
         }
 
         return ResponseEntity.ok(questions);
