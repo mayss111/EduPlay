@@ -1,20 +1,18 @@
-services:
-  # 1. Base de données PostgreSQL (Déjà présent, vérifié)
-  - type: database
-    name: eduplay-db
+databases:
+  # 1. Base de données PostgreSQL (Correctement placée sous la clé 'databases')
+  - name: eduplay-db
     databaseName: eduplay
     user: eduplay
     plan: free
 
-  # 2. Backend Spring Boot (Correction des chemins et de la connexion DB)
+services:
+  # 2. Backend Spring Boot
   - type: web
     name: eduplay-backend
     env: java
     region: frankfurt
     plan: free
-    # On se déplace dans le dossier backend avant de compiler
     buildCommand: cd backend && chmod +x mvnw && ./mvnw clean package -DskipTests
-    # Chemin vers le JAR généré dans le sous-dossier backend
     startCommand: java -jar backend/target/eduplay-0.0.1-SNAPSHOT.jar
     envVars:
       - key: JAVA_VERSION
@@ -44,17 +42,14 @@ services:
       - key: APP_CORS_ALLOWED_ORIGINS
         value: "https://eduplay-frontend.onrender.com,https://eduplay-backend.onrender.com,http://localhost:4200"
 
-  # 3. Frontend Angular (Nouveau : Site Statique pour plus de rapidité/économie)
+  # 3. Frontend Angular (Site Statique)
   - type: static
     name: eduplay-frontend
     env: static
     region: frankfurt
     plan: free
-    # On se déplace dans le dossier frontend pour construire
     buildCommand: cd frontend/eduplay-frontend && npm install && npm run build
-    # Chemin vers les fichiers compilés (Angular 18.2.0 build structure)
     publishPath: frontend/eduplay-frontend/dist/eduplay-frontend/browser
-    # Rewrite rule pour rediriger /api vers le backend
     routes:
       - type: rewrite
         source: /api/*
