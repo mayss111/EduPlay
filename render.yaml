@@ -1,5 +1,5 @@
 databases:
-  # 1. Base de données PostgreSQL (Correctement placée sous la clé 'databases')
+  # 1. Base de données PostgreSQL
   - name: eduplay-db
     databaseName: eduplay
     user: eduplay
@@ -42,14 +42,14 @@ services:
       - key: APP_CORS_ALLOWED_ORIGINS
         value: "https://eduplay-frontend.onrender.com,https://eduplay-backend.onrender.com,http://localhost:4200"
 
-  # 3. Frontend Angular (Site Statique)
-  - type: static
+  # 3. Frontend Angular (Utilisation du type 'web' avec 'env: static')
+  - type: web
     name: eduplay-frontend
     env: static
     region: frankfurt
     plan: free
     buildCommand: cd frontend/eduplay-frontend && npm install && npm run build
-    publishPath: frontend/eduplay-frontend/dist/eduplay-frontend/browser
+    staticPublishPath: frontend/eduplay-frontend/dist/eduplay-frontend/browser
     routes:
       - type: rewrite
         source: /api/*
