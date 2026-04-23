@@ -42,12 +42,10 @@ services:
         value: "https://eduplay-frontend.onrender.com,https://eduplay-backend.onrender.com,http://localhost:4200"
 
   # 3. Frontend Angular (Site Statique : suppression de la région car invalide pour ce type)
-  - type: web
+  - type: static
     name: eduplay-frontend
-    env: static
-    plan: free
     buildCommand: cd frontend/eduplay-frontend && npm install && npm run build
-    staticPublishPath: frontend/eduplay-frontend/dist/eduplay-frontend/browser
+    publishPath: frontend/eduplay-frontend/dist/eduplay-frontend/browser
     routes:
       - type: rewrite
         source: /api/*
