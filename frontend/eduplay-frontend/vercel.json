@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://eduplay-g3as.onrender.com/api/$1"
+      "destination": "https://eduplay-backend-2v0d.onrender.com/api/$1"
     }
   ]
 }
