@@ -10,8 +10,7 @@ services:
     env: docker
     region: frankfurt
     plan: free
-    dockerContext: backend
-    dockerfilePath: backend/Dockerfile
+    dockerfilePath: Dockerfile
 
     envVars:
       - key: DATABASE_URL
