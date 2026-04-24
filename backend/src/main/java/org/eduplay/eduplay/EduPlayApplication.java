@@ -14,6 +14,10 @@ public class EduPlayApplication {
     private static void normalizeRenderDatabaseUrl() {
         String explicitDatasource = System.getenv("SPRING_DATASOURCE_URL");
         if (explicitDatasource != null && !explicitDatasource.isBlank()) {
+            String normalized = toJdbcUrl(explicitDatasource);
+            if (normalized != null) {
+                System.setProperty("spring.datasource.url", normalized);
+            }
             return;
         }
 
@@ -22,20 +26,25 @@ public class EduPlayApplication {
             return;
         }
 
-        if (rawDatabaseUrl.startsWith("postgres://")) {
-            String jdbcUrl = "jdbc:postgresql://" + rawDatabaseUrl.substring("postgres://".length());
-            System.setProperty("spring.datasource.url", jdbcUrl);
-            return;
+        String normalized = toJdbcUrl(rawDatabaseUrl);
+        if (normalized != null) {
+            System.setProperty("spring.datasource.url", normalized);
         }
+    }
 
-        if (rawDatabaseUrl.startsWith("postgresql://")) {
-            String jdbcUrl = "jdbc:postgresql://" + rawDatabaseUrl.substring("postgresql://".length());
-            System.setProperty("spring.datasource.url", jdbcUrl);
-            return;
+    private static String toJdbcUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return null;
         }
-
-        if (rawDatabaseUrl.startsWith("jdbc:")) {
-            System.setProperty("spring.datasource.url", rawDatabaseUrl);
+        if (url.startsWith("jdbc:")) {
+            return url;
         }
+        if (url.startsWith("postgres://")) {
+            return "jdbc:postgresql://" + url.substring("postgres://".length());
+        }
+        if (url.startsWith("postgresql://")) {
+            return "jdbc:postgresql://" + url.substring("postgresql://".length());
+        }
+        return null;
     }
 }
