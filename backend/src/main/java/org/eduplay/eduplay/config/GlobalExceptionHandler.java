@@ -50,7 +50,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, Object>> handleDataAccess(DataAccessException exception,
                                                                 HttpServletRequest request) {
-        return build(HttpStatus.BAD_REQUEST, "Database error", List.of("Erreur base de donnees. Verifie les champs envoyes."), request.getRequestURI());
+        String root = rootCauseMessage(exception);
+        return build(
+                HttpStatus.BAD_REQUEST,
+                "Database error",
+                List.of(root == null ? "Erreur base de donnees. Verifie les champs envoyes." : root),
+                request.getRequestURI()
+        );
     }
 
     @ExceptionHandler(CannotCreateTransactionException.class)
