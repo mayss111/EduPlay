@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.dao.DataAccessException;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -52,6 +53,18 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.BAD_REQUEST, "Database error", List.of("Erreur base de donnees. Verifie les champs envoyes."), request.getRequestURI());
     }
 
+    @ExceptionHandler(CannotCreateTransactionException.class)
+    public ResponseEntity<Map<String, Object>> handleTransaction(CannotCreateTransactionException exception,
+                                                                 HttpServletRequest request) {
+        String root = rootCauseMessage(exception);
+        return build(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Database transaction error",
+                List.of(root == null ? "Impossible d'ouvrir une transaction base de donnees." : root),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception,
                                                              HttpServletRequest request) {
@@ -74,5 +87,16 @@ public class GlobalExceptionHandler {
         body.put("messages", messages);
         body.put("path", path);
         return ResponseEntity.status(status).body(body);
+    }
+
+    private String rootCauseMessage(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null && current.getCause() != null) {
+            current = current.getCause();
+        }
+        if (current == null || current.getMessage() == null || current.getMessage().isBlank()) {
+            return null;
+        }
+        return current.getMessage();
     }
 }
