@@ -2,6 +2,10 @@
 -- 500+ questions pour classes 1-6, toutes matières, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
+-- Nettoyage de la base
+TRUNCATE TABLE question_bank;
+
+
 -- ==================== MATH - CLASSE 1 - FRENCH ====================
 
 -- MATH - CLASSE 1 - SIMPLE - FRENCH
@@ -268,20 +272,8 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 ('ما هو النهر؟', 'مساحة كبيرة من الماء المالح', 'تيار ماء عذب', 'جبل', 'غابة', 'B', 'النهر هو تيار ماء عذب.', 'GEOGRAPHY', 1, 'SIMPLE', 'eau', 80, 0, 'ARABIC'),
 ('ما هو الجبل؟', 'مساحة كبيرة مسطحة', 'ارتفاع مهم في التضاريس', 'نهر', 'غابة', 'B', 'الجبل هو ارتفاع مهم في التضاريس.', 'GEOGRAPHY', 1, 'SIMPLE', 'relief', 80, 0, 'ARABIC');
 
--- Réactiver les contraintes
-SET FOREIGN_KEY_CHECKS = 1;
 
-
-### . Enrichir data.sql
-
-Ajoutez plus de questions dans `EduPlay/backend/src/main/resources/data.sql` :
-
-- Questions de mathématiques avec contexte tunisien
-- Questions de sciences sur l'environnement tunisien
-- Questions d'histoire sur la Tunisie (Carthage, indépendance, etc.)
-- Questions de géographie sur la Tunisie
-rendre moi ce fichier complet avec ces ajout ajouter le plus que tu peuxSET FOREIGN_KEY_CHECKS = 0;
-TRUNCATE TABLE question_bank;
+-- ==================== SCIENCE - CLASSE 1 - FRENCH (Suite) ====================
 
 -- ==================== SCIENCE - CLASSE 1 - FRENCH ====================
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, language) VALUES ('Quel organe nous permet de voir?', 'oreille', 'nez', 'oeil', 'main', 'C', 'L''oeil est l''organe de la vue.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
@@ -794,5 +786,3 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, language) VALUES ('ما هو المكون الرئيسي للشمس؟', 'الأكسجين', 'الهيدروجين', 'الحديد', 'الهيليوم', 'B', 'الهيدروجين هو المكون الأساسي.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'ARABIC');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, language) VALUES ('Quel est le nom de notre galaxie?', 'Andromède', 'La Voie Lactée', 'Orion', 'Le Sombrero', 'B', 'Nous vivons dans la Voie Lactée.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, language) VALUES ('ما هو اسم مجرتنا؟', 'أندروميدا', 'درب التبانة', 'أوريون', 'سومبريرو', 'B', 'نحن نعيش في درب التبانة.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'ARABIC');
--- Réactiver les contraintes
-SET FOREIGN_KEY_CHECKS = 1;
