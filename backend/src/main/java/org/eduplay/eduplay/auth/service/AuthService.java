@@ -12,6 +12,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -62,21 +63,34 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
+        String normalizedUsername = request.getUsername() == null ? null : request.getUsername().trim();
+        if (normalizedUsername == null || normalizedUsername.isBlank()) {
+            throw new IllegalArgumentException("Username requis");
+        }
+
+        if (userRepository.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Ce pseudo est déjà pris !");
         }
 
+        int safeClassLevel = request.getClassLevel() == null ? 1 : request.getClassLevel();
+        int safeAvatarIndex = request.getAvatarIndex() == null ? 0 : request.getAvatarIndex();
+        String safeFirstName = request.getFirstName() == null ? "" : request.getFirstName().trim();
+
         User user = User.builder()
-                .firstName(request.getFirstName())
-                .username(request.getUsername())
+                .firstName(safeFirstName)
+                .username(normalizedUsername)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.STUDENT)
-            .language(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
-                .classLevel(request.getClassLevel())
-                .avatarIndex(request.getAvatarIndex())
+                .language(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
+                .classLevel(safeClassLevel)
+                .avatarIndex(safeAvatarIndex)
                 .build();
 
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalArgumentException("Inscription invalide. Vérifie le pseudo et les champs requis.");
+        }
         String token = jwtUtil.generateToken(user.getUsername());
         return buildResponse(user, token);
     }

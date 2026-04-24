@@ -3,6 +3,7 @@ package org.eduplay.eduplay.config;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
@@ -45,6 +46,12 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.FORBIDDEN, "Access denied", List.of(exception.getMessage()), request.getRequestURI());
     }
 
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Map<String, Object>> handleDataAccess(DataAccessException exception,
+                                                                HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, "Database error", List.of("Erreur base de donnees. Verifie les champs envoyes."), request.getRequestURI());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneric(Exception exception,
                                                              HttpServletRequest request) {
@@ -63,6 +70,7 @@ public class GlobalExceptionHandler {
         body.put("timestamp", Instant.now().toString());
         body.put("status", status.value());
         body.put("error", error);
+        body.put("message", error);
         body.put("messages", messages);
         body.put("path", path);
         return ResponseEntity.status(status).body(body);
