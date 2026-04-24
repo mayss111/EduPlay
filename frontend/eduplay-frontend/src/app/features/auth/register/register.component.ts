@@ -112,8 +112,29 @@ export class RegisterComponent implements OnInit, OnDestroy {
       next: () => this.router.navigate(['/dashboard']),
       error: (err) => {
         this.isLoading = false;
-        this.errorMsg = err.error?.message || this.t('Ce pseudo est déjà pris !', 'اسم المستخدم هذا مستعمل بالفعل!');
+        this.errorMsg = this.resolveRegisterErrorMessage(err);
       }
     });
+  }
+
+  private resolveRegisterErrorMessage(err: any): string {
+    const first = err?.error?.messages?.[0] || err?.error?.message || '';
+    const msg = String(first);
+    const lowered = msg.toLowerCase();
+
+    if (lowered.includes('already') || lowered.includes('deja') || lowered.includes('pris') || lowered.includes('unique')) {
+      return this.t('Ce pseudo est deja pris. Essaie un autre pseudo.', 'اسم المستخدم هذا مستخدم بالفعل. جرب اسما آخر.');
+    }
+    if (lowered.includes('database') || lowered.includes('relation') || lowered.includes('transaction')) {
+      return this.t(
+        'Le serveur est en cours de preparation. Reessaie dans quelques secondes.',
+        'الخادم قيد التحضير. حاول مرة أخرى بعد ثوان قليلة.'
+      );
+    }
+    if (lowered.includes('minimum 6')) {
+      return this.t('Le mot de passe doit contenir au moins 6 caracteres.', 'يجب أن تحتوي كلمة المرور على 6 أحرف على الأقل.');
+    }
+
+    return msg || this.t('Impossible de creer le compte pour le moment.', 'تعذر إنشاء الحساب حاليا.');
   }
 }

@@ -126,3 +126,24 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+input:focus-visible,
+.tab:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    width: calc(100vw - 24px);
+    padding: 24px 18px;
+    border-radius: 20px;
+  }
+}

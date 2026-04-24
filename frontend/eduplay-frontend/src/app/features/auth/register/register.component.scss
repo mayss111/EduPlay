@@ -197,3 +197,35 @@
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+.btn-primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+input:focus-visible,
+.tab:focus-visible,
+.class-btn:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid #c4b5fd;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .auth-card {
+    width: calc(100vw - 24px);
+    padding: 22px 16px;
+    border-radius: 20px;
+  }
+
+  .avatar-row {
+    gap: 6px;
+  }
+
+  .avatar-row .avatar {
+    width: 42px;
+    height: 42px;
+    font-size: 20px;
+  }
+}

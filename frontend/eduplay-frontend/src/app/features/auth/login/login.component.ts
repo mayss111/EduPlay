@@ -72,10 +72,24 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.authService.login(payload).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.errorMsg = this.t('Pseudo ou mot de passe incorrect !', 'اسم المستخدم أو كلمة المرور غير صحيحة!');
+        this.errorMsg = this.resolveLoginErrorMessage(err);
       }
     });
+  }
+
+  private resolveLoginErrorMessage(err: any): string {
+    const backendMessage = err?.error?.messages?.[0] || err?.error?.message || '';
+    const raw = String(backendMessage).toLowerCase();
+
+    if (raw.includes('database') || raw.includes('relation') || raw.includes('transaction')) {
+      return this.t(
+        'Le serveur est en cours de preparation. Reessaie dans quelques secondes.',
+        'الخادم قيد التحضير. حاول مرة أخرى بعد ثوان قليلة.'
+      );
+    }
+
+    return this.t('Pseudo ou mot de passe incorrect !', 'اسم المستخدم أو كلمة المرور غير صحيحة!');
   }
 }

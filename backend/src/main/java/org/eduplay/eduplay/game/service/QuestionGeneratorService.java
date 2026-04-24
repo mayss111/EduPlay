@@ -1977,16 +1977,16 @@ public class QuestionGeneratorService {
                         createQuestion("Quel est un element d'une carte?", "Legende", "Fourchette", "Tasse", "Brosse", "A", "La legende aide a lire une carte.", subject, classLevel, difficulty)
                 );
                 case FRENCH -> List.of(
-                    createQuestion("Quel mot est au pluriel ?", "chat", "chats", "maison", "arbre", "B", "Chats est le pluriel de chat.", subject, classLevel, difficulty),
-                    createQuestion("Combien de lettres compte le mot soleil ?", "5", "6", "7", "4", "B", "Le mot soleil compte six lettres.", subject, classLevel, difficulty),
-                    createQuestion("Quel mot est un verbe ?", "courir", "bleu", "table", "école", "A", "Courir est un verbe à l'infinitif.", subject, classLevel, difficulty),
-                    createQuestion("Quelle phrase est correcte ?", "Les enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "Les enfants jouent est la forme correcte.", subject, classLevel, difficulty),
-                    createQuestion("Quel mot commence par la lettre A ?", "ballon", "arbre", "stylo", "livre", "B", "Arbre commence par A.", subject, classLevel, difficulty),
-                    createQuestion("Quel est le contraire de petit ?", "Grand", "Bleu", "Joli", "Vite", "A", "Le contraire de petit est grand.", subject, classLevel, difficulty),
-                    createQuestion("Quel mot est un nom ?", "manger", "joli", "maison", "vite", "C", "Maison est un nom commun.", subject, classLevel, difficulty),
-                    createQuestion("Combien de mots contient Le chat dort ?", "1", "2", "3", "4", "C", "La phrase contient trois mots.", subject, classLevel, difficulty),
-                    createQuestion("Quel mot rime avec pain ?", "main", "table", "chien", "livre", "A", "Pain et main riment.", subject, classLevel, difficulty),
-                    createQuestion("Quelle lettre vient après B ?", "A", "C", "D", "E", "B", "La lettre C suit B.", subject, classLevel, difficulty)
+                    createQuestion("Français : Quel mot est au pluriel ?", "chat", "chats", "maison", "arbre", "B", "Chats est le pluriel de chat.", subject, classLevel, difficulty),
+                    createQuestion("Français : Quelle phrase est correcte ?", "Les enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "Les enfants jouent est la forme correcte.", subject, classLevel, difficulty),
+                    createQuestion("Français : Quel mot est un verbe ?", "courir", "bleu", "table", "ecole", "A", "Courir est un verbe a l'infinitif.", subject, classLevel, difficulty),
+                    createQuestion("Français : Quel est le contraire de petit ?", "grand", "bleu", "joli", "vite", "A", "Le contraire de petit est grand.", subject, classLevel, difficulty),
+                    createQuestion("Français : Combien de mots contient la phrase 'Le chat dort' ?", "1", "2", "3", "4", "C", "La phrase contient trois mots : Le, chat, dort.", subject, classLevel, difficulty),
+                    createQuestion("Anglais : Quelle traduction est correcte de 'bonjour' ?", "goodbye", "hello", "thank you", "please", "B", "Le mot anglais de 'bonjour' est 'hello'.", subject, classLevel, difficulty),
+                    createQuestion("Anglais : Quel mot veut dire 'pomme' ?", "apple", "book", "house", "chair", "A", "Le mot anglais 'apple' signifie pomme.", subject, classLevel, difficulty),
+                    createQuestion("Anglais : Complète : 'I ___ a student.'", "is", "are", "am", "be", "C", "Avec 'I', on utilise 'am'.", subject, classLevel, difficulty),
+                    createQuestion("Anglais : Quel est le pluriel correct de 'child' ?", "childs", "children", "childes", "childer", "B", "Le pluriel irrégulier de child est children.", subject, classLevel, difficulty),
+                    createQuestion("Anglais : Quelle phrase est correcte ?", "She go to school.", "She goes to school.", "She going school.", "She goed to school.", "B", "A la 3e personne du singulier, on ajoute souvent -s au verbe.", subject, classLevel, difficulty)
                 );
                 case ARABIC -> List.of(
                     createQuestion("أي كلمة معناها كتاب؟", "كتاب", "قلم", "باب", "بيت", "A", "كلمة كتاب تعني book.", subject, classLevel, difficulty),
@@ -2093,16 +2093,16 @@ public class QuestionGeneratorService {
                     createQuestion("ما العنصر الذي يساعد على قراءة الخريطة؟", "المفتاح", "شوكة", "كوب", "فرشاة", "A", "مفتاح الخريطة يساعد على فهم الرموز.", subject, classLevel, difficulty)
                 );
                 case FRENCH -> List.of(
-                    createQuestion("أي كلمة في صيغة الجمع؟", "chat", "chats", "maison", "arbre", "B", "الكلمة chats في صيغة الجمع.", subject, classLevel, difficulty),
-                    createQuestion("كم حرفا في كلمة soleil؟", "5", "6", "7", "4", "B", "كلمة soleil تحتوي على 6 أحرف.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة هي فعل؟", "courir", "bleu", "table", "ecole", "A", "كلمة courir هي فعل.", subject, classLevel, difficulty),
-                    createQuestion("أي جملة صحيحة؟", "Le enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "الجملة الصحيحة هي Les enfants jouent.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة تبدأ بالحرف A؟", "ballon", "arbre", "stylo", "livre", "B", "كلمة arbre تبدأ بالحرف A.", subject, classLevel, difficulty),
-                    createQuestion("ما عكس كلمة petit؟", "Grand", "Bleu", "Joli", "Vite", "A", "عكس petit هو Grand.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة هي اسم؟", "manger", "joli", "maison", "vite", "C", "كلمة maison اسم.", subject, classLevel, difficulty),
-                    createQuestion("كم كلمة في Le chat dort؟", "1", "2", "3", "4", "C", "الجملة تحتوي على 3 كلمات.", subject, classLevel, difficulty),
-                    createQuestion("أي كلمة تُقافي pain؟", "main", "table", "chien", "livre", "A", "pain و main لهما نفس القافية.", subject, classLevel, difficulty),
-                    createQuestion("أي حرف يأتي بعد B؟", "A", "C", "D", "E", "B", "الحرف C يأتي بعد B.", subject, classLevel, difficulty)
+                    createQuestion("فرنسية: أي كلمة في صيغة الجمع؟", "chat", "chats", "maison", "arbre", "B", "الكلمة chats في صيغة الجمع.", subject, classLevel, difficulty),
+                    createQuestion("فرنسية: أي جملة صحيحة؟", "Le enfants joue.", "Les enfants jouent.", "Les enfant joue.", "Le enfant jouent.", "B", "الجملة الصحيحة هي Les enfants jouent.", subject, classLevel, difficulty),
+                    createQuestion("فرنسية: أي كلمة هي فعل؟", "courir", "bleu", "table", "ecole", "A", "كلمة courir هي فعل.", subject, classLevel, difficulty),
+                    createQuestion("فرنسية: ما عكس كلمة petit؟", "grand", "bleu", "joli", "vite", "A", "عكس petit هو grand.", subject, classLevel, difficulty),
+                    createQuestion("فرنسية: كم كلمة في 'Le chat dort'؟", "1", "2", "3", "4", "C", "الجملة فيها 3 كلمات.", subject, classLevel, difficulty),
+                    createQuestion("انجليزي: ما ترجمة 'bonjour'؟", "goodbye", "hello", "thank you", "please", "B", "ترجمة bonjour هي hello.", subject, classLevel, difficulty),
+                    createQuestion("انجليزي: أي كلمة تعني 'تفاحة'؟", "apple", "book", "house", "chair", "A", "كلمة apple تعني تفاحة.", subject, classLevel, difficulty),
+                    createQuestion("انجليزي: أكمل الجملة 'I ___ a student.'", "is", "are", "am", "be", "C", "مع الضمير I نستعمل am.", subject, classLevel, difficulty),
+                    createQuestion("انجليزي: ما الجمع الصحيح لكلمة child؟", "childs", "children", "childes", "childer", "B", "الجمع الصحيح غير المنتظم هو children.", subject, classLevel, difficulty),
+                    createQuestion("انجليزي: أي جملة صحيحة؟", "She go to school.", "She goes to school.", "She going school.", "She goed to school.", "B", "في الغائب المفرد نضيف غالبا s للفعل.", subject, classLevel, difficulty)
                 );
                 case ARABIC -> List.of(
                     createQuestion("أي كلمة معناها كتاب؟", "كتاب", "قلم", "باب", "بيت", "A", "كلمة كتاب تعني book.", subject, classLevel, difficulty),

@@ -20,12 +20,12 @@
       <span class="tab" routerLink="/register">{{ t('Inscription', 'إنشاء حساب') }}</span>
     </div>
 
-    <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+    <div class="error-msg" *ngIf="errorMsg" role="alert" aria-live="polite">{{ errorMsg }}</div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form-group">
         <label>{{ t('Pseudo', 'اسم المستخدم') }}</label>
-        <input formControlName="username" type="text" [placeholder]="t('ton pseudo...', 'اسم المستخدم...')" />
+        <input formControlName="username" type="text" [placeholder]="t('ton pseudo...', 'اسم المستخدم...')" autocomplete="username" />
         <span class="field-error" *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
           {{ t('Minimum 3 caractères', '3 أحرف على الأقل') }}
         </span>
@@ -33,13 +33,13 @@
 
       <div class="form-group">
         <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
-        <input formControlName="password" type="password" placeholder="••••••••" />
+        <input formControlName="password" type="password" placeholder="••••••••" autocomplete="current-password" />
         <span class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
           {{ t('Minimum 6 caractères', '6 أحرف على الأقل') }}
         </span>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
+      <button type="submit" class="btn-primary" [disabled]="isLoading || form.invalid">
         <span *ngIf="!isLoading">{{ t('🚀 Jouer maintenant !', '🚀 ابدأ اللعب الآن!') }}</span>
         <span *ngIf="isLoading" class="spinner"></span>
       </button>

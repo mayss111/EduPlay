@@ -19,7 +19,7 @@
       <span class="tab active">{{ t('Inscription', 'إنشاء حساب') }}</span>
     </div>
 
-    <div class="error-msg" *ngIf="errorMsg">{{ errorMsg }}</div>
+    <div class="error-msg" *ngIf="errorMsg" role="alert" aria-live="polite">{{ errorMsg }}</div>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
 
@@ -55,13 +55,13 @@
       <!-- Prénom -->
       <div class="form-group">
         <label>{{ t('Prénom', 'الاسم') }}</label>
-        <input formControlName="firstName" type="text" [placeholder]="t('ton prénom...', 'اسمك...')" />
+        <input formControlName="firstName" type="text" [placeholder]="t('ton prénom...', 'اسمك...')" autocomplete="given-name" />
       </div>
 
       <!-- Pseudo -->
       <div class="form-group">
         <label>{{ t('Pseudo', 'اسم المستخدم') }}</label>
-        <input formControlName="username" type="text" [placeholder]="t('pseudo unique...', 'اسم مستخدم فريد...')" />
+        <input formControlName="username" type="text" [placeholder]="t('pseudo unique...', 'اسم مستخدم فريد...')" autocomplete="username" />
         <span class="field-error"
               *ngIf="form.get('username')?.touched && form.get('username')?.invalid">
           {{ t('Minimum 3 caractères', '3 أحرف على الأقل') }}
@@ -71,7 +71,7 @@
       <!-- Password -->
       <div class="form-group">
         <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
-        <input formControlName="password" type="password" placeholder="••••••••" />
+        <input formControlName="password" type="password" placeholder="••••••••" autocomplete="new-password" />
         <div class="strength-bar">
           <div class="strength-fill"
                [style.width]="getStrength()+'%'"
@@ -93,7 +93,7 @@
         </div>
       </div>
 
-      <button type="submit" class="btn-primary" [disabled]="isLoading">
+      <button type="submit" class="btn-primary" [disabled]="isLoading || form.invalid || !selectedClass">
         <span *ngIf="!isLoading">{{ t('🎮 Créer mon compte !', '🎮 إنشاء الحساب!') }}</span>
         <span *ngIf="isLoading" class="spinner"></span>
       </button>
