@@ -1,8 +1,6 @@
 -- Script SQL pour peupler la base de questions EduPlay
 -- 500+ questions pour classes 1-6, toutes matières, tous niveaux, toutes langues
-
--- Désactiver les contraintes pour insertion en masse
-SET FOREIGN_KEY_CHECKS = 0;
+-- Compatible PostgreSQL (Render)
 
 -- ==================== MATH - CLASSE 1 - FRENCH ====================
 
