@@ -31,8 +31,28 @@ public class AuthService {
             throw new BadCredentialsException("Identifiants invalides");
         }
 
+        boolean requiresUpdate = false;
+        if (user.getRole() == null) {
+            user.setRole(Role.STUDENT);
+            requiresUpdate = true;
+        }
+        if (user.getLanguage() == null) {
+            user.setLanguage(AppLanguage.FRENCH);
+            requiresUpdate = true;
+        }
+        if (user.getTotalXp() == null) {
+            user.setTotalXp(0);
+            requiresUpdate = true;
+        }
+        if (user.getStreak() == null) {
+            user.setStreak(0);
+            requiresUpdate = true;
+        }
         if (request.getLanguage() != null && request.getLanguage() != user.getLanguage()) {
             user.setLanguage(request.getLanguage());
+            requiresUpdate = true;
+        }
+        if (requiresUpdate) {
             userRepository.save(user);
         }
 
@@ -62,15 +82,17 @@ public class AuthService {
     }
 
     private AuthResponse buildResponse(User user, String token) {
+        Role safeRole = user.getRole() == null ? Role.STUDENT : user.getRole();
+        AppLanguage safeLanguage = user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage();
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
                 .firstName(user.getFirstName())
-                .role(user.getRole().name())
-                .language((user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage()).name())
+                .role(safeRole.name())
+                .language(safeLanguage.name())
                 .classLevel(user.getClassLevel())
                 .avatarIndex(user.getAvatarIndex())
-                .totalXp(user.getTotalXp())
+                .totalXp(user.getTotalXp() == null ? 0 : user.getTotalXp())
                 .build();
     }
 }
