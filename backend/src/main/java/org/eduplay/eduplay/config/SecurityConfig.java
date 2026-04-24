@@ -16,6 +16,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.*;
 import java.util.List;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Configuration
 @RequiredArgsConstructor
@@ -57,10 +58,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         if (allowedOrigins != null && !allowedOrigins.isBlank()) {
-            // Split the comma-separated string into a list of origins
-            config.setAllowedOrigins(Arrays.asList(allowedOrigins.split(",")));
+            List<String> originPatterns = Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.toList());
+            config.setAllowedOriginPatterns(originPatterns);
         } else {
-            config.setAllowedOrigins(List.of("http://localhost:4200"));
+            config.setAllowedOriginPatterns(List.of("http://localhost:4200", "https://*.vercel.app"));
         }
         config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
