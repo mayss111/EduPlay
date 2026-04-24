@@ -1,9 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd frontend/eduplay-frontend && npm install && npm run build --configuration=production",
+  "buildCommand": "cd frontend/eduplay-frontend && npm run build",
   "outputDirectory": "frontend/eduplay-frontend/dist/eduplay-frontend",
   "devCommand": "cd frontend/eduplay-frontend && npm run start",
-  "installCommand": "npm install",
+  "installCommand": "cd frontend/eduplay-frontend && npm install",
   "framework": "angular",
   "rewrites": [
     {

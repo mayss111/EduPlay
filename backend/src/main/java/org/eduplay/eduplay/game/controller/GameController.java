@@ -54,36 +54,26 @@ public class GameController {
 
             // 2. Si pas assez de questions, fallback sur l'IA (Ollama)
             if (questions.size() < 10) {
-                List<Question> generated = questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage);
-                
-                if (generated != null && !generated.isEmpty()) {
-                    // Fusionner les questions existantes avec les nouvelles en évitant les doublons
-                    Set<String> seenTexts = new HashSet<>();
-                    for (Question q : questions) {
-                        if (q.getQuestionText() != null) {
-                            seenTexts.add(q.getQuestionText().trim().toLowerCase());
-                        }
-                    }
-                    
-                    for (Question g : generated) {
-                        if (g == null || g.getQuestionText() == null || questions.size() >= 10) continue;
-                        if (g.getQuestionText() != null && seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
-                            questions.add(g);
-                        }
-                    }
-                    
-                    // En dernier recours, ajouter sans vérifier l'unicité du texte
-                    if (questions.size() < 10) {
-                        for (Question g : generated) {
-                            if (g == null || g.getQuestionText() == null || questions.size() >= 10) continue;
-                            questions.add(g);
-                        }
-                    }
-                }
+                mergeGeneratedQuestions(
+                    questions,
+                    questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+                );
             }
         } catch (Exception e) {
             // Log l'erreur mais ne pas faire planter l'application (renvoie une liste vide ou partielle)
             System.err.println("Erreur lors de la récupération des questions: " + e.getMessage());
+            mergeGeneratedQuestions(
+                questions,
+                questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+            );
+        }
+
+        // Sécurité supplémentaire: garantir un set jouable côté frontend
+        if (questions.size() < 10) {
+            mergeGeneratedQuestions(
+                questions,
+                questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+            );
         }
 
         return ResponseEntity.ok(questions);
@@ -254,4 +244,37 @@ public class GameController {
                 }
                 throw new IllegalArgumentException("Champ invalide: " + fieldName);
         }
+
+    private void mergeGeneratedQuestions(List<Question> target, List<Question> generated) {
+        if (generated == null || generated.isEmpty() || target.size() >= 10) {
+            return;
+        }
+
+        Set<String> seenTexts = new HashSet<>();
+        for (Question q : target) {
+            if (q != null && q.getQuestionText() != null) {
+                seenTexts.add(q.getQuestionText().trim().toLowerCase());
+            }
+        }
+
+        for (Question g : generated) {
+            if (g == null || g.getQuestionText() == null || target.size() >= 10) {
+                continue;
+            }
+            if (seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
+                target.add(g);
+            }
+        }
+
+        if (target.size() < 10) {
+            for (Question g : generated) {
+                if (g == null || target.size() >= 10) {
+                    break;
+                }
+                if (!target.contains(g)) {
+                    target.add(g);
+                }
+            }
+        }
+    }
 }
