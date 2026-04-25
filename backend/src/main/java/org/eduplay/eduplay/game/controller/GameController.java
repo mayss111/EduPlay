@@ -57,7 +57,7 @@ public class GameController {
             if (questions.size() < 10) {
                 mergeGeneratedQuestions(
                     questions,
-                    questionGeneratorService.generateQuestions(effectiveClassLevel, subject, difficulty, effectiveLanguage)
+                    questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
                 );
             }
         } catch (Exception e) {
@@ -65,7 +65,7 @@ public class GameController {
             System.err.println("Erreur lors de la récupération des questions: " + e.getMessage());
             mergeGeneratedQuestions(
                 questions,
-                questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+                questionGeneratorService.generateQuestions(user.getId(), classLevel, subject, difficulty, effectiveLanguage)
             );
         }
 
@@ -73,7 +73,7 @@ public class GameController {
         if (questions.size() < 10) {
             mergeGeneratedQuestions(
                 questions,
-                questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+                questionGeneratorService.generateQuestions(user.getId(), classLevel, subject, difficulty, effectiveLanguage)
             );
         }
 
@@ -108,15 +108,27 @@ public class GameController {
                 .build();
         scoreRepository.save(score);
 
-        // Enregistrer l'historique des réponses si fourni
+        // Enregistrer l'historique des réponses pour éviter les répétitions
         @SuppressWarnings("unchecked")
-        List<String> answers = payload.get("answers") != null 
-            ? (List<String>) payload.get("answers") 
-            : new ArrayList<>();
+        List<Map<String, Object>> questionResults = (List<Map<String, Object>>) payload.get("questionResults");
         
-        if (!answers.isEmpty()) {
-            // Récupérer les questions de la session (devrait être passé dans le payload)
-            // Pour l'instant, on enregistre juste le score global
+        if (questionResults != null && !questionResults.isEmpty()) {
+            for (Map<String, Object> result : questionResults) {
+                try {
+                    Long questionId = Long.valueOf(result.get("questionId").toString());
+                    boolean isCorrect = (boolean) result.get("isCorrect");
+                    
+                    UserQuestionHistory history = UserQuestionHistory.builder()
+                            .userId(user.getId())
+                            .questionId(questionId)
+                            .isCorrect(isCorrect)
+                            .answeredAt(java.time.LocalDateTime.now())
+                            .build();
+                    historyRepository.save(history);
+                } catch (Exception e) {
+                    System.err.println("Erreur lors de l'enregistrement d'une question: " + e.getMessage());
+                }
+            }
         }
 
         return ResponseEntity.ok(Map.of(

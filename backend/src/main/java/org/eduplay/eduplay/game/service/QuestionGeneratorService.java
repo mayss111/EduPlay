@@ -8,6 +8,8 @@ import org.eduplay.eduplay.enums.AppLanguage;
 import org.eduplay.eduplay.enums.Difficulty;
 import org.eduplay.eduplay.enums.Subject;
 import org.eduplay.eduplay.repository.QuestionBankRepository;
+import org.eduplay.eduplay.repository.UserQuestionHistoryRepository;
+import org.eduplay.eduplay.entity.UserQuestionHistory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +32,14 @@ public class QuestionGeneratorService {
 
     private static final int TARGET_QUESTION_COUNT = 10;
     private final QuestionBankRepository questionBankRepository;
+    private final UserQuestionHistoryRepository historyRepository;
 
     /**
      * Génère des questions pour un profil donné en les récupérant de la base de données
      */
     @Transactional(readOnly = true)
-    public List<Question> generateQuestions(int classLevel,
+    public List<Question> generateQuestions(Long userId,
+                                            int classLevel,
                                             Subject subject,
                                             Difficulty difficulty,
                                             AppLanguage language) {
@@ -44,6 +48,11 @@ public class QuestionGeneratorService {
 
         List<Question> questions = new ArrayList<>();
 
+        // Récupérer l'historique de l'utilisateur
+        Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
+            .map(UserQuestionHistory::getQuestionId)
+            .collect(Collectors.toSet());
+
         // 1. Essayer de trouver des questions exactes pour ce profil
         List<QuestionBank> exactMatches = questionBankRepository.findLeastUsed(
             subject, classLevel, difficulty, language
@@ -51,10 +60,12 @@ public class QuestionGeneratorService {
         
         for (QuestionBank qb : exactMatches) {
             if (questions.size() >= TARGET_QUESTION_COUNT) break;
-            questions.add(convertToQuestion(qb));
+            if (!seenIds.contains(qb.getId())) {
+                questions.add(convertToQuestion(qb));
+            }
         }
 
-        // 2. Si pas assez, élargir à toutes les difficultés (en priorité SIMPLE)
+        // 2. Si pas assez, élargir à toutes les difficultés
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Pas assez de questions exactes, élargissement aux autres difficultés");
             for (Difficulty d : Difficulty.values()) {
@@ -62,12 +73,14 @@ public class QuestionGeneratorService {
                 List<QuestionBank> similar = questionBankRepository.findLeastUsed(subject, classLevel, d, language);
                 for (QuestionBank qb : similar) {
                     if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                    if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
+                    if (!seenIds.contains(qb.getId()) && !alreadyAdded(questions, qb)) {
+                        questions.add(convertToQuestion(qb));
+                    }
                 }
             }
         }
 
-        // 3. Si toujours pas assez, élargir à d'autres langues pour la même matière/niveau
+        // 3. Si toujours pas assez, élargir aux autres langues
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Élargissement aux autres langues");
             for (AppLanguage l : AppLanguage.values()) {
@@ -76,29 +89,23 @@ public class QuestionGeneratorService {
                 List<QuestionBank> otherLang = questionBankRepository.findLeastUsed(subject, classLevel, Difficulty.SIMPLE, l);
                 for (QuestionBank qb : otherLang) {
                     if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                    if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
+                    if (!seenIds.contains(qb.getId()) && !alreadyAdded(questions, qb)) {
+                        questions.add(convertToQuestion(qb));
+                    }
                 }
             }
         }
 
-        // 4. Si toujours pas assez, prendre n'importe quelles questions de la matière/niveau
+        // 4. Si toujours pas assez, prendre n'importe quelles questions (Même déjà vues en dernier recours)
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Élargissement final à toute la matière/niveau");
-            List<QuestionBank> anySubject = questionBankRepository.findBySubjectAndClassLevel(subject, classLevel);
-            for (QuestionBank qb : anySubject) {
-                if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
-            }
-        }
-
-        // 5. Fallback ultime: n'importe quelle question de la base de données
-        if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.warn("FALLBACK ULTIME: Récupération de n'importe quelles questions dans la base");
+            log.warn("FALLBACK ULTIME: Récupération de n'importe quelles questions");
             List<QuestionBank> anyQuestions = questionBankRepository.findAll();
             Collections.shuffle(anyQuestions);
             for (QuestionBank qb : anyQuestions) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
+                if (!alreadyAdded(questions, qb)) {
+                    questions.add(convertToQuestion(qb));
+                }
             }
         }
 

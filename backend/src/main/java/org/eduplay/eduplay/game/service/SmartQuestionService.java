@@ -47,24 +47,47 @@ public class SmartQuestionService {
         );
         Collections.shuffle(questions);
 
-        // 2. Si pas assez, prendre les moins utilisées globalement
+        // 2. Si pas assez, prendre les moins utilisées globalement (MAIS TOUJOURS PAS VUES)
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Pas assez de questions uniques, fallback sur les moins utilisées");
+            log.info("Pas assez de questions uniques, recherche approfondie dans la base...");
             List<QuestionBank> leastUsed = questionBankRepository.findLeastUsed(
                 subject, classLevel, difficulty, language
             );
-            Collections.shuffle(leastUsed);
             
-            // Fusionner en évitant les doublons
-            Set<Long> existingIds = questions.stream()
+            Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
+                .map(UserQuestionHistory::getQuestionId)
+                .collect(Collectors.toSet());
+            
+            Set<Long> currentIds = questions.stream()
                 .map(QuestionBank::getId)
                 .collect(Collectors.toSet());
             
             for (QuestionBank qb : leastUsed) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!existingIds.contains(qb.getId())) {
+                if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId())) {
                     questions.add(qb);
-                    existingIds.add(qb.getId());
+                    currentIds.add(qb.getId());
+                }
+            }
+        }
+
+        // 3. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
+        if (questions.size() < TARGET_QUESTION_COUNT) {
+            log.info("Stock épuisé, inclusion des questions les moins récemment vues");
+            List<QuestionBank> fallback = questionBankRepository.findLeastUsed(
+                subject, classLevel, difficulty, language
+            );
+            Collections.shuffle(fallback);
+            
+            Set<Long> currentIds = questions.stream()
+                .map(QuestionBank::getId)
+                .collect(Collectors.toSet());
+                
+            for (QuestionBank qb : fallback) {
+                if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                if (!currentIds.contains(qb.getId())) {
+                    questions.add(qb);
+                    currentIds.add(qb.getId());
                 }
             }
         }
