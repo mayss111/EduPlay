@@ -42,9 +42,22 @@ public class SmartQuestionService {
         LocalDateTime daysAgo = LocalDateTime.now().minusYears(10);
         
         // 1. Essayer de trouver des questions jamais vues ou pas récemment
-        List<QuestionBank> questions = questionBankRepository.findLeastUsedNotRecentlySeen(
+        List<QuestionBank> rawQuestions = questionBankRepository.findLeastUsedNotRecentlySeen(
             userId, subject, classLevel, difficulty, language, daysAgo
         );
+        
+        Set<String> currentTexts = new HashSet<>();
+        List<QuestionBank> questions = new ArrayList<>();
+        
+        for (QuestionBank qb : rawQuestions) {
+            if (questions.size() >= TARGET_QUESTION_COUNT) break;
+            String normalizedText = qb.getQuestionText().trim().toLowerCase();
+            if (!currentTexts.contains(normalizedText)) {
+                questions.add(qb);
+                currentTexts.add(normalizedText);
+            }
+        }
+        
         Collections.shuffle(questions);
 
         // 2. Si pas assez, prendre les moins utilisées globalement (MAIS TOUJOURS PAS VUES)
@@ -62,11 +75,17 @@ public class SmartQuestionService {
                 .map(QuestionBank::getId)
                 .collect(Collectors.toSet());
             
+            Set<String> currentTexts = questions.stream()
+                .map(qb -> qb.getQuestionText().trim().toLowerCase())
+                .collect(Collectors.toSet());
+            
             for (QuestionBank qb : leastUsed) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId())) {
+                String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
                     questions.add(qb);
                     currentIds.add(qb.getId());
+                    currentTexts.add(normalizedText);
                 }
             }
         }
@@ -82,17 +101,23 @@ public class SmartQuestionService {
             Set<Long> currentIds = questions.stream()
                 .map(QuestionBank::getId)
                 .collect(Collectors.toSet());
+            
+            Set<String> currentTexts = questions.stream()
+                .map(qb -> qb.getQuestionText().trim().toLowerCase())
+                .collect(Collectors.toSet());
                 
             for (QuestionBank qb : fallback) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!currentIds.contains(qb.getId())) {
+                String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                if (!currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
                     questions.add(qb);
                     currentIds.add(qb.getId());
+                    currentTexts.add(normalizedText);
                 }
             }
         }
 
-        // 3. Si toujours pas assez, prendre aléatoirement
+        // 3. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Fallback sur sélection aléatoire");
             List<QuestionBank> random = questionBankRepository.findRandom(

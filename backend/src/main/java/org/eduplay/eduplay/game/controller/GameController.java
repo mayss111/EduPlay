@@ -35,7 +35,9 @@ public class GameController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User introuvable"));
 
-        int effectiveClassLevel = classLevel != null ? classLevel : (user.getClassLevel() == null ? 1 : user.getClassLevel());
+        // Prioriser le niveau demandé dans la requête, sinon utiliser celui du profil
+        int effectiveClassLevel = (classLevel != null) ? classLevel : 
+                                 (user.getClassLevel() != null ? user.getClassLevel() : 1);
         AppLanguage effectiveLanguage = language != null
                 ? language
                 : (user.getAppLanguage() == null ? AppLanguage.FRENCH : user.getAppLanguage());
@@ -65,7 +67,7 @@ public class GameController {
             System.err.println("Erreur lors de la récupération des questions: " + e.getMessage());
             mergeGeneratedQuestions(
                 questions,
-                questionGeneratorService.generateQuestions(user.getId(), classLevel, subject, difficulty, effectiveLanguage)
+                questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
             );
         }
 
@@ -73,7 +75,7 @@ public class GameController {
         if (questions.size() < 10) {
             mergeGeneratedQuestions(
                 questions,
-                questionGeneratorService.generateQuestions(user.getId(), classLevel, subject, difficulty, effectiveLanguage)
+                questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
             );
         }
 
@@ -248,6 +250,7 @@ public class GameController {
             return;
         }
 
+        // Utiliser un Set pour suivre les textes déjà présents (insensible à la casse et aux espaces)
         Set<String> seenTexts = new HashSet<>();
         for (Question q : target) {
             if (q != null && q.getQuestionText() != null) {
@@ -259,19 +262,11 @@ public class GameController {
             if (g == null || g.getQuestionText() == null || target.size() >= 10) {
                 continue;
             }
-            if (seenTexts.add(g.getQuestionText().trim().toLowerCase())) {
+            // Ajouter seulement si le texte n'a pas encore été vu
+            String normalizedText = g.getQuestionText().trim().toLowerCase();
+            if (!seenTexts.contains(normalizedText)) {
                 target.add(g);
-            }
-        }
-
-        if (target.size() < 10) {
-            for (Question g : generated) {
-                if (g == null || target.size() >= 10) {
-                    break;
-                }
-                if (!target.contains(g)) {
-                    target.add(g);
-                }
+                seenTexts.add(normalizedText);
             }
         }
     }

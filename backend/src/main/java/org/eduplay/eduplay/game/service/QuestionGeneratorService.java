@@ -58,10 +58,14 @@ public class QuestionGeneratorService {
             subject, classLevel, difficulty, language
         );
         
+        Set<String> currentTexts = new HashSet<>();
+
         for (QuestionBank qb : exactMatches) {
             if (questions.size() >= TARGET_QUESTION_COUNT) break;
-            if (!seenIds.contains(qb.getId())) {
+            String normalizedText = qb.getQuestionText().trim().toLowerCase();
+            if (!seenIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
                 questions.add(convertToQuestion(qb));
+                currentTexts.add(normalizedText);
             }
         }
 
@@ -73,8 +77,10 @@ public class QuestionGeneratorService {
                 List<QuestionBank> similar = questionBankRepository.findLeastUsed(subject, classLevel, d, language);
                 for (QuestionBank qb : similar) {
                     if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                    if (!seenIds.contains(qb.getId()) && !alreadyAdded(questions, qb)) {
+                    String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                    if (!seenIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
                         questions.add(convertToQuestion(qb));
+                        currentTexts.add(normalizedText);
                     }
                 }
             }
@@ -89,8 +95,10 @@ public class QuestionGeneratorService {
                 List<QuestionBank> otherLang = questionBankRepository.findLeastUsed(subject, classLevel, Difficulty.SIMPLE, l);
                 for (QuestionBank qb : otherLang) {
                     if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                    if (!seenIds.contains(qb.getId()) && !alreadyAdded(questions, qb)) {
+                    String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                    if (!seenIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
                         questions.add(convertToQuestion(qb));
+                        currentTexts.add(normalizedText);
                     }
                 }
             }
@@ -103,8 +111,10 @@ public class QuestionGeneratorService {
             Collections.shuffle(anyQuestions);
             for (QuestionBank qb : anyQuestions) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!alreadyAdded(questions, qb)) {
+                String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                if (!currentTexts.contains(normalizedText)) {
                     questions.add(convertToQuestion(qb));
+                    currentTexts.add(normalizedText);
                 }
             }
         }
