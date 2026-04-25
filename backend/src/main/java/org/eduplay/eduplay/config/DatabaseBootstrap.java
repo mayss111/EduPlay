@@ -32,7 +32,7 @@ public class DatabaseBootstrap {
                     username VARCHAR(255) NOT NULL UNIQUE,
                     password VARCHAR(255) NOT NULL,
                     role VARCHAR(50) NOT NULL,
-                    language VARCHAR(50),
+                    app_language VARCHAR(50),
                     class_level INTEGER,
                     avatar_index INTEGER,
                     total_xp INTEGER DEFAULT 0,
