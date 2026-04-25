@@ -2,27 +2,8 @@
 -- 500+ questions pour classes 1-6, toutes matières, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
--- Ensure the table exists
-CREATE TABLE IF NOT EXISTS question_bank (
-    id BIGSERIAL PRIMARY KEY,
-    question_text TEXT NOT NULL,
-    choice_a VARCHAR(255) NOT NULL,
-    choice_b VARCHAR(255) NOT NULL,
-    choice_c VARCHAR(255) NOT NULL,
-    choice_d VARCHAR(255) NOT NULL,
-    correct_choice VARCHAR(255) NOT NULL,
-    explanation TEXT,
-    subject VARCHAR(255) NOT NULL,
-    class_level INTEGER NOT NULL,
-    difficulty VARCHAR(255) NOT NULL,
-    app_language VARCHAR(255) NOT NULL,
-    topic_tag VARCHAR(255),
-    quality_score INTEGER,
-    usage_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-TRUNCATE TABLE question_bank RESTART IDENTITY CASCADE;
+-- Nettoyage de la base existante
+DELETE FROM question_bank;
 
 
 -- ==================== MATH - CLASSE 1 - FRENCH ====================
