@@ -55,6 +55,10 @@ public class Question implements Serializable {
     @Column(nullable = false)
     private Difficulty difficulty;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "app_language", nullable = false)
+    private AppLanguage appLanguage;
+
     @Transient
     private Integer qualityScore;
 

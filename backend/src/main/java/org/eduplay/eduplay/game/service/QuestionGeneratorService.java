@@ -126,6 +126,7 @@ public class QuestionGeneratorService {
             .difficulty(qb.getDifficulty())
             .qualityScore(qb.getQualityScore())
             .topicTag(qb.getTopicTag())
+            .appLanguage(qb.getAppLanguage())
             .build();
     }
 
@@ -218,6 +219,7 @@ public class QuestionGeneratorService {
             .classLevel(classLevel)
             .difficulty(Difficulty.SIMPLE)
             .qualityScore(50)
+            .appLanguage(language)
             .build();
     }
 }

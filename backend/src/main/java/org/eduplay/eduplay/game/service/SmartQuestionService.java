@@ -234,6 +234,7 @@ public class SmartQuestionService {
             .difficulty(qb.getDifficulty())
             .qualityScore(qb.getQualityScore())
             .topicTag(qb.getTopicTag())
+            .appLanguage(qb.getAppLanguage())
             .build();
     }
 

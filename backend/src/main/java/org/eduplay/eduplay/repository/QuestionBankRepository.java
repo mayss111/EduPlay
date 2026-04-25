@@ -21,7 +21,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query("SELECT q FROM QuestionBank q WHERE q.subject = :subject " +
            "AND q.classLevel = :classLevel AND q.difficulty = :difficulty " +
-           "AND q.language = :language " +
+           "AND q.appLanguage = :language " +
            "AND q.id NOT IN (SELECT uqh.questionId FROM UserQuestionHistory uqh " +
            "WHERE uqh.userId = :userId AND uqh.answeredAt > :daysAgo) " +
            "ORDER BY q.usageCount ASC")
@@ -39,7 +39,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query("SELECT q FROM QuestionBank q WHERE q.subject = :subject " +
            "AND q.classLevel = :classLevel AND q.difficulty = :difficulty " +
-           "AND q.language = :language " +
+           "AND q.appLanguage = :language " +
            "ORDER BY q.usageCount ASC")
     List<QuestionBank> findLeastUsed(
         @Param("subject") Subject subject,
@@ -62,7 +62,7 @@ public interface QuestionBankRepository extends JpaRepository<QuestionBank, Long
      */
     @Query(value = "SELECT * FROM question_bank WHERE subject = :subject " +
            "AND class_level = :classLevel AND difficulty = :difficulty " +
-           "AND language = :language " +
+           "AND app_language = :language " +
            "LIMIT :limit", nativeQuery = true)
     List<QuestionBank> findRandom(
         @Param("subject") String subject,

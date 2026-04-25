@@ -37,10 +37,10 @@ public class GameController {
         int classLevel = user.getClassLevel() == null ? 1 : user.getClassLevel();
         AppLanguage effectiveLanguage = language != null
                 ? language
-                : (user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage());
+                : (user.getAppLanguage() == null ? AppLanguage.FRENCH : user.getAppLanguage());
 
-        if (user.getLanguage() != effectiveLanguage) {
-            user.setLanguage(effectiveLanguage);
+        if (user.getAppLanguage() != effectiveLanguage) {
+            user.setAppLanguage(effectiveLanguage);
             userRepository.save(user);
         }
 

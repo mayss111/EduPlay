@@ -57,9 +57,9 @@ public class QuestionBank implements Serializable {
     private Difficulty difficulty;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "app_language", nullable = false)
     @Builder.Default
-    private AppLanguage language = AppLanguage.FRENCH;
+    private AppLanguage appLanguage = AppLanguage.FRENCH;
 
     private String topicTag;
 

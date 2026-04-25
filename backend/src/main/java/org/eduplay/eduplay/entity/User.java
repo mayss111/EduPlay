@@ -32,8 +32,9 @@ public class User {
     private Role role;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "app_language")
     @Builder.Default
-    private AppLanguage language = AppLanguage.FRENCH;
+    private AppLanguage appLanguage = AppLanguage.FRENCH;
 
     private Integer classLevel;
 

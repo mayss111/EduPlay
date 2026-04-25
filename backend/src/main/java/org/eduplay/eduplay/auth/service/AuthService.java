@@ -37,8 +37,8 @@ public class AuthService {
             user.setRole(Role.STUDENT);
             requiresUpdate = true;
         }
-        if (user.getLanguage() == null) {
-            user.setLanguage(AppLanguage.FRENCH);
+        if (user.getAppLanguage() == null) {
+            user.setAppLanguage(AppLanguage.FRENCH);
             requiresUpdate = true;
         }
         if (user.getTotalXp() == null) {
@@ -49,8 +49,8 @@ public class AuthService {
             user.setStreak(0);
             requiresUpdate = true;
         }
-        if (request.getLanguage() != null && request.getLanguage() != user.getLanguage()) {
-            user.setLanguage(request.getLanguage());
+        if (request.getLanguage() != null && request.getLanguage() != user.getAppLanguage()) {
+            user.setAppLanguage(request.getLanguage());
             requiresUpdate = true;
         }
         if (requiresUpdate) {
@@ -81,7 +81,7 @@ public class AuthService {
                 .username(normalizedUsername)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.STUDENT)
-                .language(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
+                .appLanguage(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
                 .classLevel(safeClassLevel)
                 .avatarIndex(safeAvatarIndex)
                 .build();
@@ -97,7 +97,7 @@ public class AuthService {
 
     private AuthResponse buildResponse(User user, String token) {
         Role safeRole = user.getRole() == null ? Role.STUDENT : user.getRole();
-        AppLanguage safeLanguage = user.getLanguage() == null ? AppLanguage.FRENCH : user.getLanguage();
+        AppLanguage safeLanguage = user.getAppLanguage() == null ? AppLanguage.FRENCH : user.getAppLanguage();
         return AuthResponse.builder()
                 .token(token)
                 .username(user.getUsername())
