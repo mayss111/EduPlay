@@ -1,4 +1,4 @@
-﻿-- Script SQL pour peupler la base de questions EduPlay
+-- Script SQL pour peupler la base de questions EduPlay
 -- 500+ questions pour classes 1-6, toutes matiÃ¨res, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
@@ -792,4 +792,5 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 -- SCIENCE - NIVEAU 7 - SIMPLE
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est l''organe principal de la respiration?', 'Le coeur', 'Les poumons', 'L''estomac', 'Le foie', 'B', 'Les poumons permettent l''échange d''oxygène.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هو العضو الرئيسي للتنفس؟', 'القلب', 'الرئتان', 'المعدة', 'الكبد', 'B', 'الرئتان تسمحان بتبادل الأكسجين.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'ARABIC');
+
 
