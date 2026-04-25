@@ -783,5 +783,13 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ø§Ù„Ù…ÙƒÙˆÙ† Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ Ù„Ù„Ø´Ù…Ø³ØŸ', 'Ø§Ù„Ø£ÙƒØ³Ø¬ÙŠÙ†', 'Ø§Ù„Ù‡ÙŠØ¯Ø±ÙˆØ¬ÙŠÙ†', 'Ø§Ù„Ø­Ø¯ÙŠØ¯', 'Ø§Ù„Ù‡ÙŠÙ„ÙŠÙˆÙ…', 'B', 'Ø§Ù„Ù‡ÙŠØ¯Ø±ÙˆØ¬ÙŠÙ† Ù‡Ùˆ Ø§Ù„Ù…ÙƒÙˆÙ† Ø§Ù„Ø£Ø³Ø§Ø³ÙŠ.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'ARABIC');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le nom de notre galaxie?', 'AndromÃ¨de', 'La Voie LactÃ©e', 'Orion', 'Le Sombrero', 'B', 'Nous vivons dans la Voie LactÃ©e.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ø§Ø³Ù… Ù…Ø¬Ø±ØªÙ†Ø§ØŸ', 'Ø£Ù†Ø¯Ø±ÙˆÙ…ÙŠØ¯Ø§', 'Ø¯Ø±Ø¨ Ø§Ù„ØªØ¨Ø§Ù†Ø©', 'Ø£ÙˆØ±ÙŠÙˆÙ†', 'Ø³ÙˆÙ…Ø¨Ø±ÙŠØ±Ùˆ', 'B', 'Ù†Ø­Ù† Ù†Ø¹ÙŠØ´ ÙÙŠ Ø¯Ø±Ø¨ Ø§Ù„ØªØ¨Ø§Ù†Ø©.', 'SCIENCE', 6, 'SIMPLE', 'astronomie', 80, 0, 'ARABIC');
-$newQuestions
-$arabicQuestions
+
+
+-- MATH - NIVEAU 7 - MOYEN
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Résoudre: 3x - 5 = 10', 'x=3', 'x=5', 'x=15', 'x=2', 'B', '3x = 15 donc x = 5.', 'MATH', 7, 'MOYEN', 'algebre', 85, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('حل المعادلة: 3x - 5 = 10', 'x=3', 'x=5', 'x=15', 'x=2', 'B', '3x = 15 إذن x = 5.', 'MATH', 7, 'MOYEN', 'algebre', 85, 0, 'ARABIC');
+
+-- SCIENCE - NIVEAU 7 - SIMPLE
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est l''organe principal de la respiration?', 'Le coeur', 'Les poumons', 'L''estomac', 'Le foie', 'B', 'Les poumons permettent l''échange d''oxygène.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هو العضو الرئيسي للتنفس؟', 'القلب', 'الرئتان', 'المعدة', 'الكبد', 'B', 'الرئتان تسمحان بتبادل الأكسجين.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'ARABIC');
+
