@@ -44,7 +44,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Should generate 10 questions for MATH subject")
     void testMathGeneration() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                3, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 3, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
         );
         
         assertEquals(10, questions.size(), "Should generate exactly 10 questions");
@@ -56,7 +56,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("All questions should have 4 distinct choices")
     void testChoiceUniqueness() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                2, Subject.FRENCH, Difficulty.SIMPLE, AppLanguage.FRENCH
+                1L, 2, Subject.FRENCH, Difficulty.SIMPLE, AppLanguage.FRENCH
         );
 
         for (Question q : questions) {
@@ -75,7 +75,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("All questions should have valid correctChoice")
     void testCorrectChoiceValidity() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                4, Subject.SCIENCE, Difficulty.DIFFICILE, AppLanguage.FRENCH
+                1L, 4, Subject.SCIENCE, Difficulty.DIFFICILE, AppLanguage.FRENCH
         );
 
         for (Question q : questions) {
@@ -90,7 +90,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Questions should not have null or empty fields")
     void testQuestionCompleteness() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                1, Subject.HISTORY, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 1, Subject.HISTORY, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         for (Question q : questions) {
@@ -118,7 +118,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Should respect subject consistency")
     void testSubjectConsistency() {
         List<Question> mathQuestions = questionGeneratorService.generateQuestions(
-                3, Subject.GEOGRAPHY, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 3, Subject.GEOGRAPHY, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         for (Question q : mathQuestions) {
@@ -131,7 +131,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Arabic questions should be in Arabic language")
     void testArabicGeneration() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                2, Subject.ARABIC, Difficulty.SIMPLE, AppLanguage.ARABIC
+                1L, 2, Subject.ARABIC, Difficulty.SIMPLE, AppLanguage.ARABIC
         );
 
         assertEquals(10, questions.size(), "Should generate exactly 10 questions");
@@ -143,7 +143,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Question text should end with question mark")
     void testQuestionMark() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                4, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 4, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         for (Question q : questions) {
@@ -157,7 +157,7 @@ class QuestionGeneratorServiceTest {
     void testAllSubjects() {
         for (Subject subject : Subject.values()) {
             List<Question> questions = questionGeneratorService.generateQuestions(
-                    2, subject, Difficulty.MOYEN, AppLanguage.FRENCH
+                    1L, 2, subject, Difficulty.MOYEN, AppLanguage.FRENCH
             );
             assertEquals(10, questions.size(), 
                     "Should generate 10 questions for subject: " + subject);
@@ -169,7 +169,7 @@ class QuestionGeneratorServiceTest {
     void testAllDifficulties() {
         for (Difficulty difficulty : Difficulty.values()) {
             List<Question> questions = questionGeneratorService.generateQuestions(
-                    3, Subject.SCIENCE, difficulty, AppLanguage.FRENCH
+                    1L, 3, Subject.SCIENCE, difficulty, AppLanguage.FRENCH
             );
             assertEquals(10, questions.size(), 
                     "Should generate 10 questions for difficulty: " + difficulty);
@@ -180,10 +180,10 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Different class levels should produce different question sets")
     void testClassLevelDifferentiation() {
         List<Question> level1 = questionGeneratorService.generateQuestions(
-                1, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 1, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
         );
         List<Question> level6 = questionGeneratorService.generateQuestions(
-                6, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 6, Subject.FRENCH, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         Set<String> level1Texts = level1.stream()
@@ -203,7 +203,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Generated questions should expose quality metadata and topic diversity")
     void testQualityMetadataAndTopicDiversity() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                3, Subject.SCIENCE, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 3, Subject.SCIENCE, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         assertEquals(10, questions.size(), "Should generate exactly 10 questions");
@@ -225,7 +225,7 @@ class QuestionGeneratorServiceTest {
     void testCorrectChoicePointsToExistingChoice() {
         for (Subject subject : Subject.values()) {
             List<Question> questions = questionGeneratorService.generateQuestions(
-                    4, subject, Difficulty.DIFFICILE, AppLanguage.FRENCH
+                    1L, 4, subject, Difficulty.DIFFICILE, AppLanguage.FRENCH
             );
 
             for (Question q : questions) {
@@ -251,7 +251,7 @@ class QuestionGeneratorServiceTest {
     @DisplayName("Math questions with parsable operation should have matching answer")
     void testMathOperationConsistency() {
         List<Question> questions = questionGeneratorService.generateQuestions(
-                5, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
+                1L, 5, Subject.MATH, Difficulty.MOYEN, AppLanguage.FRENCH
         );
 
         Pattern operation = Pattern.compile("(\\d{1,3})\\s*([+\\-x×])\\s*(\\d{1,3})");
