@@ -1,4 +1,4 @@
--- Script SQL pour peupler la base de questions EduPlay
+﻿-- Script SQL pour peupler la base de questions EduPlay
 -- 500+ questions pour classes 1-6, toutes matiÃ¨res, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
@@ -793,4 +793,81 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est l''organe principal de la respiration?', 'Le coeur', 'Les poumons', 'L''estomac', 'Le foie', 'B', 'Les poumons permettent l''échange d''oxygène.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هو العضو الرئيسي للتنفس؟', 'القلب', 'الرئتان', 'المعدة', 'الكبد', 'B', 'الرئتان تسمحان بتبادل الأكسجين.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'ARABIC');
 
+
+
+-- ==================== NIVEAU 1 - PROGRESSION (FRENCH & ARABIC) ====================
+
+-- MATH - CLASSE 1 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Combien font 10 + 5?', '12', '15', '20', '10', 'B', '10 + 5 = 15.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'FRENCH'),
+('Si j''ai 3 pommes et j''en achète 4, combien j''en ai?', '5', '6', '7', '8', 'C', '3 + 4 = 7.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+
+-- MATH - CLASSE 1 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('كم يساوي 10 + 5؟', '12', '15', '20', '10', 'B', '10 + 5 = 15.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'ARABIC'),
+('إذا كان لدي 3 تفاحات واشتريت 4، فكم أصبح لدي؟', '5', '6', '7', '8', 'C', '3 + 4 = 7.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 1 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Complète la suite: 2, 4, 6, ...', '7', '8', '9', '10', 'B', 'On ajoute 2 à chaque fois.', 'MATH', 1, 'DIFFICILE', 'suite', 90, 0, 'FRENCH');
+
+-- MATH - CLASSE 1 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('أكمل السلسلة: 2، 4، 6، ...', '7', '8', '9', '10', 'B', 'نضيف 2 في كل مرة.', 'MATH', 1, 'DIFFICILE', 'suite', 90, 0, 'ARABIC');
+
+
+-- ==================== NIVEAU 2 - PROGRESSION ====================
+-- MATH - CLASSE 2 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Combien font 25 + 25?', '40', '50', '60', '100', 'B', '25 + 25 = 50.', 'MATH', 2, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+-- MATH - CLASSE 2 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('كم يساوي 25 + 25؟', '40', '50', '60', '100', 'B', '25 + 25 = 50.', 'MATH', 2, 'MOYEN', 'addition', 85, 0, 'ARABIC');
+
+-- ==================== NIVEAU 3 - PROGRESSION ====================
+-- MATH - CLASSE 3 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Combien font 12 x 2?', '20', '22', '24', '26', 'C', '12 x 2 = 24.', 'MATH', 3, 'MOYEN', 'multiplication', 85, 0, 'FRENCH');
+-- MATH - CLASSE 3 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('كم يساوي 12 × 2؟', '20', '22', '24', '26', 'C', '12 × 2 = 24.', 'MATH', 3, 'MOYEN', 'multiplication', 85, 0, 'ARABIC');
+
+-- ==================== NIVEAU 7 - COLLÈGE ====================
+-- MATH - CLASSE 7 - SIMPLE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Résous: 2x = 10', 'x=2', 'x=5', 'x=10', 'x=20', 'B', 'Divise par 2: x = 10 / 2 = 5.', 'MATH', 7, 'SIMPLE', 'algebre', 85, 0, 'FRENCH');
+-- MATH - CLASSE 7 - SIMPLE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('حل المعادلة: 2x = 10', 'x=2', 'x=5', 'x=10', 'x=20', 'B', 'نقسم على 2: x = 10 / 2 = 5.', 'MATH', 7, 'SIMPLE', 'algebre', 85, 0, 'ARABIC');
+
+-- SCIENCE - CLASSE 7 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Quelle est la formule chimique de l''eau?', 'CO2', 'O2', 'H2O', 'NaCl', 'C', 'L''eau est composée de 2 hydrogènes et 1 oxygène.', 'SCIENCE', 7, 'MOYEN', 'chimie', 85, 0, 'FRENCH');
+-- SCIENCE - CLASSE 7 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('ما هي الصيغة الكيميائية للماء؟', 'CO2', 'O2', 'H2O', 'NaCl', 'C', 'يتكون الماء من ذرتي هيدروجين وذرة أكسجين.', 'SCIENCE', 7, 'MOYEN', 'chimie', 85, 0, 'ARABIC');
+
+
+-- ==================== DÉFIS EXCELLENT (TOUS NIVEAUX) ====================
+
+-- MATH - CLASSE 4 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Quel est le périmètre d''un carré de côté 5cm?', '10cm', '15cm', '20cm', '25cm', 'C', 'Périmètre = 4 x côté = 4 x 5 = 20.', 'MATH', 4, 'EXCELLENT', 'geometrie', 95, 0, 'FRENCH');
+-- MATH - CLASSE 4 - EXCELLENT - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('ما هو محيط مربع طول ضلعه 5 سم؟', '10 سم', '15 سم', '20 سم', '25 سم', 'C', 'المحيط = 4 × الضلع = 4 × 5 = 20.', 'MATH', 4, 'EXCELLENT', 'geometrie', 95, 0, 'ARABIC');
+
+-- SCIENCE - CLASSE 6 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Quelle planète est appelée la Planète Rouge?', 'Vénus', 'Mars', 'Jupiter', 'Saturne', 'B', 'Mars est rouge à cause de l''oxyde de fer.', 'SCIENCE', 6, 'EXCELLENT', 'astronomie', 95, 0, 'FRENCH');
+-- SCIENCE - CLASSE 6 - EXCELLENT - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('أي كوكب يسمى الكوكب الأحمر؟', 'الزهرة', 'المريخ', 'المشتري', 'زحل', 'B', 'المريخ لونه أحمر بسبب أكسيد الحديد.', 'SCIENCE', 6, 'EXCELLENT', 'astronomie', 95, 0, 'ARABIC');
+
+-- MATH - CLASSE 7 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('Quelle est la racine carrée de 144?', '10', '11', '12', '13', 'C', '12 x 12 = 144.', 'MATH', 7, 'EXCELLENT', 'arithmetique', 95, 0, 'FRENCH');
+-- MATH - CLASSE 7 - EXCELLENT - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
+('ما هو الجذر التربيعي للعدد 144؟', '10', '11', '12', '13', 'C', '12 × 12 = 144.', 'MATH', 7, 'EXCELLENT', 'arithmetique', 95, 0, 'ARABIC');
 
