@@ -1,6 +1,7 @@
 package org.eduplay.eduplay.entity;
 
 
+import org.eduplay.eduplay.enums.AppLanguage;
 import org.eduplay.eduplay.enums.Difficulty;
 import org.eduplay.eduplay.enums.Subject;
 import jakarta.persistence.*;
