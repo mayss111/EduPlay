@@ -38,7 +38,8 @@ public class SmartQuestionService {
         log.info("Sélection intelligente: user={}, class={}, subject={}, difficulty={}", 
                  userId, classLevel, subject, difficulty);
 
-        LocalDateTime daysAgo = LocalDateTime.now().minusDays(DAYS_TO_AVOID_REPEAT);
+        // On remonte très loin (10 ans) pour exclure TOUTES les questions déjà répondues
+        LocalDateTime daysAgo = LocalDateTime.now().minusYears(10);
         
         // 1. Essayer de trouver des questions jamais vues ou pas récemment
         List<QuestionBank> questions = questionBankRepository.findLeastUsedNotRecentlySeen(
