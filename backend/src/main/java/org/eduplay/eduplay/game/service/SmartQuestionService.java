@@ -166,6 +166,36 @@ public class SmartQuestionService {
     }
 
     /**
+     * Enregistre les résultats d'une session et incrémente les compteurs d'usage
+     */
+    @Transactional
+    public void recordQuestionResults(Long userId, List<Map<String, Object>> results) {
+        for (Map<String, Object> result : results) {
+            try {
+                Long questionId = Long.valueOf(result.get("questionId").toString());
+                boolean isCorrect = (boolean) result.get("isCorrect");
+
+                // 1. Incrémenter l'usage global
+                questionBankRepository.findById(questionId).ifPresent(qb -> {
+                    qb.incrementUsage();
+                    questionBankRepository.save(qb);
+                });
+
+                // 2. Enregistrer l'historique personnel
+                UserQuestionHistory history = UserQuestionHistory.builder()
+                        .userId(userId)
+                        .questionId(questionId)
+                        .isCorrect(isCorrect)
+                        .answeredAt(LocalDateTime.now())
+                        .build();
+                historyRepository.save(history);
+            } catch (Exception e) {
+                log.error("Erreur lors de l'enregistrement du résultat: {}", e.getMessage());
+            }
+        }
+    }
+
+    /**
      * Enregistre l'historique des réponses d'un utilisateur
      */
     @Transactional

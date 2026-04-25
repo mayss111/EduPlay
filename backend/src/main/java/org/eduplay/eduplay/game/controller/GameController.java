@@ -108,27 +108,12 @@ public class GameController {
                 .build();
         scoreRepository.save(score);
 
-        // Enregistrer l'historique des réponses pour éviter les répétitions
+        // Enregistrer l'historique des réponses via le service pour éviter les répétitions
         @SuppressWarnings("unchecked")
         List<Map<String, Object>> questionResults = (List<Map<String, Object>>) payload.get("questionResults");
         
         if (questionResults != null && !questionResults.isEmpty()) {
-            for (Map<String, Object> result : questionResults) {
-                try {
-                    Long questionId = Long.valueOf(result.get("questionId").toString());
-                    boolean isCorrect = (boolean) result.get("isCorrect");
-                    
-                    UserQuestionHistory history = UserQuestionHistory.builder()
-                            .userId(user.getId())
-                            .questionId(questionId)
-                            .isCorrect(isCorrect)
-                            .answeredAt(java.time.LocalDateTime.now())
-                            .build();
-                    historyRepository.save(history);
-                } catch (Exception e) {
-                    System.err.println("Erreur lors de l'enregistrement d'une question: " + e.getMessage());
-                }
-            }
+            smartQuestionService.recordQuestionResults(user.getId(), questionResults);
         }
 
         return ResponseEntity.ok(Map.of(
