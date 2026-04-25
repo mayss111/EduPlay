@@ -14,9 +14,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -63,12 +66,15 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
+        log.info("Tentative d'inscription pour l'utilisateur: {}", request.getUsername());
+        
         String normalizedUsername = request.getUsername() == null ? null : request.getUsername().trim();
         if (normalizedUsername == null || normalizedUsername.isBlank()) {
             throw new IllegalArgumentException("Username requis");
         }
 
         if (userRepository.existsByUsername(normalizedUsername)) {
+            log.warn("Nom d'utilisateur déjà pris: {}", normalizedUsername);
             throw new IllegalArgumentException("Ce pseudo est déjà pris !");
         }
 
@@ -84,13 +90,21 @@ public class AuthService {
                 .appLanguage(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
                 .classLevel(safeClassLevel)
                 .avatarIndex(safeAvatarIndex)
+                .totalXp(0)
+                .streak(0)
+                .createdAt(LocalDateTime.now())
                 .build();
 
         try {
-            userRepository.save(user);
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalArgumentException("Inscription invalide. Vérifie le pseudo et les champs requis.");
+            log.info("Sauvegarde de l'utilisateur dans la base...");
+            user = userRepository.save(user);
+            log.info("Utilisateur sauvegardé avec succès. ID: {}", user.getId());
+        } catch (Exception e) {
+            log.error("Erreur critique lors de la sauvegarde: {}", e.getMessage(), e);
+            throw new RuntimeException("Erreur technique lors de la création du compte: " + e.getMessage());
         }
+
+        log.info("Génération du token JWT...");
         String token = jwtUtil.generateToken(user.getUsername());
         return buildResponse(user, token);
     }
