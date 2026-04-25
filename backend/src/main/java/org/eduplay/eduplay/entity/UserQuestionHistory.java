@@ -21,19 +21,20 @@ public class UserQuestionHistory implements Serializable {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
-    @Column(nullable = false)
+    @Column(name = "question_id", nullable = false)
     private Long questionId;
 
-    @Column(updatable = false)
+    @Column(name = "answered_at", updatable = false)
     @Builder.Default
     private LocalDateTime answeredAt = LocalDateTime.now();
 
+    @Column(name = "is_correct")
     private Boolean isCorrect;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 

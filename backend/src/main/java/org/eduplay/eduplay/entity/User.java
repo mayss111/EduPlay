@@ -18,7 +18,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(name = "first_name", nullable = false)
     private String firstName;
 
     @Column(unique = true, nullable = false)
@@ -36,17 +36,21 @@ public class User {
     @Builder.Default
     private AppLanguage appLanguage = AppLanguage.FRENCH;
 
+    @Column(name = "class_level")
     private Integer classLevel;
 
+    @Column(name = "avatar_index")
     private Integer avatarIndex;
 
+    @Column(name = "total_xp")
     @Builder.Default
     private Integer totalXp = 0;
 
+    @Column(name = "streak")
     @Builder.Default
     private Integer streak = 0;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }

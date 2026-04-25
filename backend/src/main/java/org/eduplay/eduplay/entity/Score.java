@@ -29,7 +29,7 @@ public class Score {
     @Column(nullable = false)
     private Integer points;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
