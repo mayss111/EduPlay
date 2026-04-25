@@ -17,7 +17,7 @@ public class DiagnosticController {
 
     private final QuestionBankRepository questionBankRepository;
 
-    @GetMapping("/stats")
+    @GetMapping("/db-stats")
     public Map<String, Object> getStats() {
         Map<String, Object> stats = new HashMap<>();
         stats.put("totalQuestions", questionBankRepository.count());
