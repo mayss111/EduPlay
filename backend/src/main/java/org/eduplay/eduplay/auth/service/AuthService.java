@@ -66,47 +66,45 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        log.info("Tentative d'inscription pour l'utilisateur: {}", request.getUsername());
-        
-        String normalizedUsername = request.getUsername() == null ? null : request.getUsername().trim();
-        if (normalizedUsername == null || normalizedUsername.isBlank()) {
-            throw new IllegalArgumentException("Username requis");
-        }
-
-        if (userRepository.existsByUsername(normalizedUsername)) {
-            log.warn("Nom d'utilisateur déjà pris: {}", normalizedUsername);
-            throw new IllegalArgumentException("Ce pseudo est déjà pris !");
-        }
-
-        int safeClassLevel = request.getClassLevel() == null ? 1 : request.getClassLevel();
-        int safeAvatarIndex = request.getAvatarIndex() == null ? 0 : request.getAvatarIndex();
-        String safeFirstName = request.getFirstName() == null ? "" : request.getFirstName().trim();
-
-        User user = User.builder()
-                .firstName(safeFirstName)
-                .username(normalizedUsername)
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.STUDENT)
-                .appLanguage(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage())
-                .classLevel(safeClassLevel)
-                .avatarIndex(safeAvatarIndex)
-                .totalXp(0)
-                .streak(0)
-                .createdAt(LocalDateTime.now())
-                .build();
-
         try {
-            log.info("Sauvegarde de l'utilisateur dans la base...");
-            user = userRepository.save(user);
-            log.info("Utilisateur sauvegardé avec succès. ID: {}", user.getId());
-        } catch (Exception e) {
-            log.error("Erreur critique lors de la sauvegarde: {}", e.getMessage(), e);
-            throw new RuntimeException("Erreur technique lors de la création du compte: " + e.getMessage());
-        }
+            log.info("--- DEBUT INSCRIPTION ---");
+            log.info("Pseudo: {}, Langue: {}, Classe: {}", request.getUsername(), request.getLanguage(), request.getClassLevel());
+            
+            String normalizedUsername = request.getUsername() == null ? null : request.getUsername().trim();
+            if (normalizedUsername == null || normalizedUsername.isBlank()) {
+                throw new IllegalArgumentException("Username requis");
+            }
 
-        log.info("Génération du token JWT...");
-        String token = jwtUtil.generateToken(user.getUsername());
-        return buildResponse(user, token);
+            if (userRepository.existsByUsername(normalizedUsername)) {
+                log.warn("Username existe déjà: {}", normalizedUsername);
+                throw new IllegalArgumentException("Ce pseudo est déjà pris !");
+            }
+
+            User user = new User();
+            user.setFirstName(request.getFirstName() == null ? "" : request.getFirstName().trim());
+            user.setUsername(normalizedUsername);
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setRole(Role.STUDENT);
+            user.setAppLanguage(request.getLanguage() == null ? AppLanguage.FRENCH : request.getLanguage());
+            user.setClassLevel(request.getClassLevel() == null ? 1 : request.getClassLevel());
+            user.setAvatarIndex(request.getAvatarIndex() == null ? 0 : request.getAvatarIndex());
+            user.setTotalXp(0);
+            user.setStreak(0);
+
+            log.info("Tentative de sauvegarde DB...");
+            user = userRepository.save(user);
+            log.info("Sauvegarde DB OK. ID: {}", user.getId());
+
+            log.info("Génération du token...");
+            String token = jwtUtil.generateToken(user.getUsername());
+            
+            log.info("--- INSCRIPTION REUSSIE ---");
+            return buildResponse(user, token);
+            
+        } catch (Exception e) {
+            log.error("[FATAL REGISTRATION ERROR] : " + e.getMessage(), e);
+            throw new RuntimeException("Erreur lors de l'inscription : " + e.getMessage());
+        }
     }
 
     private AuthResponse buildResponse(User user, String token) {
