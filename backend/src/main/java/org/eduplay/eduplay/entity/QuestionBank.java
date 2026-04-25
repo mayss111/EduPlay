@@ -24,22 +24,22 @@ public class QuestionBank implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
     private String questionText;
 
-    @Column(nullable = false)
+    @Column(name = "choice_a", nullable = false)
     private String choiceA;
 
-    @Column(nullable = false)
+    @Column(name = "choice_b", nullable = false)
     private String choiceB;
 
-    @Column(nullable = false)
+    @Column(name = "choice_c", nullable = false)
     private String choiceC;
 
-    @Column(nullable = false)
+    @Column(name = "choice_d", nullable = false)
     private String choiceD;
 
-    @Column(nullable = false)
+    @Column(name = "correct_choice", nullable = false)
     private String correctChoice;
 
     @Column(columnDefinition = "TEXT")
@@ -49,7 +49,7 @@ public class QuestionBank implements Serializable {
     @Column(nullable = false)
     private Subject subject;
 
-    @Column(nullable = false)
+    @Column(name = "class_level", nullable = false)
     private Integer classLevel;
 
     @Enumerated(EnumType.STRING)
@@ -61,15 +61,17 @@ public class QuestionBank implements Serializable {
     @Builder.Default
     private AppLanguage appLanguage = AppLanguage.FRENCH;
 
+    @Column(name = "topic_tag")
     private String topicTag;
 
+    @Column(name = "quality_score")
     private Integer qualityScore;
 
-    @Column(nullable = false)
+    @Column(name = "usage_count", nullable = false)
     @Builder.Default
     private Integer usageCount = 0;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 
