@@ -2,7 +2,7 @@
 -- Structure stable et peuplée
 
 -- Table des utilisateurs
-CREATE TABLE app_users (
+CREATE TABLE IF NOT EXISTS app_users (
     id BIGSERIAL PRIMARY KEY,
     first_name VARCHAR(255) NOT NULL,
     username VARCHAR(255) NOT NULL UNIQUE,
@@ -17,7 +17,7 @@ CREATE TABLE app_users (
 );
 
 -- Table de la banque de questions
-CREATE TABLE question_bank (
+CREATE TABLE IF NOT EXISTS question_bank (
     id BIGSERIAL PRIMARY KEY,
     question_text TEXT NOT NULL,
     choice_a VARCHAR(255) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE question_bank (
 );
 
 -- Table des scores
-CREATE TABLE scores (
+CREATE TABLE IF NOT EXISTS scores (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES app_users(id),
     subject VARCHAR(255),
@@ -46,7 +46,7 @@ CREATE TABLE scores (
 );
 
 -- Table de l'historique des questions
-CREATE TABLE user_question_history (
+CREATE TABLE IF NOT EXISTS user_question_history (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL,
     question_id BIGINT NOT NULL,
