@@ -36,7 +36,8 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                    .requestMatchers("/api/game/**").hasRole("STUDENT")
+                        .requestMatchers("/api/game/db-stats").permitAll()
+                        .requestMatchers("/api/game/**").hasRole("STUDENT")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
