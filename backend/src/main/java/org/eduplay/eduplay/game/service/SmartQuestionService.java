@@ -47,6 +47,7 @@ public class SmartQuestionService {
         );
         
         Set<String> currentTexts = new HashSet<>();
+        Set<Long> currentIds = new HashSet<>();
         List<QuestionBank> questions = new ArrayList<>();
         
         for (QuestionBank qb : rawQuestions) {
@@ -55,6 +56,7 @@ public class SmartQuestionService {
             if (!currentTexts.contains(normalizedText)) {
                 questions.add(qb);
                 currentTexts.add(normalizedText);
+                currentIds.add(qb.getId());
             }
         }
         
@@ -69,14 +71,6 @@ public class SmartQuestionService {
             
             Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
                 .map(UserQuestionHistory::getQuestionId)
-                .collect(Collectors.toSet());
-            
-            Set<Long> currentIds = questions.stream()
-                .map(QuestionBank::getId)
-                .collect(Collectors.toSet());
-            
-            Set<String> currentTexts = questions.stream()
-                .map(qb -> qb.getQuestionText().trim().toLowerCase())
                 .collect(Collectors.toSet());
             
             for (QuestionBank qb : leastUsed) {
@@ -98,14 +92,6 @@ public class SmartQuestionService {
             );
             Collections.shuffle(fallback);
             
-            Set<Long> currentIds = questions.stream()
-                .map(QuestionBank::getId)
-                .collect(Collectors.toSet());
-            
-            Set<String> currentTexts = questions.stream()
-                .map(qb -> qb.getQuestionText().trim().toLowerCase())
-                .collect(Collectors.toSet());
-                
             for (QuestionBank qb : fallback) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
                 String normalizedText = qb.getQuestionText().trim().toLowerCase();
