@@ -2,9 +2,6 @@
 -- 500+ questions pour classes 1-6, toutes matières, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
--- Nettoyage de la base existante
-DELETE FROM question_bank;
-
 
 -- ==================== MATH - CLASSE 1 - FRENCH ====================
 

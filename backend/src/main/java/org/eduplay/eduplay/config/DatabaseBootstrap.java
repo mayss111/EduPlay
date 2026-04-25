@@ -21,28 +21,7 @@ public class DatabaseBootstrap {
     @Bean
     public ApplicationRunner ensureUsersTable() {
         return args -> {
-            if (!isPostgres()) {
-                return;
-            }
-
-            jdbcTemplate.execute("""
-                CREATE TABLE IF NOT EXISTS public.app_users (
-                    id BIGSERIAL PRIMARY KEY,
-                    first_name VARCHAR(255) NOT NULL,
-                    username VARCHAR(255) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL,
-                    role VARCHAR(50) NOT NULL,
-                    app_language VARCHAR(50),
-                    class_level INTEGER,
-                    avatar_index INTEGER,
-                    total_xp INTEGER DEFAULT 0,
-                    streak INTEGER DEFAULT 0,
-                    created_at TIMESTAMP
-                )
-                """);
-
-            jdbcTemplate.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_app_users_username ON public.app_users(username)");
-            log.info("Database bootstrap check completed for public.app_users");
+            log.info("Database bootstrap check completed (handled by schema.sql)");
         };
     }
 
