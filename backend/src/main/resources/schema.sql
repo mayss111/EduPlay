@@ -1,9 +1,5 @@
 -- DDL pour EduPlay
--- Supprimer les tables existantes pour éviter les conflits de nommage
-DROP TABLE IF EXISTS scores CASCADE;
-DROP TABLE IF EXISTS user_question_history CASCADE;
-DROP TABLE IF EXISTS question_bank CASCADE;
-DROP TABLE IF EXISTS app_users CASCADE;
+-- Structure stable et peuplée
 
 -- Table des utilisateurs
 CREATE TABLE app_users (
