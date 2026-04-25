@@ -91,6 +91,17 @@ public class QuestionGeneratorService {
             }
         }
 
+        // 5. Fallback ultime: n'importe quelle question de la base de données
+        if (questions.size() < TARGET_QUESTION_COUNT) {
+            log.warn("FALLBACK ULTIME: Récupération de n'importe quelles questions dans la base");
+            List<QuestionBank> anyQuestions = questionBankRepository.findAll();
+            Collections.shuffle(anyQuestions);
+            for (QuestionBank qb : anyQuestions) {
+                if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
+            }
+        }
+
         // 4. Mélanger pour la variété
         Collections.shuffle(questions, new Random());
 
