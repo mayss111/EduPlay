@@ -54,39 +54,40 @@ public class QuestionGeneratorService {
             questions.add(convertToQuestion(qb));
         }
 
-        // 2. Si pas assez, élargir à d'autres difficultés
+        // 2. Si pas assez, élargir à toutes les difficultés (en priorité SIMPLE)
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Pas assez de questions exactes, élargissement aux autres difficultés");
-            List<Difficulty> difficulties = getSimilarDifficulties(difficulty);
-            
-            for (Difficulty d : difficulties) {
+            for (Difficulty d : Difficulty.values()) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                
-                List<QuestionBank> similar = questionBankRepository.findLeastUsed(
-                    subject, classLevel, d, language
-                );
-                
+                List<QuestionBank> similar = questionBankRepository.findLeastUsed(subject, classLevel, d, language);
                 for (QuestionBank qb : similar) {
                     if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                    if (!alreadyAdded(questions, qb)) {
-                        questions.add(convertToQuestion(qb));
-                    }
+                    if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
                 }
             }
         }
 
-        // 3. Si toujours pas assez, prendre n'importe quelles questions de la matière
+        // 3. Si toujours pas assez, élargir à d'autres langues pour la même matière/niveau
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Élargissement à toute la matière");
-            List<QuestionBank> anySubject = questionBankRepository.findBySubjectAndClassLevel(
-                subject, classLevel
-            );
-            
+            log.info("Élargissement aux autres langues");
+            for (AppLanguage l : AppLanguage.values()) {
+                if (l == language) continue;
+                if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                List<QuestionBank> otherLang = questionBankRepository.findLeastUsed(subject, classLevel, Difficulty.SIMPLE, l);
+                for (QuestionBank qb : otherLang) {
+                    if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                    if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
+                }
+            }
+        }
+
+        // 4. Si toujours pas assez, prendre n'importe quelles questions de la matière/niveau
+        if (questions.size() < TARGET_QUESTION_COUNT) {
+            log.info("Élargissement final à toute la matière/niveau");
+            List<QuestionBank> anySubject = questionBankRepository.findBySubjectAndClassLevel(subject, classLevel);
             for (QuestionBank qb : anySubject) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!alreadyAdded(questions, qb)) {
-                    questions.add(convertToQuestion(qb));
-                }
+                if (!alreadyAdded(questions, qb)) questions.add(convertToQuestion(qb));
             }
         }
 

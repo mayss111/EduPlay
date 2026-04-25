@@ -28,13 +28,14 @@ public class GameController {
             @RequestParam Subject subject,
             @RequestParam Difficulty difficulty,
             @RequestParam(required = false) AppLanguage language,
+            @RequestParam(required = false) Integer classLevel,
             Authentication auth) {
 
         String username = auth.getName();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User introuvable"));
 
-        int classLevel = user.getClassLevel() == null ? 1 : user.getClassLevel();
+        int effectiveClassLevel = classLevel != null ? classLevel : (user.getClassLevel() == null ? 1 : user.getClassLevel());
         AppLanguage effectiveLanguage = language != null
                 ? language
                 : (user.getAppLanguage() == null ? AppLanguage.FRENCH : user.getAppLanguage());
@@ -49,14 +50,14 @@ public class GameController {
         try {
             // 1. Essayer de récupérer les questions de la base de données
             questions.addAll(smartQuestionService.selectQuestionsForUser(
-                user.getId(), classLevel, subject, difficulty, effectiveLanguage
+                user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage
             ));
 
             // 2. Si pas assez de questions, fallback sur l'IA (Ollama)
             if (questions.size() < 10) {
                 mergeGeneratedQuestions(
                     questions,
-                    questionGeneratorService.generateQuestions(classLevel, subject, difficulty, effectiveLanguage)
+                    questionGeneratorService.generateQuestions(effectiveClassLevel, subject, difficulty, effectiveLanguage)
                 );
             }
         } catch (Exception e) {
