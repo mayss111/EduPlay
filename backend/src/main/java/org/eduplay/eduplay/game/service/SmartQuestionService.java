@@ -384,7 +384,7 @@ public class SmartQuestionService {
     public Map<Subject, Double> getSuccessRatesBySubject(Long userId) {
         Map<Subject, Double> rates = new HashMap<>();
         for (Subject subject : Subject.values()) {
-            Double rate = historyRepository.getSuccessRateBySubject(userId, subject.name());
+            Double rate = historyRepository.getSuccessRateBySubject(userId, subject);
             if (rate != null) {
                 rates.put(subject, rate);
             }
