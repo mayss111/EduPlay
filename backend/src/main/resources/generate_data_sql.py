@@ -199,27 +199,191 @@ GENERATORS = {
 }
 
 ARABIC_TRANSLATIONS = {
+    # Math
     "Calcule": "احسب",
+    "Le résultat de l'opération est": "نتيجة العملية هي",
+    
+    # French
     "Quel est le genre de": "ما هو جنس",
+    "Dans la phrase 'L'enfant regarde": "في جملة 'الطفل يشاهد",
+    "quel est le genre du complément": "ما هو جنس المفعول به",
+    "On dit": "نقول",
+    "c'est donc": "إذن هو",
+    "Le mot": "الكلمة",
+    "est de genre": "من جنس",
     "masculin": "مذكر",
     "féminin": "مؤنث",
-    "Quelle planète": "أي كوكب",
-    "Quel organe": "أي عضو",
-    "Quel gaz": "أي غاز",
-    "Combien de pattes": "كم عدد الأرجل",
-    "Quelle est l'étoile": "ما هو النجم",
-    "Qui a découvert": "من اكتشف",
-    "Quel roi": "أي ملك",
-    "En quelle année": "في أي سنة",
-    "Qui était la reine": "من كانت الملكة",
-    "Quel empereur": "أي إمبراطور",
-    "Quel monument": "أي معلم",
-    "Quel est le plus grand continent": "ما هي أكبر قارة",
-    "Quel océan": "أي محيط",
-    "Quel est le plus long fleuve": "ما هو أطول نهر",
-    "Quelle est la capitale": "ما هي عاصمة",
-    "Dans quel pays": "في أي بلد"
+    "neutre": "محايد",
+    "aucun": "لا شيء",
+    "pluriel": "جمع",
+
+    # Science
+    "Quelle planète est surnommée la planète rouge ?": "أي كوكب يلقب بالكوكب الأحمر؟",
+    "Quel est l'organe qui pompe le sang ?": "ما هو العضو الذي يضخ الدم؟",
+    "Quel gaz les humains respirent-ils ?": "أي غاز يتنفسه البشر؟",
+    "Combien de pattes a une araignée ?": "كم عدد أرجل العنكبوت؟",
+    "Quelle est l'étoile la plus proche de la Terre ?": "ما هو النجم الأقرب إلى الأرض؟",
+    "Quel est l'état de l'eau à 0°C ?": "ما هي حالة الماء عند 0 درجة مئوية؟",
+    "Quelle partie de la plante absorbe l'eau ?": "أي جزء من النبات يمتص الماء؟",
+    "Quel animal pond des œufs ?": "أي حيوان يبيض؟",
+    "Quel sens utilise la langue ?": "أي حاسة يستخدمها اللسان؟",
+    "Quelle force nous retient au sol ?": "ما هي القوة التي تبقينا على الأرض؟",
+    "La réponse correcte est": "الإجابة الصحيحة هي",
+    "Mars": "المريخ",
+    "Vénus": "الزهرة",
+    "Jupiter": "المشتري",
+    "Saturne": "زحل",
+    "Le cœur": "القلب",
+    "Le poumon": "الرئة",
+    "Le foie": "الكبد",
+    "Le cerveau": "الدماغ",
+    "Oxygène": "أكسجين",
+    "Azote": "نيتروجين",
+    "Gaz carbonique": "ثاني أكسيد الكربون",
+    "Hélium": "هيليوم",
+    "Le Soleil": "الشمس",
+    "Sirius": "الشعرى اليمانية",
+    "Proxima Centauri": "قنطورس الأقرب",
+    "L'étoile polaire": "نجم القطب",
+    "Solide": "صلب",
+    "Liquide": "سائل",
+    "Gazeux": "غازي",
+    "Plasma": "بلازما",
+    "La racine": "الجذر",
+    "La feuille": "الورقة",
+    "La tige": "الساق",
+    "La fleur": "الزهرة",
+    "La poule": "الدجاجة",
+    "Le chat": "القط",
+    "Le chien": "الكلب",
+    "La vache": "البقرة",
+    "Le goût": "الذوق",
+    "L'odorat": "الشم",
+    "La vue": "البصر",
+    "Le toucher": "اللمس",
+    "La gravité": "الجاذبية",
+    "Le magnétisme": "المغناطيسية",
+    "L'électricité": "الكهرباء",
+    "La friction": "الاحتكاك",
+
+    # History
+    "Qui a découvert l'Amérique en 1492 ?": "من اكتشف أمريكا عام 1492؟",
+    "Quel roi était surnommé le Roi-Soleil ?": "أي ملك كان يلقب بملك الشمس؟",
+    "En quelle année a commencé la Révolution française ?": "في أي سنة بدأت الثورة الفرنسية؟",
+    "Qui était la reine d'Égypte célèbre ?": "من كانت ملكة مصر المشهورة؟",
+    "Quel empereur a conquis une grande partie de l'Europe au 19ème siècle ?": "أي إمبراطور غزا جزءاً كبيراً من أوروبا في القرن التاسع عشر؟",
+    "Quel monument a été construit pour l'Exposition Universelle de 1889 ?": "أي معلم تم بناؤه للمعرض العالمي عام 1889؟",
+    "Qui a inventé l'imprimerie ?": "من اخترع الطباعة؟",
+    "Quelle ville a été détruite par le Vésuve en 79 après J.-C. ?": "أي مدينة دمرها بركان فيزوف عام 79 ميلادية؟",
+    "Quel pays a offert la Statue de la Liberté aux États-Unis ?": "أي بلد أهدى تمثال الحرية للولايات المتحدة؟",
+    "Qui était le premier président des États-Unis ?": "من كان أول رئيس للولايات المتحدة؟",
+    "C'est": "إنه",
+    "Christophe Colomb": "كريستوفر كولومبوس",
+    "Vasco de Gama": "فاسكو دي غاما",
+    "Magellan": "ماجلان",
+    "Marco Polo": "ماركو بولو",
+    "Louis XIV": "لويس الرابع عشر",
+    "Louis XVI": "لويس السادس عشر",
+    "Henri IV": "هنري الرابع",
+    "Charlemagne": "شارلمان",
+    "1789": "1789",
+    "1776": "1776",
+    "1815": "1815",
+    "1914": "1914",
+    "Cléopâtre": "كليوباترا",
+    "Néfertiti": "نفرتيتي",
+    "Isis": "إيزيس",
+    "Hatchepsout": "حتشبسوت",
+    "Napoléon": "نابليون",
+    "Jules César": "يوليوس قيصر",
+    "Alexandre le Grand": "الإسكندر الأكبر",
+    "Gengis Khan": "جنكيز خان",
+    "La Tour Eiffel": "برج إيفل",
+    "L'Arc de Triomphe": "قوس النصر",
+    "Le Louvre": "متحف اللوفر",
+    "Notre-Dame": "نوتردام",
+    "Gutenberg": "غوتنبرغ",
+    "Léonard de Vinci": "ليوناردو دا فينشي",
+    "Galilée": "غاليليو",
+    "Newton": "نيوتن",
+    "Pompéi": "بومبي",
+    "Rome": "روما",
+    "Athènes": "أثينا",
+    "Carthage": "قرطاج",
+    "La France": "فرنسا",
+    "L'Angleterre": "إنجلترا",
+    "L'Espagne": "إسبانيا",
+    "L'Italie": "إيطاليا",
+    "George Washington": "جورج واشنطن",
+    "Abraham Lincoln": "أبراهام لينكولن",
+    "Thomas Jefferson": "توماس جيفرسون",
+    "John Kennedy": "جون كينيدي",
+
+    # Geography
+    "Quel est le plus grand continent ?": "ما هي أكبر قارة؟",
+    "Quel océan se trouve entre l'Europe et l'Amérique ?": "أي محيط يقع بين أوروبا وأمريكا؟",
+    "Quel est le plus long fleuve du monde ?": "ما هو أطول نهر في العالم؟",
+    "Quelle est la capitale de la France ?": "ما هي عاصمة فرنسا؟",
+    "Dans quel pays se trouvent les pyramides de Gizeh ?": "في أي بلد توجد أهرامات الجيزة؟",
+    "Quel pays a la plus grande population au monde ?": "أي بلد لديه أكبر عدد سكان في العالم؟",
+    "Quelle montagne est la plus haute du monde ?": "أي جبل هو الأعلى في العالم؟",
+    "Quelle est la capitale du Japon ?": "ما هي عاصمة اليابان؟",
+    "Quel pays est en forme de botte ?": "أي بلد على شكل حذاء؟",
+    "Quel désert est le plus grand du monde ?": "أي صحراء هي الأكبر في العالم؟",
+    "La bonne réponse est": "الإجابة الصحيحة هي",
+    "Asie": "آسيا",
+    "Afrique": "أفريقيا",
+    "Amérique": "أمريكا",
+    "Europe": "أوروبا",
+    "Atlantique": "الأطلسي",
+    "Pacifique": "الهادئ",
+    "Indien": "الهندي",
+    "Arctique": "المتجمد الشمالي",
+    "Le Nil": "النيل",
+    "L'Amazone": "الأمازون",
+    "Le Mississippi": "الميسيسيبي",
+    "Le Yangtsé": "اليانغتسي",
+    "Paris": "باريس",
+    "Lyon": "ليون",
+    "Marseille": "مارسيليا",
+    "Bordeaux": "بوردو",
+    "Égypte": "مصر",
+    "Maroc": "المغرب",
+    "Tunisie": "تونس",
+    "Grèce": "اليونان",
+    "Chine": "الصين",
+    "Inde": "الهند",
+    "États-Unis": "الولايات المتحدة",
+    "Russie": "روسيا",
+    "Everest": "إيفرست",
+    "Mont Blanc": "مون بلان",
+    "Kilimandjaro": "كيليمانجارو",
+    "Andes": "الأنديز",
+    "Tokyo": "طوكيو",
+    "Séoul": "سول",
+    "Pékin": "بكين",
+    "Bangkok": "بانكوك",
+    "Gobi": "غوبي",
+    "Atacama": "أتاكاما",
+    "Kalahari": "كالاهاري",
+    "Le Sahara": "الصحراء الكبرى",
+
+    # Common
+    "Série": "سلسلة",
+    "Question": "سؤال",
+    "Ref": "مرجع",
+    "Localisation": "موقع"
 }
+
+def translate_text(text):
+    if not text: return text
+    translated = text
+    # Trier par longueur décroissante pour éviter de traduire des sous-mots
+    sorted_keys = sorted(ARABIC_TRANSLATIONS.keys(), key=len, reverse=True)
+    for fr in sorted_keys:
+        if fr in translated:
+            translated = translated.replace(fr, ARABIC_TRANSLATIONS[fr])
+    return translated
 
 # Liste globale pour stocker les lignes SQL
 sql_lines = [
@@ -256,11 +420,11 @@ def generate_sql():
             else:
                 continue
 
-            # Traduction simple si langue arabe (sauf pour ARABIC subject)
+            # Traduction réelle si langue arabe (sauf pour ARABIC subject qui est déjà en arabe)
             if lang == 'ARABIC' and subject != 'ARABIC':
-                q = f"(AR) {q}"
-                choices = [f"(AR) {c}" for c in choices]
-                expl = f"(AR) {expl}"
+                q = translate_text(q)
+                choices = [translate_text(c) for c in choices]
+                expl = translate_text(expl)
 
             # Nettoyage des apostrophes pour SQL
             q_esc = q.replace("'", "''")
