@@ -7,7 +7,7 @@ SUBJECTS = ['MATH', 'FRENCH', 'SCIENCE', 'HISTORY', 'GEOGRAPHY', 'ARABIC']
 CLASSES = list(range(1, 7))
 DIFFICULTIES = ['SIMPLE', 'MOYEN', 'DIFFICILE', 'EXCELLENT']
 LANGUAGES = ['FRENCH', 'ARABIC']
-QUESTIONS_PER_COMBO = 1
+QUESTIONS_PER_COMBO = 10
 
 def get_math_question(cls, diff, i):
     # Utilisation d'un set de questions vues pour cette combinaison spécifique
