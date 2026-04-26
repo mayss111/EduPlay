@@ -1,4 +1,5 @@
 -- Script SQL EduPlay - Massive & Unique Dataset
+BEGIN;
 TRUNCATE TABLE question_bank;
 
 -- MATH - CLASSE 1 - SIMPLE - FRENCH
@@ -3457,3 +3458,4 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هي الكلمة التي تحتوي على همزة قطع؟ (19)', 'المدرسة', 'أحمد', 'استغفر', 'ابن', 'B', 'همزة القطع تنطق وتكتب.', 'ARABIC', 6, 'EXCELLENT', 'arabic', 95, 0, 'ARABIC');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هو نوع الجملة ''نام الطفل''؟ (20)', 'جملة فعلية', 'جملة اسمية', 'ظرف', 'شبه جملة', 'A', 'الجملة التي تبدأ بفعل هي جملة فعلية.', 'ARABIC', 6, 'EXCELLENT', 'arabic', 95, 0, 'ARABIC');
 
+COMMIT;

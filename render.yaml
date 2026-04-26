@@ -28,9 +28,6 @@ services:
           name: eduplay-db
           property: password
 
-      - key: PORT
-        value: 10000
-
       - key: APP_JWT_SECRET
         generateValue: true
 
@@ -39,3 +36,5 @@ services:
 
       - key: SPRING_CACHE_TYPE
         value: none
+
+    healthCheckPath: /api/questions/random?subject=MATH&classLevel=1&difficulty=SIMPLE
