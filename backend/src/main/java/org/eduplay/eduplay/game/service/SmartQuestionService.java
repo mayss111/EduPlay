@@ -35,22 +35,23 @@ public class SmartQuestionService {
     @Transactional(readOnly = true)
     public List<Question> selectQuestionsForUser(Long userId, int classLevel, Subject subject, 
                                                   Difficulty difficulty, AppLanguage language) {
-        log.info("Sélection intelligente: user={}, class={}, subject={}, difficulty={}", 
-                 userId, classLevel, subject, difficulty);
+        log.info("Sélection intelligente: user={}, class={}, subject={}, difficulty={}, lang={}", 
+                 userId, classLevel, subject, difficulty, language);
 
-        // 0. ADAPTATIVE DIFFICULTY: Si l'utilisateur est trop fort, on augmente le niveau
+        // 0. ADAPTATIVE DIFFICULTY
         Difficulty effectiveDifficulty = adjustDifficultyBasedOnPerformance(userId, subject, difficulty);
         if (effectiveDifficulty != difficulty) {
-            log.info("Difficulté adaptée: {} -> {}", difficulty, effectiveDifficulty);
+            log.info("Difficulté adaptée par performance: {} -> {}", difficulty, effectiveDifficulty);
         }
 
-        // On remonte très loin (10 ans) pour exclure TOUTES les questions déjà répondues
+        // On remonte très loin pour exclure les questions déjà répondues
         LocalDateTime daysAgo = LocalDateTime.now().minusYears(10);
         
-        // 1. Essayer de trouver des questions jamais vues ou pas récemment
+        // 1. Essayer de trouver des questions jamais vues
         List<QuestionBank> rawQuestions = questionBankRepository.findLeastUsedNotRecentlySeen(
             userId, subject, classLevel, effectiveDifficulty, language, daysAgo
         );
+        log.info("Phase 1: {} questions trouvées pour {}-{}-{}", rawQuestions.size(), subject, effectiveDifficulty, language);
         
         Set<String> currentTexts = new HashSet<>();
         Set<Long> currentIds = new HashSet<>();
@@ -66,15 +67,17 @@ public class SmartQuestionService {
             }
         }
         
-        // 2. Si pas assez, élargir aux difficultés similaires (MAIS TOUJOURS PAS VUES)
+        // 2. Si pas assez, élargir aux difficultés similaires
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Pas assez de questions uniques, élargissement aux difficultés similaires...");
+            log.info("Phase 2: Élargissement aux difficultés similaires (Actuel: {})", questions.size());
             List<Difficulty> similarDiffs = getSimilarDifficulties(effectiveDifficulty);
             for (Difficulty d : similarDiffs) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
                 if (d == effectiveDifficulty) continue;
 
                 List<QuestionBank> similar = questionBankRepository.findLeastUsed(subject, classLevel, d, language);
+                log.info("  Essai difficulté {}: {} questions trouvées", d, similar.size());
+                
                 Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
                     .map(UserQuestionHistory::getQuestionId)
                     .collect(Collectors.toSet());
@@ -91,14 +94,16 @@ public class SmartQuestionService {
             }
         }
 
-        // 3. Si toujours pas assez, élargir aux autres langues (MAIS TOUJOURS PAS VUES)
+        // 3. Si toujours pas assez, élargir aux autres langues (en dernier recours avant répétition)
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Élargissement aux autres langues...");
+            log.info("Phase 3: Élargissement aux autres langues (Actuel: {})", questions.size());
             for (AppLanguage l : AppLanguage.values()) {
                 if (l == language) continue;
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
 
                 List<QuestionBank> otherLang = questionBankRepository.findLeastUsed(subject, classLevel, Difficulty.SIMPLE, l);
+                log.info("  Essai langue {}: {} questions trouvées", l, otherLang.size());
+                
                 Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
                     .map(UserQuestionHistory::getQuestionId)
                     .collect(Collectors.toSet());
@@ -115,21 +120,28 @@ public class SmartQuestionService {
             }
         }
 
-        // 4. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
+        // 4. Si toujours pas assez, on accepte de répéter les MOINS vues
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Stock épuisé, inclusion des questions les moins récemment vues");
-            List<QuestionBank> fallback = questionBankRepository.findLeastUsed(
-                subject, classLevel, effectiveDifficulty, language
-            );
-            Collections.shuffle(fallback);
-            
-            for (QuestionBank qb : fallback) {
+            log.info("Phase 4: Stock épuisé, inclusion des questions déjà vues (Actuel: {})", questions.size());
+            // On essaie d'abord la difficulté demandée, puis TOUTES les autres
+            List<Difficulty> allDiffs = Arrays.asList(Difficulty.values());
+            for (Difficulty d : allDiffs) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                String normalizedText = qb.getQuestionText().trim().toLowerCase();
-                if (!currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
-                    questions.add(qb);
-                    currentIds.add(qb.getId());
-                    currentTexts.add(normalizedText);
+                
+                List<QuestionBank> fallback = questionBankRepository.findLeastUsed(
+                    subject, classLevel, d, language
+                );
+                log.info("  Répétition diff {}: {} questions disponibles", d, fallback.size());
+                Collections.shuffle(fallback);
+                
+                for (QuestionBank qb : fallback) {
+                    if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                    String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                    if (!currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
+                        questions.add(qb);
+                        currentIds.add(qb.getId());
+                        currentTexts.add(normalizedText);
+                    }
                 }
             }
         }
@@ -148,11 +160,15 @@ public class SmartQuestionService {
         }
 
         // 7. Si on n'a toujours pas assez (base vide ?), on complète avec des questions par défaut
-        while (result.size() < TARGET_QUESTION_COUNT) {
-            result.add(createEmergencyQuestion(subject, classLevel, language));
+        if (result.size() < TARGET_QUESTION_COUNT) {
+            log.warn("BASE VIDE ou FILTRES TROP STRICTS: {}/{} questions trouvées. Utilisation questions d'urgence.", 
+                     result.size(), TARGET_QUESTION_COUNT);
+            while (result.size() < TARGET_QUESTION_COUNT) {
+                result.add(createEmergencyQuestion(subject, classLevel, language));
+            }
         }
 
-        log.info("Questions sélectionnées: {}/{}", result.size(), TARGET_QUESTION_COUNT);
+        log.info("Résultat final: {} questions prêtes", result.size());
         return result;
     }
 
@@ -160,7 +176,7 @@ public class SmartQuestionService {
      * Ajuste la difficulté en fonction du taux de réussite de l'utilisateur sur la matière
      */
     private Difficulty adjustDifficultyBasedOnPerformance(Long userId, Subject subject, Difficulty requested) {
-        Double successRate = historyRepository.getSuccessRateBySubject(userId, subject.name());
+        Double successRate = historyRepository.getSuccessRateBySubject(userId, subject);
         if (successRate == null) return requested;
 
         if (successRate > 0.85) { // Plus de 85% de réussite -> On monte d'un cran

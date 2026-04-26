@@ -30,6 +30,8 @@ public class GameController {
             Authentication auth) {
 
         String username = auth.getName();
+        System.out.println("Requête questions reçue pour: " + username + ", sujet: " + subject + ", diff: " + difficulty);
+        
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User introuvable"));
 
@@ -40,14 +42,13 @@ public class GameController {
                 ? language
                 : (user.getAppLanguage() == null ? AppLanguage.FRENCH : user.getAppLanguage());
 
-        if (user.getAppLanguage() != effectiveLanguage) {
-            user.setAppLanguage(effectiveLanguage);
-            userRepository.save(user);
-        }
+        System.out.println("Paramètres effectifs: class=" + effectiveClassLevel + ", lang=" + effectiveLanguage);
 
         List<Question> questions = smartQuestionService.selectQuestionsForUser(
             user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage
         );
+
+        System.out.println("Nombre de questions retournées: " + (questions != null ? questions.size() : 0));
 
         return ResponseEntity.ok(questions);
     }

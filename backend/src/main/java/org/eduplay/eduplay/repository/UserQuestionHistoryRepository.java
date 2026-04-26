@@ -1,6 +1,7 @@
 package org.eduplay.eduplay.repository;
 
 import org.eduplay.eduplay.entity.UserQuestionHistory;
+import org.eduplay.eduplay.enums.Subject;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -43,13 +44,12 @@ public interface UserQuestionHistoryRepository extends JpaRepository<UserQuestio
     /**
      * Trouve les questions vues dans une matière spécifique
      */
-    @Query("SELECT uqh.questionId FROM UserQuestionHistory uqh " +
-           "JOIN QuestionBank qb ON qb.id = uqh.questionId " +
-           "WHERE uqh.userId = :userId AND qb.subject = :subject " +
+    @Query("SELECT uqh.questionId FROM UserQuestionHistory uqh, QuestionBank qb " +
+           "WHERE qb.id = uqh.questionId AND uqh.userId = :userId AND qb.subject = :subject " +
            "AND uqh.answeredAt > :daysAgo")
     List<Long> findQuestionIdsBySubjectAndUser(
         @Param("userId") Long userId,
-        @Param("subject") String subject,
+        @Param("subject") Subject subject,
         @Param("daysAgo") LocalDateTime daysAgo
     );
 
@@ -64,9 +64,9 @@ public interface UserQuestionHistoryRepository extends JpaRepository<UserQuestio
     /**
      * Trouve le taux de réussite par matière
      */
-    @Query("SELECT COUNT(CASE WHEN uqh.isCorrect = true THEN 1 END) * 1.0 / COUNT(*) " +
-           "FROM UserQuestionHistory uqh " +
-           "JOIN QuestionBank qb ON qb.id = uqh.questionId " +
-           "WHERE uqh.userId = :userId AND qb.subject = :subject")
-    Double getSuccessRateBySubject(@Param("userId") Long userId, @Param("subject") String subject);
+    @Query("SELECT COUNT(CASE WHEN uqh.isCorrect = true THEN 1 END) * 1.0 / COUNT(uqh) " +
+           "FROM UserQuestionHistory uqh, QuestionBank qb " +
+           "WHERE uqh.questionId = qb.id " +
+           "AND uqh.userId = :userId AND qb.subject = :subject")
+    Double getSuccessRateBySubject(@Param("userId") Long userId, @Param("subject") Subject subject);
 }
