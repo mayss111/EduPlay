@@ -28,7 +28,7 @@ services:
           name: eduplay-db
           property: password
 
-      - key: SERVER_PORT
+      - key: PORT
         value: 10000
 
       - key: APP_JWT_SECRET
