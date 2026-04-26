@@ -157,7 +157,11 @@ export class GameComponent implements OnInit, OnDestroy {
       'HISTORY_DIFFICILE': 'التحليل السببي',
       'GEOGRAPHY_SIMPLE': 'جغرافيا عامة',
       'GEOGRAPHY_MOYEN': 'قراءة الخرائط',
-      'GEOGRAPHY_DIFFICILE': 'تحليل إقليمي'
+      'GEOGRAPHY_DIFFICILE': 'تحليل إقليمي',
+      'ARABIC_SIMPLE': 'رصيد لغوي',
+      'ARABIC_MOYEN': 'قواعد النحو',
+      'ARABIC_DIFFICILE': 'إعراب وتحليل',
+      'ARABIC_EXCELLENT': 'بلاغة وأدب'
     };
     return map[`${subject}_${difficulty}`] || 'مهارة';
   }

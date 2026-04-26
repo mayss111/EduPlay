@@ -16,6 +16,7 @@ export class RegisterComponent implements OnInit, OnDestroy {
   form: FormGroup;
   isLoading = false;
   errorMsg = '';
+  showPassword = false;
   selectedAvatar = 0;
   selectedClass = 0;
   selectedLanguage: 'FRENCH' | 'ARABIC' = 'FRENCH';

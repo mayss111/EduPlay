@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   form: FormGroup;
   isLoading = false;
   errorMsg = '';
+  showPassword = false;
   selectedLanguage: 'FRENCH' | 'ARABIC';
   stars = Array.from({ length: 24 }, () => ({
     x: Math.random() * 100,

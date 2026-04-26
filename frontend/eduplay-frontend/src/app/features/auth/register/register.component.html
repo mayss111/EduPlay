@@ -71,7 +71,12 @@
       <!-- Password -->
       <div class="form-group">
         <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
-        <input formControlName="password" type="password" placeholder="••••••••" autocomplete="new-password" />
+        <div class="password-input-wrapper">
+          <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••" autocomplete="new-password" />
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword" [title]="showPassword ? t('Masquer', 'إخفاء') : t('Afficher', 'عرض')">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
         <div class="strength-bar">
           <div class="strength-fill"
                [style.width]="getStrength()+'%'"

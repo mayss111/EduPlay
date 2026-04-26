@@ -83,6 +83,47 @@ body {
   }
 }
 
+.password-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  input {
+    padding-right: 45px !important;
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: color 0.2s;
+    user-select: none;
+
+    &:hover {
+      color: var(--text-primary);
+    }
+  }
+}
+
+[dir="rtl"] .password-input-wrapper {
+  input {
+    padding-right: 14px !important;
+    padding-left: 45px !important;
+  }
+  .toggle-password {
+    right: auto;
+    left: 12px;
+  }
+}
+
 .error-msg {
   background: #3f1a1a;
   border: 1px solid #7f1d1d;

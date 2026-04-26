@@ -84,7 +84,7 @@
     </div>
 
     <!-- QUESTION -->
-    <div class="question-card" *ngIf="currentQuestion && questions.length > 0">
+    <div class="question-card" *ngIf="currentQuestion && questions.length > 0" [attr.dir]="isArabic ? 'rtl' : 'ltr'">
       <p class="question-text">{{ currentQuestion.questionText }}</p>
 
       <div class="choices">

@@ -38,12 +38,18 @@ public class SmartQuestionService {
         log.info("Sélection intelligente: user={}, class={}, subject={}, difficulty={}", 
                  userId, classLevel, subject, difficulty);
 
+        // 0. ADAPTATIVE DIFFICULTY: Si l'utilisateur est trop fort, on augmente le niveau
+        Difficulty effectiveDifficulty = adjustDifficultyBasedOnPerformance(userId, subject, difficulty);
+        if (effectiveDifficulty != difficulty) {
+            log.info("Difficulté adaptée: {} -> {}", difficulty, effectiveDifficulty);
+        }
+
         // On remonte très loin (10 ans) pour exclure TOUTES les questions déjà répondues
         LocalDateTime daysAgo = LocalDateTime.now().minusYears(10);
         
         // 1. Essayer de trouver des questions jamais vues ou pas récemment
         List<QuestionBank> rawQuestions = questionBankRepository.findLeastUsedNotRecentlySeen(
-            userId, subject, classLevel, difficulty, language, daysAgo
+            userId, subject, classLevel, effectiveDifficulty, language, daysAgo
         );
         
         Set<String> currentTexts = new HashSet<>();
@@ -60,35 +66,60 @@ public class SmartQuestionService {
             }
         }
         
-        Collections.shuffle(questions);
-
-        // 2. Si pas assez, prendre les moins utilisées globalement (MAIS TOUJOURS PAS VUES)
+        // 2. Si pas assez, élargir aux difficultés similaires (MAIS TOUJOURS PAS VUES)
         if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Pas assez de questions uniques, recherche approfondie dans la base...");
-            List<QuestionBank> leastUsed = questionBankRepository.findLeastUsed(
-                subject, classLevel, difficulty, language
-            );
-            
-            Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
-                .map(UserQuestionHistory::getQuestionId)
-                .collect(Collectors.toSet());
-            
-            for (QuestionBank qb : leastUsed) {
+            log.info("Pas assez de questions uniques, élargissement aux difficultés similaires...");
+            List<Difficulty> similarDiffs = getSimilarDifficulties(effectiveDifficulty);
+            for (Difficulty d : similarDiffs) {
                 if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                String normalizedText = qb.getQuestionText().trim().toLowerCase();
-                if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
-                    questions.add(qb);
-                    currentIds.add(qb.getId());
-                    currentTexts.add(normalizedText);
+                if (d == effectiveDifficulty) continue;
+
+                List<QuestionBank> similar = questionBankRepository.findLeastUsed(subject, classLevel, d, language);
+                Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
+                    .map(UserQuestionHistory::getQuestionId)
+                    .collect(Collectors.toSet());
+
+                for (QuestionBank qb : similar) {
+                    if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                    String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                    if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
+                        questions.add(qb);
+                        currentIds.add(qb.getId());
+                        currentTexts.add(normalizedText);
+                    }
                 }
             }
         }
 
-        // 3. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
+        // 3. Si toujours pas assez, élargir aux autres langues (MAIS TOUJOURS PAS VUES)
+        if (questions.size() < TARGET_QUESTION_COUNT) {
+            log.info("Élargissement aux autres langues...");
+            for (AppLanguage l : AppLanguage.values()) {
+                if (l == language) continue;
+                if (questions.size() >= TARGET_QUESTION_COUNT) break;
+
+                List<QuestionBank> otherLang = questionBankRepository.findLeastUsed(subject, classLevel, Difficulty.SIMPLE, l);
+                Set<Long> seenIds = historyRepository.findByUserId(userId).stream()
+                    .map(UserQuestionHistory::getQuestionId)
+                    .collect(Collectors.toSet());
+
+                for (QuestionBank qb : otherLang) {
+                    if (questions.size() >= TARGET_QUESTION_COUNT) break;
+                    String normalizedText = qb.getQuestionText().trim().toLowerCase();
+                    if (!seenIds.contains(qb.getId()) && !currentIds.contains(qb.getId()) && !currentTexts.contains(normalizedText)) {
+                        questions.add(qb);
+                        currentIds.add(qb.getId());
+                        currentTexts.add(normalizedText);
+                    }
+                }
+            }
+        }
+
+        // 4. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
         if (questions.size() < TARGET_QUESTION_COUNT) {
             log.info("Stock épuisé, inclusion des questions les moins récemment vues");
             List<QuestionBank> fallback = questionBankRepository.findLeastUsed(
-                subject, classLevel, difficulty, language
+                subject, classLevel, effectiveDifficulty, language
             );
             Collections.shuffle(fallback);
             
@@ -103,40 +134,136 @@ public class SmartQuestionService {
             }
         }
 
-        // 3. Si toujours pas assez, on accepte de répéter les MOINS vues (en dernier recours)
-        if (questions.size() < TARGET_QUESTION_COUNT) {
-            log.info("Fallback sur sélection aléatoire");
-            List<QuestionBank> random = questionBankRepository.findRandom(
-                subject.name(), 
-                classLevel, 
-                difficulty.name(), 
-                language.name(), 
-                TARGET_QUESTION_COUNT - questions.size()
-            );
-            
-            Set<Long> existingIds = questions.stream()
-                .map(QuestionBank::getId)
-                .collect(Collectors.toSet());
-            
-            for (QuestionBank qb : random) {
-                if (questions.size() >= TARGET_QUESTION_COUNT) break;
-                if (!existingIds.contains(qb.getId())) {
-                    questions.add(qb);
-                    existingIds.add(qb.getId());
-                }
-            }
-            Collections.shuffle(random);
-        }
+        // 5. Mélanger pour la variété
+        Collections.shuffle(questions);
 
-        // 4. Convertir en entité Question
+        // 6. Convertir en entité Question et mélanger les choix
         List<Question> result = questions.stream()
             .limit(TARGET_QUESTION_COUNT)
             .map(this::convertToQuestion)
             .collect(Collectors.toList());
 
+        for (Question q : result) {
+            shuffleChoices(q);
+        }
+
+        // 7. Si on n'a toujours pas assez (base vide ?), on complète avec des questions par défaut
+        while (result.size() < TARGET_QUESTION_COUNT) {
+            result.add(createEmergencyQuestion(subject, classLevel, language));
+        }
+
         log.info("Questions sélectionnées: {}/{}", result.size(), TARGET_QUESTION_COUNT);
         return result;
     }
+
+    /**
+     * Ajuste la difficulté en fonction du taux de réussite de l'utilisateur sur la matière
+     */
+    private Difficulty adjustDifficultyBasedOnPerformance(Long userId, Subject subject, Difficulty requested) {
+        Double successRate = historyRepository.getSuccessRateBySubject(userId, subject.name());
+        if (successRate == null) return requested;
+
+        if (successRate > 0.85) { // Plus de 85% de réussite -> On monte d'un cran
+            return switch (requested) {
+                case SIMPLE -> Difficulty.MOYEN;
+                case MOYEN -> Difficulty.DIFFICILE;
+                case DIFFICILE, EXCELLENT -> Difficulty.EXCELLENT;
+            };
+        } else if (successRate < 0.40) { // Moins de 40% de réussite -> On descend d'un cran
+            return switch (requested) {
+                case EXCELLENT -> Difficulty.DIFFICILE;
+                case DIFFICILE -> Difficulty.MOYEN;
+                case MOYEN, SIMPLE -> Difficulty.SIMPLE;
+            };
+        }
+        return requested;
+    }
+
+    /**
+     * Retourne les difficultés similaires pour élargir la recherche
+     */
+    private List<Difficulty> getSimilarDifficulties(Difficulty current) {
+        return switch (current) {
+            case SIMPLE -> List.of(Difficulty.MOYEN, Difficulty.SIMPLE);
+            case MOYEN -> List.of(Difficulty.SIMPLE, Difficulty.DIFFICILE, Difficulty.MOYEN);
+            case DIFFICILE -> List.of(Difficulty.MOYEN, Difficulty.EXCELLENT, Difficulty.DIFFICILE);
+            case EXCELLENT -> List.of(Difficulty.DIFFICILE, Difficulty.EXCELLENT);
+        };
+    }
+
+    /**
+     * Mélange les choix d'une question et ajuste la bonne réponse
+     */
+    private void shuffleChoices(Question q) {
+        List<String> choices = new ArrayList<>();
+        choices.add(q.getChoiceA());
+        choices.add(q.getChoiceB());
+        choices.add(q.getChoiceC());
+        choices.add(q.getChoiceD());
+
+        String correctText = switch (q.getCorrectChoice().toUpperCase()) {
+            case "A" -> q.getChoiceA();
+            case "B" -> q.getChoiceB();
+            case "C" -> q.getChoiceC();
+            case "D" -> q.getChoiceD();
+            default -> q.getChoiceA();
+        };
+
+        Collections.shuffle(choices);
+
+        q.setChoiceA(choices.get(0));
+        q.setChoiceB(choices.get(1));
+        q.setChoiceC(choices.get(2));
+        q.setChoiceD(choices.get(3));
+
+        // Retrouver la nouvelle position de la bonne réponse
+        for (int i = 0; i < 4; i++) {
+            String choice = switch (i) {
+                case 0 -> q.getChoiceA();
+                case 1 -> q.getChoiceB();
+                case 2 -> q.getChoiceC();
+                case 3 -> q.getChoiceD();
+                default -> "";
+            };
+            if (choice != null && choice.equals(correctText)) {
+                q.setCorrectChoice(switch (i) {
+                    case 0 -> "A";
+                    case 1 -> "B";
+                    case 2 -> "C";
+                    case 3 -> "D";
+                    default -> "A";
+                });
+                break;
+            }
+        }
+    }
+
+    /**
+     * Crée une question d'urgence si la base est vide
+     */
+    private Question createEmergencyQuestion(Subject subject, int classLevel, AppLanguage language) {
+        String questionText = language == AppLanguage.ARABIC 
+            ? "سؤال طوارئ: ما هو 1 + 1؟" 
+            : "Question d'urgence : Combien font 1 + 1 ?";
+        
+        return Question.builder()
+            .questionText(questionText)
+            .choiceA("1")
+            .choiceB("2")
+            .choiceC("3")
+            .choiceD("4")
+            .correctChoice("B")
+            .explanation(language == AppLanguage.ARABIC 
+                ? "1 + 1 = 2" 
+                : "1 + 1 = 2")
+            .subject(subject)
+            .classLevel(classLevel)
+            .difficulty(Difficulty.SIMPLE)
+            .qualityScore(50)
+            .appLanguage(language)
+            .build();
+    }
+
 
     /**
      * Sélectionne des questions sans filtre utilisateur (pour diagnostic ou premier usage)
@@ -247,41 +374,6 @@ public class SmartQuestionService {
             }
         }
         return rates;
-    }
-
-    /**
-     * Adapte la difficulté selon les performances
-     */
-    public Difficulty adjustDifficulty(Long userId, Subject subject, Difficulty currentDifficulty) {
-        Double successRate = historyRepository.getSuccessRateBySubject(userId, subject.name());
-        
-        if (successRate == null) return currentDifficulty;
-
-        if (successRate > 0.8) {
-            return nextDifficulty(currentDifficulty);
-        } else if (successRate < 0.4) {
-            return prevDifficulty(currentDifficulty);
-        }
-        
-        return currentDifficulty;
-    }
-
-    private Difficulty nextDifficulty(Difficulty d) {
-        return switch (d) {
-            case SIMPLE -> Difficulty.MOYEN;
-            case MOYEN -> Difficulty.DIFFICILE;
-            case DIFFICILE -> Difficulty.EXCELLENT;
-            case EXCELLENT -> Difficulty.EXCELLENT;
-        };
-    }
-
-    private Difficulty prevDifficulty(Difficulty d) {
-        return switch (d) {
-            case SIMPLE -> Difficulty.SIMPLE;
-            case MOYEN -> Difficulty.SIMPLE;
-            case DIFFICILE -> Difficulty.MOYEN;
-            case EXCELLENT -> Difficulty.DIFFICILE;
-        };
     }
 
     private Question convertToQuestion(QuestionBank qb) {

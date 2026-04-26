@@ -33,7 +33,12 @@
 
       <div class="form-group">
         <label>{{ t('Mot de passe', 'كلمة المرور') }}</label>
-        <input formControlName="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        <div class="password-input-wrapper">
+          <input formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="••••••••" autocomplete="current-password" />
+          <button type="button" class="toggle-password" (click)="showPassword = !showPassword" [title]="showPassword ? t('Masquer', 'إخفاء') : t('Afficher', 'عرض')">
+            {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+          </button>
+        </div>
         <span class="field-error" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">
           {{ t('Minimum 6 caractères', '6 أحرف على الأقل') }}
         </span>

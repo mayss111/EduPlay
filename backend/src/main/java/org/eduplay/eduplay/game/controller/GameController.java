@@ -3,7 +3,6 @@ package org.eduplay.eduplay.game.controller;
 
 import org.eduplay.eduplay.entity.*;
 import org.eduplay.eduplay.enums.*;
-import org.eduplay.eduplay.game.service.QuestionGeneratorService;
 import org.eduplay.eduplay.game.service.SmartQuestionService;
 import org.eduplay.eduplay.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +16,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class GameController {
 
-    private final QuestionGeneratorService questionGeneratorService;
     private final SmartQuestionService smartQuestionService;
     private final UserRepository userRepository;
     private final ScoreRepository scoreRepository;
@@ -47,37 +45,9 @@ public class GameController {
             userRepository.save(user);
         }
 
-        List<Question> questions = new ArrayList<>();
-        
-        try {
-            // 1. Essayer de récupérer les questions de la base de données
-            questions.addAll(smartQuestionService.selectQuestionsForUser(
-                user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage
-            ));
-
-            // 2. Si pas assez de questions, fallback sur l'IA (Ollama)
-            if (questions.size() < 10) {
-                mergeGeneratedQuestions(
-                    questions,
-                    questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
-                );
-            }
-        } catch (Exception e) {
-            // Log l'erreur mais ne pas faire planter l'application (renvoie une liste vide ou partielle)
-            System.err.println("Erreur lors de la récupération des questions: " + e.getMessage());
-            mergeGeneratedQuestions(
-                questions,
-                questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
-            );
-        }
-
-        // Sécurité supplémentaire: garantir un set jouable côté frontend
-        if (questions.size() < 10) {
-            mergeGeneratedQuestions(
-                questions,
-                questionGeneratorService.generateQuestions(user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage)
-            );
-        }
+        List<Question> questions = smartQuestionService.selectQuestionsForUser(
+            user.getId(), effectiveClassLevel, subject, difficulty, effectiveLanguage
+        );
 
         return ResponseEntity.ok(questions);
     }
@@ -235,39 +205,13 @@ public class GameController {
         return ResponseEntity.ok(response);
     }
 
-        private int toInt(Object value, String fieldName) {
-                if (value instanceof Number number) {
-                        return number.intValue();
-                }
-                if (value instanceof String text && !text.isBlank()) {
-                        return Integer.parseInt(text);
-                }
-                throw new IllegalArgumentException("Champ invalide: " + fieldName);
+    private int toInt(Object value, String fieldName) {
+        if (value instanceof Number number) {
+            return number.intValue();
         }
-
-    private void mergeGeneratedQuestions(List<Question> target, List<Question> generated) {
-        if (generated == null || generated.isEmpty() || target.size() >= 10) {
-            return;
+        if (value instanceof String text && !text.isBlank()) {
+            return Integer.parseInt(text);
         }
-
-        // Utiliser un Set pour suivre les textes déjà présents (insensible à la casse et aux espaces)
-        Set<String> seenTexts = new HashSet<>();
-        for (Question q : target) {
-            if (q != null && q.getQuestionText() != null) {
-                seenTexts.add(q.getQuestionText().trim().toLowerCase());
-            }
-        }
-
-        for (Question g : generated) {
-            if (g == null || g.getQuestionText() == null || target.size() >= 10) {
-                continue;
-            }
-            // Ajouter seulement si le texte n'a pas encore été vu
-            String normalizedText = g.getQuestionText().trim().toLowerCase();
-            if (!seenTexts.contains(normalizedText)) {
-                target.add(g);
-                seenTexts.add(normalizedText);
-            }
-        }
+        throw new IllegalArgumentException("Champ invalide: " + fieldName);
     }
 }
