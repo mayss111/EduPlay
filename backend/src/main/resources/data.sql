@@ -259,35 +259,20 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 -- ==================== SCIENCE - CLASSE 1 - FRENCH (Suite) ====================
 
 -- ==================== SCIENCE - CLASSE 1 - FRENCH ====================
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel organe nous permet de voir?', 'oreille', 'nez', 'oeil', 'main', 'C', 'L''oeil est l''organe de la vue.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø¹Ø¶Ùˆ ÙŠØ³Ù…Ø­ Ù„Ù†Ø§ Ø¨Ø§Ù„Ø±Ø¤ÙŠØ©ØŸ', 'Ø§Ù„Ø£Ø°Ù†', 'Ø§Ù„Ø£Ù†Ù', 'Ø§Ù„Ø¹ÙŠÙ†', 'Ø§Ù„ÙŠØ¯', 'C', 'Ø§Ù„Ø¹ÙŠÙ† Ù‡ÙŠ Ø¹Ø¶Ùˆ Ø§Ù„Ø±Ø¤ÙŠØ©.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel organe nous permet d''entendre?', 'oeil', 'nez', 'oreille', 'bouche', 'C', 'L''oreille est l''organe de l''ouÃ¯e.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø¹Ø¶Ùˆ ÙŠØ³Ù…Ø­ Ù„Ù†Ø§ Ø¨Ø§Ù„Ø³Ù…Ø¹ØŸ', 'Ø§Ù„Ø¹ÙŠÙ†', 'Ø§Ù„Ø£Ù†Ù', 'Ø§Ù„Ø£Ø°Ù†', 'Ø§Ù„ÙÙ…', 'C', 'Ø§Ù„Ø£Ø°Ù† Ù‡ÙŠ Ø¹Ø¶Ùˆ Ø§Ù„Ø³Ù…Ø¹.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel organe nous permet de sentir les odeurs?', 'oeil', 'nez', 'oreille', 'main', 'B', 'Le nez est l''organe de l''odorat.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø¹Ø¶Ùˆ ÙŠØ³Ù…Ø­ Ù„Ù†Ø§ Ø¨Ø´Ù… Ø§Ù„Ø±ÙˆØ§Ø¦Ø­ØŸ', 'Ø§Ù„Ø¹ÙŠÙ†', 'Ø§Ù„Ø£Ù†Ù', 'Ø§Ù„Ø£Ø°Ù†', 'Ø§Ù„ÙŠØ¯', 'B', 'Ø§Ù„Ø£Ù†Ù Ù‡Ùˆ Ø¹Ø¶Ùˆ Ø§Ù„Ø´Ù….', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien as-tu de mains?', '1', '2', '3', '4', 'B', 'Nous avons 2 mains.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ¯Ø§ Ù„Ø¯ÙŠÙƒØŸ', '1', '2', '3', '4', 'B', 'Ù„Ø¯ÙŠÙ†Ø§ ÙŠØ¯Ø§Ù†.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien as-tu de pieds?', '1', '2', '3', '4', 'B', 'Nous avons 2 pieds.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… Ù‚Ø¯Ù…Ø§ Ù„Ø¯ÙŠÙƒØŸ', '1', '2', '3', '4', 'B', 'Ù„Ø¯ÙŠÙ†Ø§ Ù‚Ø¯Ù…Ø§Ù†.', 'SCIENCE', 1, 'SIMPLE', 'corps_humain', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quelle saison est la plus chaude?', 'hiver', 'printemps', 'Ã©tÃ©', 'automne', 'C', 'L''Ã©tÃ© est la saison la plus chaude.', 'SCIENCE', 1, 'SIMPLE', 'saisons', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ ÙØµÙ„ Ù‡Ùˆ Ø§Ù„Ø£ÙƒØ«Ø± Ø­Ø±Ø§Ø±Ø©ØŸ', 'Ø§Ù„Ø´ØªØ§Ø¡', 'Ø§Ù„Ø±Ø¨ÙŠØ¹', 'Ø§Ù„ØµÙŠÙ', 'Ø§Ù„Ø®Ø±ÙŠÙ', 'C', 'Ø§Ù„ØµÙŠÙ Ù‡Ùˆ Ø§Ù„ÙØµÙ„ Ø§Ù„Ø£ÙƒØ«Ø± Ø­Ø±Ø§Ø±Ø©.', 'SCIENCE', 1, 'SIMPLE', 'saisons', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quelle saison est la plus froide?', 'hiver', 'printemps', 'Ã©tÃ©', 'automne', 'A', 'L''hiver est la saison la plus froide.', 'SCIENCE', 1, 'SIMPLE', 'saisons', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ ÙØµÙ„ Ù‡Ùˆ Ø§Ù„Ø£ÙƒØ«Ø± Ø¨Ø±ÙˆØ¯Ø©ØŸ', 'Ø§Ù„Ø´ØªØ§Ø¡', 'Ø§Ù„Ø±Ø¨ÙŠØ¹', 'Ø§Ù„ØµÙŠÙ', 'Ø§Ù„Ø®Ø±ÙŠÙ', 'A', 'Ø§Ù„Ø´ØªØ§Ø¡ Ù‡Ùˆ Ø§Ù„ÙØµÙ„ Ø§Ù„Ø£ÙƒØ«Ø± Ø¨Ø±ÙˆØ¯Ø©.', 'SCIENCE', 1, 'SIMPLE', 'saisons', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('De quoi les plantes ont-elles besoin pour pousser?', 'sable', 'eau et soleil', 'papier', 'mÃ©tal', 'B', 'Les plantes ont besoin d''eau et de soleil.', 'SCIENCE', 1, 'SIMPLE', 'plantes', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§Ø°Ø§ ØªØ­ØªØ§Ø¬ Ø§Ù„Ù†Ø¨Ø§ØªØ§Øª Ù„ØªÙ†Ù…ÙˆØŸ', 'Ø§Ù„Ø±Ù…Ù„', 'Ø§Ù„Ù…Ø§Ø¡ ÙˆØ§Ù„Ø´Ù…Ø³', 'Ø§Ù„ÙˆØ±Ù‚', 'Ø§Ù„Ù…Ø¹Ø¯Ù†', 'B', 'ØªØ­ØªØ§Ø¬ Ø§Ù„Ù†Ø¨Ø§ØªØ§Øª Ø¥Ù„Ù‰ Ø§Ù„Ù…Ø§Ø¡ ÙˆØ§Ù„Ø´Ù…Ø³.', 'SCIENCE', 1, 'SIMPLE', 'plantes', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel animal pond des oeufs?', 'chat', 'chien', 'poule', 'vache', 'C', 'La poule pond des oeufs.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø­ÙŠÙˆØ§Ù† ÙŠØ¨ÙŠØ¶ØŸ', 'Ø§Ù„Ù‚Ø·', 'Ø§Ù„ÙƒÙ„Ø¨', 'Ø§Ù„Ø¯Ø¬Ø§Ø¬Ø©', 'Ø§Ù„Ø¨Ù‚Ø±Ø©', 'C', 'Ø§Ù„Ø¯Ø¬Ø§Ø¬Ø© ØªØ¨ÙŠØ¶.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel animal donne du lait?', 'poule', 'vache', 'poisson', 'serpent', 'B', 'La vache donne du lait.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø­ÙŠÙˆØ§Ù† ÙŠØ¹Ø·ÙŠ Ø§Ù„Ø­Ù„ÙŠØ¨ØŸ', 'Ø§Ù„Ø¯Ø¬Ø§Ø¬Ø©', 'Ø§Ù„Ø¨Ù‚Ø±Ø©', 'Ø§Ù„Ø³Ù…Ùƒ', 'Ø§Ù„Ø«Ø¹Ø¨Ø§Ù†', 'B', 'Ø§Ù„Ø¨Ù‚Ø±Ø© ØªØ¹Ø·ÙŠ Ø§Ù„Ø­Ù„ÙŠØ¨.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel animal vit dans l''eau?', 'chat', 'oiseau', 'poisson', 'chien', 'C', 'Le poisson vit dans l''eau.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø­ÙŠÙˆØ§Ù† ÙŠØ¹ÙŠØ´ ÙÙŠ Ø§Ù„Ù…Ø§Ø¡ØŸ', 'Ø§Ù„Ù‚Ø·', 'Ø§Ù„Ø·Ø§Ø¦Ø±', 'Ø§Ù„Ø³Ù…Ùƒ', 'Ø§Ù„ÙƒÙ„Ø¨', 'C', 'Ø§Ù„Ø³Ù…Ùƒ ÙŠØ¹ÙŠØ´ ÙÙŠ Ø§Ù„Ù…Ø§Ø¡.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel animal vole dans le ciel?', 'poisson', 'oiseau', 'chat', 'chien', 'B', 'L''oiseau vole dans le ciel.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ Ø­ÙŠÙˆØ§Ù† ÙŠØ·ÙŠØ± ÙÙŠ Ø§Ù„Ø³Ù…Ø§Ø¡ØŸ', 'Ø§Ù„Ø³Ù…Ùƒ', 'Ø§Ù„Ø·Ø§Ø¦Ø±', 'Ø§Ù„Ù‚Ø·', 'Ø§Ù„ÙƒÙ„Ø¨', 'B', 'Ø§Ù„Ø·Ø§Ø¦Ø± ÙŠØ·ÙŠØ± ÙÙŠ Ø§Ù„Ø³Ù…Ø§Ø¡.', 'SCIENCE', 1, 'SIMPLE', 'animaux', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Que devient l''eau quand il fait trÃ¨s froid?', 'vapeur', 'glace', 'pluie', 'nuage', 'B', 'L''eau se transforme en glace quand il gÃ¨le.', 'SCIENCE', 1, 'SIMPLE', 'etats_eau', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§Ø°Ø§ ÙŠØµØ¨Ø­ Ø§Ù„Ù…Ø§Ø¡ Ø¹Ù†Ø¯Ù…Ø§ ÙŠÙƒÙˆÙ† Ø§Ù„Ø¬Ùˆ Ø¨Ø§Ø±Ø¯Ø§ Ø¬Ø¯Ø§ØŸ', 'Ø¨Ø®Ø§Ø±', 'Ø¬Ù„ÙŠØ¯', 'Ù…Ø·Ø±', 'Ø³Ø­Ø§Ø¨', 'B', 'ÙŠØªØ­ÙˆÙ„ Ø§Ù„Ù…Ø§Ø¡ Ø¥Ù„Ù‰ Ø¬Ù„ÙŠØ¯ Ø¹Ù†Ø¯Ù…Ø§ ÙŠØªØ¬Ù…Ø¯.', 'SCIENCE', 1, 'SIMPLE', 'etats_eau', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Que devient l''eau quand on la chauffe?', 'glace', 'vapeur', 'neige', 'pluie', 'B', 'L''eau se transforme en vapeur quand on la chauffe.', 'SCIENCE', 1, 'SIMPLE', 'etats_eau', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§Ø°Ø§ ÙŠØµØ¨Ø­ Ø§Ù„Ù…Ø§Ø¡ Ø¹Ù†Ø¯Ù…Ø§ Ù†Ø³Ø®Ù†Ù‡ØŸ', 'Ø¬Ù„ÙŠØ¯', 'Ø¨Ø®Ø§Ø±', 'Ø«Ù„Ø¬', 'Ù…Ø·Ø±', 'B', 'ÙŠØªØ­ÙˆÙ„ Ø§Ù„Ù…Ø§Ø¡ Ø¥Ù„Ù‰ Ø¨Ø®Ø§Ø± Ø¹Ù†Ø¯Ù…Ø§ Ù†Ø³Ø®Ù†Ù‡.', 'SCIENCE', 1, 'SIMPLE', 'etats_eau', 80, 0, 'ARABIC');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est l''objet qui nous Ã©claire la nuit?', 'soleil', 'lune', 'Ã©toile', 'lampe', 'D', 'Une lampe nous Ã©claire la nuit.', 'SCIENCE', 1, 'SIMPLE', 'lumiere', 80, 0, 'FRENCH');
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ø§Ù„Ø´ÙŠØ¡ Ø§Ù„Ø°ÙŠ ÙŠØ¶ÙŠØ¡ Ù„Ù†Ø§ ÙÙŠ Ø§Ù„Ù„ÙŠÙ„ØŸ', 'Ø§Ù„Ø´Ù…Ø³', 'Ø§Ù„Ù‚Ù…Ø±', 'Ø§Ù„Ù†Ø¬Ù…Ø©', 'Ø§Ù„Ù…ØµØ¨Ø§Ø­', 'D', 'Ø§Ù„Ù…ØµØ¨Ø§Ø­ ÙŠØ¶ÙŠØ¡ Ù„Ù†Ø§ ÙÙŠ Ø§Ù„Ù„ÙŠÙ„.', 'SCIENCE', 1, 'SIMPLE', 'lumiere', 80, 0, 'ARABIC');
 
 -- ==================== MATH - CLASSE 2 - FRENCH ====================
@@ -828,4 +813,121 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 
 -- MATH - CLASSE 7 - EXCELLENT - FRENCH
 -- MATH - CLASSE 7 - EXCELLENT - ARABIC
+
+
+-- ==================== NIVEAU 1 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 1 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Si j''ai 12 bonbons et j''en donne 5, combien m''en reste-t-il?', '5', '7', '8', '10', 'B', '12 - 5 = 7.', 'MATH', 1, 'MOYEN', 'soustraction', 85, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 10 + 10 + 2?', '20', '22', '12', '32', 'B', '20 + 2 = 22.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+-- MATH - CLASSE 1 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠ 12 Ø­Ù„ÙˆÙ‰ ÙˆØ£Ø¹Ø·ÙŠØª 5ØŒ Ù ÙƒÙ… ØªØ¨Ù‚Ù‰ Ù„Ø¯ÙŠØŸ', '5', '7', '8', '10', 'B', '12 - 5 = 7.', 'MATH', 1, 'MOYEN', 'soustraction', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 1 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le double de 10?', '15', '20', '25', '10', 'B', '10 + 10 = 20.', 'MATH', 1, 'DIFFICILE', 'double', 90, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Si j''ai 2 mains et que nous sommes 3 amis, combien de mains avons-nous au total?', '4', '5', '6', '8', 'C', '2 + 2 + 2 = 6.', 'MATH', 1, 'DIFFICILE', 'logique', 90, 0, 'FRENCH');
+-- MATH - CLASSE 1 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ø¶Ø¹Ù  Ø§Ù„Ø¹Ø¯Ø¯ 10ØŸ', '15', '20', '25', '10', 'B', '10 + 10 = 20.', 'MATH', 1, 'DIFFICILE', 'double', 90, 0, 'ARABIC');
+
+-- MATH - CLASSE 1 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Je suis un nombre entre 10 et 20. Si tu m''ajoutes 2, je deviens 17. Qui suis-je?', '14', '15', '16', '13', 'B', '15 + 2 = 17.', 'MATH', 1, 'EXCELLENT', 'enigme', 95, 0, 'FRENCH');
+-- MATH - CLASSE 1 - EXCELLENT - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£Ù†Ø§ Ø¹Ø¯Ø¯ Ø¨ÙŠÙ† 10 Ùˆ 20. Ø¥Ø°Ø§ Ø£Ø¶Ù Øª Ù„ÙŠ 2ØŒ Ø£ØµØ¨Ø­ 17. Ù…Ù† Ø£Ù†Ø§ØŸ', '14', '15', '16', '13', 'B', '15 + 2 = 17.', 'MATH', 1, 'EXCELLENT', 'enigme', 95, 0, 'ARABIC');
+
+-- ==================== NIVEAU 2 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 2 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 30 + 40?', '60', '70', '80', '90', 'B', '30 + 40 = 70.', 'MATH', 2, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+-- MATH - CLASSE 2 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 30 + 40ØŸ', '60', '70', '80', '90', 'B', '30 + 40 = 70.', 'MATH', 2, 'MOYEN', 'addition', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 2 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 5 x 3?', '10', '15', '20', '25', 'B', '5 + 5 + 5 = 15.', 'MATH', 2, 'DIFFICILE', 'multiplication', 90, 0, 'FRENCH');
+-- MATH - CLASSE 2 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 5 × 3ØŸ', '10', '15', '20', '25', 'B', '5 + 5 + 5 = 15.', 'MATH', 2, 'DIFFICILE', 'multiplication', 90, 0, 'ARABIC');
+
+-- MATH - CLASSE 2 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Si une pomme cote 2 dinars, combien cotent 10 pommes?', '15', '20', '25', '12', 'B', '2 x 10 = 20.', 'MATH', 2, 'EXCELLENT', 'probleme', 95, 0, 'FRENCH');
+
+
+-- ==================== NIVEAU 3 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 3 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 125 + 75?', '190', '200', '210', '225', 'B', '125 + 75 = 200.', 'MATH', 3, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+-- MATH - CLASSE 3 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 125 + 75ØŸ', '190', '200', '210', '225', 'B', '125 + 75 = 200.', 'MATH', 3, 'MOYEN', 'addition', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 3 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le produit de 8 x 4?', '28', '32', '36', '40', 'B', '8 x 4 = 32.', 'MATH', 3, 'DIFFICILE', 'multiplication', 90, 0, 'FRENCH');
+-- MATH - CLASSE 3 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ø­Ø§ØµÙ„ Ø¶Ø±Ø¨ 8 × 4ØŸ', '28', '32', '36', '40', 'B', '8 x 4 = 32.', 'MATH', 3, 'DIFFICILE', 'multiplication', 90, 0, 'ARABIC');
+
+-- ==================== NIVEAU 4 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 4 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 450 - 125?', '325', '350', '375', '400', 'A', '450 - 125 = 325.', 'MATH', 4, 'MOYEN', 'soustraction', 85, 0, 'FRENCH');
+-- MATH - CLASSE 4 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 450 - 125ØŸ', '325', '350', '375', '400', 'A', '450 - 125 = 325.', 'MATH', 4, 'MOYEN', 'soustraction', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 4 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quelle est la moitiǸ de 150?', '50', '75', '100', '125', 'B', '150 / 2 = 75.', 'MATH', 4, 'DIFFICILE', 'division', 90, 0, 'FRENCH');
+-- MATH - CLASSE 4 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ Ù†ØµÙ  Ø§Ù„Ø¹Ø¯Ø¯ 150ØŸ', '50', '75', '100', '125', 'B', '150 / 2 = 75.', 'MATH', 4, 'DIFFICILE', 'division', 90, 0, 'ARABIC');
+
+-- MATH - CLASSE 4 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le pǸrimtre d''un carrǸ de ctǸ 5cm?', '10cm', '15cm', '20cm', '25cm', 'C', 'PǸrimtre = 4 x ct = 4 x 5 = 20.', 'MATH', 4, 'EXCELLENT', 'geometrie', 95, 0, 'FRENCH');
+
+
+-- ==================== NIVEAU 5 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 5 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 15 x 4?', '40', '50', '60', '70', 'C', '15 x 4 = 60.', 'MATH', 5, 'MOYEN', 'multiplication', 85, 0, 'FRENCH');
+-- MATH - CLASSE 5 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 15 × 4ØŸ', '40', '50', '60', '70', 'C', '15 x 4 = 60.', 'MATH', 5, 'MOYEN', 'multiplication', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 5 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le 25% de 100?', '10', '25', '50', '75', 'B', '25% de 100 est 25.', 'MATH', 5, 'DIFFICILE', 'pourcentage', 90, 0, 'FRENCH');
+-- MATH - CLASSE 5 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡Ùˆ 25% Ù…Ù† 100ØŸ', '10', '25', '50', '75', 'B', '25% Ù…Ù† 100 Ù‡Ùˆ 25.', 'MATH', 5, 'DIFFICILE', 'pourcentage', 90, 0, 'ARABIC');
+
+-- ==================== NIVEAU 6 - PROGRESSION AVANCÉE ====================
+
+-- MATH - CLASSE 6 - MOYEN - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 1000 / 8?', '100', '125', '150', '200', 'B', '1000 / 8 = 125.', 'MATH', 6, 'MOYEN', 'division', 85, 0, 'FRENCH');
+-- MATH - CLASSE 6 - MOYEN - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ÙƒÙ… ÙŠØ³Ø§ÙˆÙŠ 1000 / 8ØŸ', '100', '125', '150', '200', 'B', '1000 / 8 = 125.', 'MATH', 6, 'MOYEN', 'division', 85, 0, 'ARABIC');
+
+-- MATH - CLASSE 6 - DIFFICILE - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quelle est la surface d''un rectangle de 10m sur 5m?', '15m2', '30m2', '50m2', '100m2', 'C', 'Surface = longueur x largeur = 10 x 5 = 50.', 'MATH', 6, 'DIFFICILE', 'geometrie', 90, 0, 'FRENCH');
+-- MATH - CLASSE 6 - DIFFICILE - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ù…Ø§ Ù‡ÙŠ Ù…Ø³Ø§Ø­Ø© Ù…Ø³ØªØ·ÙŠÙ„ Ø£Ø¨Ø¹Ø§Ø¯Ù‡ 10Ù… Ùˆ 5Ù…ØŸ', '15Ù…2', '30Ù…2', '50Ù…2', '100Ù…2', 'C', 'Ø§Ù„Ù…Ø³Ø§Ø­Ø© = Ø§Ù„Ø·ÙˆÙ„ × Ø§Ù„Ø¹Ø±Ø¶ = 10 × 5 = 50.', 'MATH', 6, 'DIFFICILE', 'geometrie', 90, 0, 'ARABIC');
+
+-- SCIENCE - CLASSE 6 - EXCELLENT - FRENCH
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quelle planǸte est appelǸe la PlanǸte Rouge?', 'VǸnus', 'Mars', 'Jupiter', 'Saturne', 'B', 'Mars est rouge  cause de l''oxyde de fer.', 'SCIENCE', 6, 'EXCELLENT', 'astronomie', 95, 0, 'FRENCH');
+-- SCIENCE - CLASSE 6 - EXCELLENT - ARABIC
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Ø£ÙŠ ÙƒÙˆÙƒØ¨ ÙŠØ³Ù…Ù‰ Ø§Ù„ÙƒÙˆÙƒØ¨ Ø§Ù„Ø£Ø­Ù…Ø±ØŸ', 'Ø§Ù„Ø²Ù‡Ø±Ø©', 'Ø§Ù„Ù…Ø±ÙŠØ®', 'Ø§Ù„Ù…Ø´ØªØ±ÙŠ', 'Ø²Ø­Ù„', 'B', 'Ø§Ù„Ù…Ø±ÙŠØ® ÙŠØ¨Ø¯Ùˆ Ø£Ø­Ù…Ø± Ø¨Ø³Ø¨Ø¨ Ø£ÙƒØ³ÙŠØ¯ Ø§Ù„Ø­Ø¯ÙŠØ¯.', 'SCIENCE', 6, 'EXCELLENT', 'astronomie', 95, 0, 'ARABIC');
+
+
+-- ==================== MEGA PACK PROGRESSION (NIVEAUX 1-6) ====================
+
+-- CLASSE 1 - MOYEN
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Si j''ai 5 billes et j''en gagne 8, combien j''en ai?', '11', '12', '13', '14', 'C', '5 + 8 = 13.', 'MATH', 1, 'MOYEN', 'addition', 85, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le jour avant mardi?', 'Lundi', 'Mercredi', 'Jeudi', 'Dimanche', 'A', 'Le lundi prǸcde le mardi.', 'MATH', 1, 'MOYEN', 'temps', 85, 0, 'FRENCH');
+
+-- CLASSE 2 - MOYEN
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien font 50 - 25?', '15', '20', '25', '30', 'C', '50 - 25 = 25.', 'MATH', 2, 'MOYEN', 'soustraction', 85, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Combien de minutes dans une heure?', '30', '60', '90', '100', 'B', 'Une heure fait 60 minutes.', 'MATH', 2, 'MOYEN', 'temps', 85, 0, 'FRENCH');
+
+-- CLASSE 3 - DIFFICILE
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le pǸrimtre d''un triangle dont les cts font 3cm, 4cm et 5cm?', '10cm', '12cm', '14cm', '15cm', 'B', '3 + 4 + 5 = 12.', 'MATH', 3, 'DIFFICILE', 'geometrie', 90, 0, 'FRENCH');
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le rǸsultat de 100 - 45?', '45', '55', '65', '75', 'B', '100 - 45 = 55.', 'MATH', 3, 'DIFFICILE', 'soustraction', 90, 0, 'FRENCH');
+
+-- CLASSE 4 - EXCELLENT
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Un train part  8h00 et arrive  10h30. Quelle est la durǸe du trajet?', '1h30', '2h00', '2h30', '3h00', 'C', 'De 8h  10h30, il y a 2h30.', 'MATH', 4, 'EXCELLENT', 'temps', 95, 0, 'FRENCH');
+
+-- CLASSE 5 - DIFFICILE
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est le pluriel de "journal"?', 'journals', 'journaux', 'journales', 'journalles', 'B', 'Le pluriel de journal est journaux.', 'FRENCH', 5, 'DIFFICILE', 'grammaire', 90, 0, 'FRENCH');
+
+-- CLASSE 6 - EXCELLENT
+INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Si un rectangle a une surface de 24m2 et une largeur de 4m, quelle est sa longueur?', '4m', '6m', '8m', '10m', 'B', '24 / 4 = 6.', 'MATH', 6, 'EXCELLENT', 'geometrie', 95, 0, 'FRENCH');
 
