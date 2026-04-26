@@ -64,7 +64,7 @@ public interface UserQuestionHistoryRepository extends JpaRepository<UserQuestio
     /**
      * Trouve le taux de réussite par matière
      */
-    @Query("SELECT COUNT(CASE WHEN uqh.isCorrect = true THEN 1 END) * 1.0 / COUNT(uqh) " +
+    @Query("SELECT CASE WHEN COUNT(uqh) > 0 THEN (COUNT(CASE WHEN uqh.isCorrect = true THEN 1 END) * 1.0 / COUNT(uqh)) ELSE NULL END " +
            "FROM UserQuestionHistory uqh, QuestionBank qb " +
            "WHERE uqh.questionId = qb.id " +
            "AND uqh.userId = :userId AND qb.subject = :subject")
