@@ -221,67 +221,73 @@ ARABIC_TRANSLATIONS = {
     "Dans quel pays": "في أي بلد"
 }
 
-def translate(text, lang):
-    if lang == 'FRENCH':
-        return text
-    # Traduction rudimentaire pour l'arabe
-    res = text
-    for fr, ar in ARABIC_TRANSLATIONS.items():
-        if fr in res:
-            res = res.replace(fr, ar)
-    if res == text: # Si aucune traduction trouvée, on marque juste
-        return f"(AR) {text}"
-    return res
+# Liste globale pour stocker les lignes SQL
+sql_lines = [
+    "-- Script SQL EduPlay - Massive & Unique Dataset\n",
+    "BEGIN;\n",
+    "TRUNCATE TABLE question_bank;\n\n"
+]
 
+# Set pour garantir l'unicité globale des questions
+seen_questions = set()
+
+# Fonction pour générer le script avec des inserts multi-lignes (plus rapide)
 def generate_sql():
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    output_path = os.path.join(script_dir, 'data.sql')
+    combos = list(itertools.product(SUBJECTS, CLASSES, DIFFICULTIES, LANGUAGES))
     
-    # Utiliser un set pour garantir l'unicité globale des textes de questions
-    seen_questions = set()
-    
-    with open(output_path, 'w', encoding='utf-8') as f:
-        f.write("-- Script SQL EduPlay - Massive & Unique Dataset\n")
-        f.write("TRUNCATE TABLE question_bank;\n\n")
-        
-        count = 0
-        for subj, cls, diff, lang in itertools.product(SUBJECTS, CLASSES, DIFFICULTIES, LANGUAGES):
-            f.write(f"-- {subj} - CLASSE {cls} - {diff} - {lang}\n")
-            for i in range(1, QUESTIONS_PER_COMBO + 1):
-                # On essaie de générer une question unique
-                attempts = 0
-                while attempts < 100:
-                    q_raw, choices_raw, correct, expl_raw = GENERATORS[subj](cls, diff, i + attempts)
-                    
-                    if subj == 'ARABIC':
-                        q = q_raw.replace("'", "''")
-                        choices = [c.replace("'", "''") for c in choices_raw]
-                        expl = expl_raw.replace("'", "''")
-                    else:
-                        q = translate(q_raw, lang).replace("'", "''")
-                        choices = [translate(c, lang).replace("'", "''") for c in choices_raw]
-                        expl = translate(expl_raw, lang).replace("'", "''")
-                    
-                    # Identifiant unique de la question pour le set (texte + langue + classe + matière)
-                    q_id = f"{q}_{lang}_{cls}_{subj}"
-                    
-                    if q_id not in seen_questions:
-                        seen_questions.add(q_id)
-                        break
-                    attempts += 1
-                
-                stmt = (
-                    f"INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, "
-                    f"correct_choice, explanation, subject, class_level, difficulty, topic_tag, "
-                    f"quality_score, usage_count, app_language) VALUES ("
-                    f"'{q}', '{choices[0]}', '{choices[1]}', '{choices[2]}', '{choices[3]}', "
-                    f"'{correct}', '{expl}', '{subj}', {cls}, '{diff}', '{subj.lower()}', 95, 0, '{lang}');\n"
-                )
-                f.write(stmt)
-                count += 1
-            f.write("\n")
-            
-    print(f"Génération terminée : {count} questions uniques écrites dans {output_path}")
+    # On va grouper par 100 pour des inserts multi-lignes
+    current_batch = []
+    batch_size = 100
+
+    for subject, cls, diff, lang in combos:
+        for i in range(1, QUESTIONS_PER_COMBO + 1):
+            if subject == 'MATH':
+                q, choices, correct, expl = get_math_question(cls, diff, i)
+            elif subject == 'FRENCH':
+                q, choices, correct, expl = get_french_question(cls, diff, i)
+            elif subject == 'SCIENCE':
+                q, choices, correct, expl = get_science_question(cls, diff, i)
+            elif subject == 'HISTORY':
+                q, choices, correct, expl = get_history_question(cls, diff, i)
+            elif subject == 'GEOGRAPHY':
+                q, choices, correct, expl = get_geography_question(cls, diff, i)
+            elif subject == 'ARABIC':
+                q, choices, correct, expl = get_arabic_question(cls, diff, i)
+            else:
+                continue
+
+            # Traduction simple si langue arabe (sauf pour ARABIC subject)
+            if lang == 'ARABIC' and subject != 'ARABIC':
+                q = f"(AR) {q}"
+                choices = [f"(AR) {c}" for c in choices]
+                expl = f"(AR) {expl}"
+
+            # Nettoyage des apostrophes pour SQL
+            q_esc = q.replace("'", "''")
+            choices_esc = [c.replace("'", "''") for c in choices]
+            expl_esc = expl.replace("'", "''")
+
+            # Garantir l'unicité
+            unique_key = f"{subject}-{cls}-{diff}-{lang}-{q_esc}"
+            if unique_key in seen_questions:
+                q_esc += f" (v{i})"
+            seen_questions.add(unique_key)
+
+            row = f"('{q_esc}', '{choices_esc[0]}', '{choices_esc[1]}', '{choices_esc[2]}', '{choices_esc[3]}', '{correct}', '{expl_esc}', '{subject}', {cls}, '{diff}', '{subject.lower()}', 95, 0, '{lang}')"
+            current_batch.append(row)
+
+            if len(current_batch) >= batch_size:
+                sql_lines.append(f"INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES \n" + ",\n".join(current_batch) + ";\n")
+                current_batch = []
+
+    if current_batch:
+        sql_lines.append(f"INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES \n" + ",\n".join(current_batch) + ";\n")
+
+    sql_lines.append("\nCOMMIT;\n")
+
+    with open("data.sql", "w", encoding="utf-8") as f:
+        f.writelines(sql_lines)
 
 if __name__ == "__main__":
     generate_sql()
+    print("data.sql généré avec succès avec des inserts multi-lignes.")
