@@ -1,4 +1,4 @@
-﻿-- Script SQL pour peupler la base de questions EduPlay
+-- Script SQL pour peupler la base de questions EduPlay
 -- 500+ questions pour classes 1-6, toutes matiÃ¨res, tous niveaux, toutes langues
 -- Compatible PostgreSQL (Render)
 
@@ -786,12 +786,8 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 
 
 -- MATH - NIVEAU 7 - MOYEN
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Résoudre: 3x - 5 = 10', 'x=3', 'x=5', 'x=15', 'x=2', 'B', '3x = 15 donc x = 5.', 'MATH', 7, 'MOYEN', 'algebre', 85, 0, 'FRENCH');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('حل المعادلة: 3x - 5 = 10', 'x=3', 'x=5', 'x=15', 'x=2', 'B', '3x = 15 إذن x = 5.', 'MATH', 7, 'MOYEN', 'algebre', 85, 0, 'ARABIC');
 
 -- SCIENCE - NIVEAU 7 - SIMPLE
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('Quel est l''organe principal de la respiration?', 'Le coeur', 'Les poumons', 'L''estomac', 'Le foie', 'B', 'Les poumons permettent l''échange d''oxygène.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'FRENCH');
-INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES ('ما هو العضو الرئيسي للتنفس؟', 'القلب', 'الرئتان', 'المعدة', 'الكبد', 'B', 'الرئتان تسمحان بتبادل الأكسجين.', 'SCIENCE', 7, 'SIMPLE', 'biologie', 80, 0, 'ARABIC');
 
 
 
@@ -835,17 +831,13 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 -- ==================== NIVEAU 7 - COLLÈGE ====================
 -- MATH - CLASSE 7 - SIMPLE - FRENCH
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('Résous: 2x = 10', 'x=2', 'x=5', 'x=10', 'x=20', 'B', 'Divise par 2: x = 10 / 2 = 5.', 'MATH', 7, 'SIMPLE', 'algebre', 85, 0, 'FRENCH');
 -- MATH - CLASSE 7 - SIMPLE - ARABIC
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('حل المعادلة: 2x = 10', 'x=2', 'x=5', 'x=10', 'x=20', 'B', 'نقسم على 2: x = 10 / 2 = 5.', 'MATH', 7, 'SIMPLE', 'algebre', 85, 0, 'ARABIC');
 
 -- SCIENCE - CLASSE 7 - MOYEN - FRENCH
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('Quelle est la formule chimique de l''eau?', 'CO2', 'O2', 'H2O', 'NaCl', 'C', 'L''eau est composée de 2 hydrogènes et 1 oxygène.', 'SCIENCE', 7, 'MOYEN', 'chimie', 85, 0, 'FRENCH');
 -- SCIENCE - CLASSE 7 - MOYEN - ARABIC
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('ما هي الصيغة الكيميائية للماء؟', 'CO2', 'O2', 'H2O', 'NaCl', 'C', 'يتكون الماء من ذرتي هيدروجين وذرة أكسجين.', 'SCIENCE', 7, 'MOYEN', 'chimie', 85, 0, 'ARABIC');
 
 
 -- ==================== DÉFIS EXCELLENT (TOUS NIVEAUX) ====================
@@ -866,8 +858,6 @@ INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d
 
 -- MATH - CLASSE 7 - EXCELLENT - FRENCH
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('Quelle est la racine carrée de 144?', '10', '11', '12', '13', 'C', '12 x 12 = 144.', 'MATH', 7, 'EXCELLENT', 'arithmetique', 95, 0, 'FRENCH');
 -- MATH - CLASSE 7 - EXCELLENT - ARABIC
 INSERT INTO question_bank (question_text, choice_a, choice_b, choice_c, choice_d, correct_choice, explanation, subject, class_level, difficulty, topic_tag, quality_score, usage_count, app_language) VALUES
-('ما هو الجذر التربيعي للعدد 144؟', '10', '11', '12', '13', 'C', '12 × 12 = 144.', 'MATH', 7, 'EXCELLENT', 'arithmetique', 95, 0, 'ARABIC');
 
