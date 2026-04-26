@@ -32,9 +32,18 @@ services:
         generateValue: true
 
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
+        value: none
+
+      - key: SPRING_SQL_INIT_MODE
+        value: always
+
+      - key: SPRING_JPA_DEFER_DATASOURCE_INITIALIZATION
+        value: "true"
 
       - key: SPRING_CACHE_TYPE
         value: none
+
+      - key: SERVER_ADDRESS
+        value: 0.0.0.0
 
     healthCheckPath: /api/health

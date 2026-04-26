@@ -12,4 +12,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 10000
 
-ENTRYPOINT ["sh", "-c", "java -jar /app/app.jar --server.port=${PORT:-10000}"]
+ENTRYPOINT ["sh", "-c", "java -XX:TieredStopAtLevel=1 -noverify -jar /app/app.jar --server.port=${PORT:-10000}"]
