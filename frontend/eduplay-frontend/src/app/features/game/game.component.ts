@@ -40,6 +40,9 @@ export class GameComponent implements OnInit, OnDestroy {
   currentCompetency = '';
   private languageSub?: Subscription;
 
+  bgMusic = new Audio('bg-music.mp3');
+  isMuted = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -58,6 +61,10 @@ export class GameComponent implements OnInit, OnDestroy {
       this.language = params['language'] || this.language;
       this.loadQuestions();
     });
+
+    this.bgMusic.loop = true;
+    this.bgMusic.volume = 0.3;
+    this.bgMusic.play().catch(e => console.log('Autoplay preventer by browser, waiting for interaction...'));
   }
 
   get isArabic(): boolean {
@@ -77,6 +84,11 @@ export class GameComponent implements OnInit, OnDestroy {
     this.authService.setUiLanguage(language);
     this.resetGameState();
     this.loadQuestions();
+  }
+
+  toggleMute() {
+    this.isMuted = !this.isMuted;
+    this.bgMusic.muted = this.isMuted;
   }
 
   private resetGameState() {
@@ -263,5 +275,7 @@ export class GameComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.languageSub?.unsubscribe();
     clearInterval(this.timer);
+    this.bgMusic.pause();
+    this.bgMusic.currentTime = 0;
   }
 }
