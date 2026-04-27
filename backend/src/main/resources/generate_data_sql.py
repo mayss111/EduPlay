@@ -524,26 +524,28 @@ ARABIC_TRANSLATIONS = {
     "Quelle est la capitale de la Belgique ?": "ما هي عاصمة بلجيكا؟",
     "La bonne réponse est": "الإجابة الصحيحة هي",
 
-    # Common & Answers
-    "Mars": "المريخ", "Vénus": "الزهرة", "Jupiter": "المشتري", "Saturne": "زحل", "Neptune": "نبتون",
-    "Le cœur": "القلب", "Le poumon": "الرئة", "Le foie": "الكبد", "Le cerveau": "الدماغ", "Le rein": "الكلية", "L'estomac": "المعدة",
+    # Common & Answers (Version Complète)
+    "Mars": "المريخ", "Vénus": "الزهرة", "Jupiter": "المشتري", "Saturne": "زحل", "Neptune": "نبتون", "Mercure": "عطارد", "Uranus": "أورانوس", "Terre": "الأرض",
+    "Le cœur": "القلب", "Le poumon": "الرئة", "Le foie": "الكبد", "Le cerveau": "الدماغ", "Le rein": "الكلية", "L'estomac": "المعدة", "La langue": "اللسان",
     "Oxygène": "أكسجين", "Azote": "نيتروجين", "Gaz carbonique": "ثاني أكسيد الكربون", "Hélium": "هيليوم", "Hydrogène": "هيدروجين", "CO2": "ثاني أكسيد الكربون",
-    "Le Soleil": "الشمس", "La Lune": "القمر", "Solide": "صلب", "Liquide": "سائل", "Gazeux": "غازي",
-    "La racine": "الجذر", "La feuille": "الورقة", "La tige": "الساق", "La fleur": "الزهرة",
-    "La poule": "الدجاجة", "Le chat": "القط", "Le chien": "الكلب", "La vache": "البقرة", "Le lion": "الأسد", "Le serpent": "الثعبان", "Le guépard": "الفهد",
-    "Le goût": "الذوق", "L'odorat": "الشم", "La vue": "البصر", "Le toucher": "اللمس",
-    "La gravité": "الجاذبية", "Le fer": "الحديد", "L'or": "الذهب", "Le mercure": "الزئبق", "Le diamant": "الألماس",
-    "L'autruche": "النعامة", "L'ours": "الدب", "Le crâne": "الجمجمة", "Le fémur": "عظمة الفخذ",
-    "Asie": "آسيا", "Afrique": "أفريقيا", "Amérique": "أمريكا", "Europe": "أوروبا", "Océanie": "أوقيانوسيا",
+    "Le Soleil": "الشمس", "La Lune": "القمر", "Solide": "صلب", "Liquide": "سائل", "Gazeux": "غازي", "Vapeur": "بخار", "Glace": "جليد",
+    "La racine": "الجذر", "La feuille": "الورقة", "La tige": "الساق", "La fleur": "الزهرة", "Le fruit": "الثمرة", "Graine": "بذرة",
+    "La poule": "الدجاجة", "Le chat": "القط", "Le chien": "الكلب", "La vache": "البقرة", "Le lion": "الأسد", "Le serpent": "الثعبان", "Le guépard": "الفهد", "L'éléphant": "الفيل", "La girafe": "الزرافة", "Le tigre": "النمر", "L'araignée": "العنكبوت", "L'abeille": "النحلة", "Fourmi": "نملة",
+    "Le goût": "الذوق", "L'odorat": "الشم", "La vue": "البصر", "Le toucher": "اللمس", "L'ouïe": "السمع",
+    "La gravité": "الجاذبية", "Le fer": "الحديد", "L'or": "الذهب", "Le mercure": "الزئبق", "Le diamant": "الألماس", "Argent": "فضة", "Cuivre": "نحاس",
+    "L'autruche": "النعامة", "L'ours": "الدب", "Le crâne": "الجمجمة", "Le fémur": "عظمة الفخذ", "Squelette": "هيكل عظمي", "Muscle": "عضلة",
+    "Asie": "آسيا", "Afrique": "أفريقيا", "Amérique": "أمريكا", "Europe": "أوروبا", "Océanie": "أوقيانوسيا", "Antarctique": "القارة القطبية الجنوبية",
     "Atlantique": "الأطلسي", "Pacifique": "الهادئ", "Indien": "الهندي", "Arctique": "المتجمد الشمالي",
-    "Le Nil": "النيل", "L'Amazone": "الأمازون", "Le Mississippi": "الميسيسيبي",
-    "Paris": "باريس", "Londres": "لندن", "Berlin": "برلين", "Madrid": "مدريد", "Rome": "روما", "Alger": "الجزائر", "Rabat": "الرباط", "Tokyo": "طوكيو", "Ottawa": "أوتاوا", "Moscou": "موسكو", "Athènes": "أثينا", "Lisbonne": "لشبونة", "Bruxelles": "بروكسل",
-    "La France": "فرنسا", "L'Espagne": "إسبانيا", "L'Italie": "إيطاليا", "L'Allemagne": "ألمانيا", "Le Portugal": "البرتغال", "La Grèce": "اليونان", "Le Canada": "كندا", "Les États-Unis": "الولايات المتحدة", "La Russie": "روسيا", "La Chine": "الصين", "Le Japon": "اليابان", "Le Maroc": "المغرب", "L'Algérie": "الجزائر", "L'Égypte": "مصر", "L'Australie": "أستراليا",
-    "Christophe Colomb": "كريستوفر كولومبوس", "Louis XIV": "لويس 14", "Napoléon": "نابليون", "Cléopâtre": "كليوباترا", "Gutenberg": "غوتنبرغ", "Léonard de Vinci": "ليوناردو دا فينشي", "George Washington": "جورج واشنطن", "Nelson Mandela": "نيلسون مانديلا", "Marie Curie": "ماري كوري", "Louis Pasteur": "لويس باستور", "Charles de Gaulle": "شارل ديغول", "Vercingétorix": "فرسينجيتوريكس",
-    "Le Moyen Âge": "العصور الوسطى", "La Renaissance": "النهضة", "L'Antiquité": "العصور القديمة", "La Première Guerre mondiale": "الحرب العالمية الأولى", "La Révolution Industrielle": "الثورة الصناعية", "L'Empire Romain": "الإمبراطورية الرومانية",
-    "masculin": "مذكر", "féminin": "مؤنث", "neutre": "محايد", "pluriel": "جمع",
+    "Le Nil": "النيل", "L'Amazone": "الأمازون", "Le Mississippi": "الميسيسيبي", "Le Congo": "الكونغو", "Le Danube": "الدانوب", "Le Yangtsé": "اليانغتسي",
+    "Paris": "باريس", "Londres": "لندن", "Berlin": "برلين", "Madrid": "مدريد", "Rome": "روما", "Alger": "الجزائر", "Rabat": "الرباط", "Tokyo": "طوكيو", "Ottawa": "أوتاوا", "Moscou": "موسكو", "Athènes": "أثينا", "Lisbonne": "لشبونة", "Bruxelles": "بروكسل", "Le Caire": "القاهرة", "Tunis": "تونس", "Beyrouth": "بيروت", "Damas": "دمشق", "Bagdad": "بغداد", "Riyad": "الرياض", "Casablanca": "الدار البيضاء", "Marrakech": "مراكش", "Tanger": "طنجة", "Lyon": "ليون", "Marseille": "مارسيليا", "Bordeaux": "بوردو", "Anvers": "أنتويرب", "Gand": "غنت", "Bruges": "بروج",
+    "La France": "فرنسا", "L'Espagne": "إسبانيا", "L'Italie": "إيطاليا", "L'Allemagne": "ألمانيا", "Le Portugal": "البرتغال", "La Grèce": "اليونان", "Le Canada": "كندا", "Les États-Unis": "الولايات المتحدة", "La Russie": "روسيا", "La Chine": "الصين", "Le Japon": "اليابان", "Le Maroc": "المغرب", "L'Algérie": "الجزائر", "L'Égypte": "مصر", "L'Australie": "أستراليا", "Brésil": "البرازيل", "Inde": "الهند", "Belgique": "بلجيكا", "Suisse": "سويسرا", "Autriche": "النمسا", "Mexique": "المكسيك", "Argentine": "الأرجنتين",
+    "Christophe Colomb": "كريستوفر كولومبوس", "Louis XIV": "لويس 14", "Napoléon": "نابليون", "Cléopâtre": "كليوباترا", "Gutenberg": "غوتنبرغ", "Léonard de Vinci": "ليوناردو دا فينشي", "George Washington": "جورج واشنطن", "Nelson Mandela": "نيلسون مانديلا", "Marie Curie": "ماري كوري", "Louis Pasteur": "لويس باستور", "Charles de Gaulle": "شارل ديغول", "Vercingétorix": "فرسينجيتوريكس", "Jeanne d'Arc": "جان دارك", "Einstein": "أينشتاين", "Isaac Newton": "إسحاق نيوتن",
+    "Le Moyen Âge": "العصور الوسطى", "La Renaissance": "النهضة", "L'Antiquité": "العصور القديمة", "La Première Guerre mondiale": "الحرب العالمية الأولى", "La Deuxième Guerre mondiale": "الحرب العالمية الثانية", "La Révolution Industrielle": "الثورة الصناعية", "L'Empire Romain": "الإمبراطورية الرومانية", "Révolution Française": "الثورة الفرنسية",
+    "masculin": "مذكر", "féminin": "مؤنث", "neutre": "محايد", "pluriel": "جمع", "singulier": "مفرد", "verbe": "فعل", "nom": "اسم", "adjectif": "صفة",
+    "pomme": "تفاحة", "maison": "منزل", "soleil": "شمس", "livre": "كتاب", "ordinateur": "حاسوب", "école": "مدرسة", "jardin": "حديقة", "table": "طاولة", "chaise": "كرسي", "stylo": "قلم", "fenêtre": "نافذة", "porte": "باب", "route": "طريق", "montagne": "جبل", "forêt": "غابة", "rivière": "نهر", "oiseau": "طائر", "poisson": "سمكة", "ciel": "سماء", "terre": "أرض", "nuage": "سحابة", "pluie": "مطر", "neige": "ثلج", "vent": "ريح", "fleur": "زهرة", "herbe": "عشب", "garçon": "ولد", "fille": "بنت", "homme": "رجل", "femme": "امرأة",
     "On dit": "نقول", "c'est donc": "لذا فهو", "Le mot": "الكلمة", "est de genre": "من جنس",
-    "Série": "سلسلة", "Question": "سؤال", "Ref": "مرجع", "Localisation": "موقع"
+    "Série": "سلسلة", "Question": "سؤال", "Ref": "مرجع", "Localisation": "موقع",
+    "La réponse correcte est": "الإجابة الصحيحة هي", "C'est": "إنه", "Bonne réponse:": "الإجابة الصحيحة:"
 }
 
 def translate_text(text):
