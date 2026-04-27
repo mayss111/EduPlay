@@ -7,7 +7,7 @@ SUBJECTS = ['MATH', 'FRENCH', 'SCIENCE', 'HISTORY', 'GEOGRAPHY', 'ARABIC']
 CLASSES = list(range(1, 7))
 DIFFICULTIES = ['SIMPLE', 'MOYEN', 'DIFFICILE', 'EXCELLENT']
 LANGUAGES = ['FRENCH', 'ARABIC']
-QUESTIONS_PER_COMBO = 30
+QUESTIONS_PER_COMBO = 10
 
 def get_math_question(cls, diff, i):
     # Utilisation d'un set de questions vues pour cette combinaison spécifique
@@ -63,8 +63,7 @@ def get_french_question(cls, diff, i):
     
     diff_idx = DIFFICULTIES.index(diff)
     # Formule pour index unique : (Classe * 100) + (Niveau * 30) + i
-    global_idx = ((cls - 1) * 60 + diff_idx * 20 + (i - 1)) % len(data)
-    word, genre = data[global_idx]
+    word, genre = data[i]
     
     if diff in ['SIMPLE', 'MOYEN']:
         q = f"Quel est le genre de '{word}' ?"
@@ -123,8 +122,7 @@ def get_science_question(cls, diff, i):
         ("Quel gaz rejette-t-on en respirant ?", "CO2", ["Oxygène", "Azote", "Hydrogène"])
     ]
     diff_idx = DIFFICULTIES.index(diff)
-    global_idx = ((cls - 1) * 10 + diff_idx * 5 + (i - 1)) % len(science_data)
-    q_base, ans, distractors = science_data[global_idx]
+    q_base, ans, distractors = science_data[i]
     q = f"{q_base} (C{cls}-N{diff_idx+1})"
     choices = [ans] + distractors
     random.shuffle(choices)
@@ -175,8 +173,7 @@ def get_history_question(cls, diff, i):
         ("Quel animal est le symbole de la France ?", "Le Coq", ["L'Aigle", "Le Lion", "L'Ours"])
     ]
     diff_idx = DIFFICULTIES.index(diff)
-    global_idx = ((cls - 1) * 10 + diff_idx * 5 + (i - 1)) % len(history_data)
-    q_base, ans, distractors = history_data[global_idx]
+    q_base, ans, distractors = history_data[i]
     q = f"{q_base} (H-C{cls}-N{diff_idx+1})"
     choices = [ans] + distractors
     random.shuffle(choices)
@@ -228,8 +225,7 @@ def get_geography_question(cls, diff, i):
     ]
     diff_idx = DIFFICULTIES.index(diff)
     # Offset global : (Classe * 10) + (Niveau * 5) + i
-    global_idx = ((cls - 1) * 10 + diff_idx * 5 + (i - 1)) % len(geo_data)
-    q_base, ans, distractors = geo_data[global_idx]
+    q_base, ans, distractors = geo_data[i]
     q = f"{q_base} (G-C{cls}-N{diff_idx+1})"
     choices = [ans] + distractors
     random.shuffle(choices)
@@ -325,8 +321,7 @@ def get_arabic_question(cls, diff, i):
     
     diff_idx = DIFFICULTIES.index(diff)
     # Offset global Arabe : (Classe * 5) + i
-    index = (i - 1 + (cls - 1) * 5) % len(pool)
-    q, ans, distractors, expl = pool[index]
+    q, ans, distractors, expl = pool[i]
     
     q = f"{q} (A-C{cls}-N{diff_idx+1})"
     choices = [ans] + distractors
@@ -577,19 +572,25 @@ def generate_sql():
     batch_size = 100
 
     for subject, cls, diff, lang in combos:
-        for i in range(1, QUESTIONS_PER_COMBO + 1):
+        if subject == "FRENCH": indices = random.sample(range(60), QUESTIONS_PER_COMBO)
+        elif subject in ["SCIENCE", "HISTORY", "GEOGRAPHY"]: indices = random.sample(range(40), QUESTIONS_PER_COMBO)
+        elif subject == "ARABIC": indices = random.sample(range(10), QUESTIONS_PER_COMBO)
+        else: indices = list(range(QUESTIONS_PER_COMBO))
+
+        for i_idx in range(QUESTIONS_PER_COMBO):
+            idx = indices[i_idx]
             if subject == 'MATH':
-                q, choices, correct, expl = get_math_question(cls, diff, i)
+                q, choices, correct, expl = get_math_question(cls, diff, i_idx)
             elif subject == 'FRENCH':
-                q, choices, correct, expl = get_french_question(cls, diff, i)
+                q, choices, correct, expl = get_french_question(cls, diff, idx)
             elif subject == 'SCIENCE':
-                q, choices, correct, expl = get_science_question(cls, diff, i)
+                q, choices, correct, expl = get_science_question(cls, diff, idx)
             elif subject == 'HISTORY':
-                q, choices, correct, expl = get_history_question(cls, diff, i)
+                q, choices, correct, expl = get_history_question(cls, diff, idx)
             elif subject == 'GEOGRAPHY':
-                q, choices, correct, expl = get_geography_question(cls, diff, i)
+                q, choices, correct, expl = get_geography_question(cls, diff, idx)
             elif subject == 'ARABIC':
-                q, choices, correct, expl = get_arabic_question(cls, diff, i)
+                q, choices, correct, expl = get_arabic_question(cls, diff, idx)
             else:
                 continue
 
@@ -606,8 +607,6 @@ def generate_sql():
 
             # Garantir l'unicité
             unique_key = f"{subject}-{cls}-{diff}-{lang}-{q_esc}"
-            if unique_key in seen_questions:
-                q_esc += f" (v{i})"
             seen_questions.add(unique_key)
 
             row = f"('{q_esc}', '{choices_esc[0]}', '{choices_esc[1]}', '{choices_esc[2]}', '{choices_esc[3]}', '{correct}', '{expl_esc}', '{subject}', {cls}, '{diff}', '{subject.lower()}', 95, 0, '{lang}')"
