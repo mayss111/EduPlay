@@ -56,6 +56,10 @@
 
     <!-- HEADER -->
     <div class="game-header" *ngIf="questions.length > 0">
+      <button class="quit-btn" (click)="goToDashboard()" [title]="t('Quitter la partie', 'خروج من اللعبة')">
+        <span class="quit-icon">🏠</span>
+        <span class="quit-text">{{ t('Quitter', 'خروج') }}</span>
+      </button>
       <div class="game-lang-switch">
         <button class="lang-btn" [class.active]="!isArabic" (click)="selectLanguage('FRENCH')">FR</button>
         <button class="lang-btn" [class.active]="isArabic" (click)="selectLanguage('ARABIC')">AR</button>
