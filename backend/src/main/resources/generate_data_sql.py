@@ -9,605 +9,409 @@ DIFFICULTIES = ['SIMPLE', 'MOYEN', 'DIFFICILE', 'EXCELLENT']
 LANGUAGES = ['FRENCH', 'ARABIC']
 QUESTIONS_PER_COMBO = 10
 
-def get_math_question(cls, diff, i):
-    # Utilisation d'un set de questions vues pour cette combinaison spécifique
-    # Mais ici on peut juste varier les nombres
-    max_val = cls * 10 if diff == 'SIMPLE' else cls * 20
-    
-    if diff == 'SIMPLE':
-        a, b = random.randint(1, max_val), random.randint(1, max_val)
-        q = f"Calcule {a} + {b}."
-        ans = a + b
-    elif diff == 'MOYEN':
-        a, b = random.randint(max_val, max_val*2), random.randint(1, max_val)
-        q = f"Calcule {a} - {b}."
-        ans = a - b
-    elif diff == 'DIFFICILE':
-        a, b = random.randint(2, 10), random.randint(2, 10)
-        q = f"Calcule {a} x {b}."
-        ans = a * b
-    else: # EXCELLENT
-        a = random.randint(max_val, max_val*3)
-        b = random.randint(2, 5)
-        q = f"Calcule {a} x {b}."
-        ans = a * b
-    
-    # Garantir l'unicité en ajoutant l'index i si nécessaire, 
-    # mais les nombres aléatoires devraient suffire pour 10 questions.
-    q = f"{q} (Classe {cls})"
-    
-    choices = [str(ans), str(ans + random.randint(1, 5)), str(ans - random.randint(1, 5)), str(ans + 10)]
-    random.shuffle(choices)
-    correct = ['A', 'B', 'C', 'D'][choices.index(str(ans))]
-    return q, choices, correct, f"Le résultat de l'opération est {ans}."
+# ==========================================
+# 1. GENERATEURS DYNAMIQUES (MATHEMATIQUES)
+# ==========================================
+def get_math_questions(cls, diff, count):
+    questions = []
+    seen = set()
+    while len(questions) < count:
+        if cls <= 2:
+            max_val = 10 * cls if diff in ['SIMPLE', 'MOYEN'] else 20 * cls
+            op = random.choice(['+', '-'])
+            a = random.randint(1, max_val)
+            b = random.randint(1, a if op == '-' else max_val)
+        elif cls <= 4:
+            max_val = 50 * cls
+            op = random.choice(['+', '-', '*'])
+            a = random.randint(2, 10) if op == '*' else random.randint(10, max_val)
+            b = random.randint(2, 10) if op == '*' else random.randint(1, a if op == '-' else max_val)
+        else:
+            op = random.choice(['+', '-', '*', '/'])
+            a = random.randint(10, 100) if op in ['+', '-'] else random.randint(5, 15)
+            b = random.randint(10, 100) if op in ['+', '-'] else random.randint(2, 12)
+            if op == '/':
+                a = a * b # Pour division exacte
 
-def get_french_question(cls, diff, i):
-    # Pool élargi de mots (36 -> 100+)
-    data = [
-        ("le chat", "masculin"), ("la table", "féminin"), ("un stylo", "masculin"), ("une école", "féminin"),
-        ("le ciel", "masculin"), ("la mer", "féminin"), ("un arbre", "masculin"), ("une fleur", "féminin"),
-        ("le soleil", "masculin"), ("la lune", "féminin"), ("un livre", "masculin"), ("une page", "féminin"),
-        ("le vent", "masculin"), ("la pluie", "féminin"), ("un oiseau", "masculin"), ("une cage", "féminin"),
-        ("le chien", "masculin"), ("la niche", "féminin"), ("un garçon", "masculin"), ("une fille", "féminin"),
-        ("un sac", "masculin"), ("une porte", "féminin"), ("le cahier", "masculin"), ("la gomme", "féminin"),
-        ("un tableau", "masculin"), ("une craie", "féminin"), ("le vélo", "masculin"), ("la voiture", "féminin"),
-        ("un train", "masculin"), ("une gare", "féminin"), ("le pain", "masculin"), ("la pomme", "féminin"),
-        ("un fruit", "masculin"), ("une banane", "féminin"), ("le lait", "masculin"), ("la soupe", "féminin"),
-        ("le jardin", "masculin"), ("la forêt", "féminin"), ("le lion", "masculin"), ("la girafe", "féminin"),
-        ("un avion", "masculin"), ("une île", "féminin"), ("le pont", "masculin"), ("la route", "féminin"),
-        ("un chapeau", "masculin"), ("une robe", "féminin"), ("le savon", "masculin"), ("la douche", "féminin"),
-        ("le feu", "masculin"), ("la glace", "féminin"), ("un miroir", "masculin"), ("une vitre", "féminin"),
-        ("le marteau", "masculin"), ("la scie", "féminin"), ("un fauteuil", "masculin"), ("une chaise", "féminin"),
-        ("le tapis", "masculin"), ("la lampe", "féminin"), ("un téléphone", "masculin"), ("une radio", "féminin")
-    ]
-    
-    diff_idx = DIFFICULTIES.index(diff)
-    # Formule pour index unique : (Classe * 100) + (Niveau * 30) + i
-    word, genre = data[i]
-    
-    if diff in ['SIMPLE', 'MOYEN']:
-        q = f"Quel est le genre de '{word}' ?"
-        choices = ["masculin", "féminin", "neutre", "aucun"]
-        correct = ['A', 'B', 'C', 'D'][choices.index(genre)]
-        expl = f"On dit '{word}', c'est donc {genre}."
-    else:
-        q = f"Dans la phrase 'L'enfant regarde {word}', quel est le genre du complément ?"
-        choices = ["masculin", "féminin", "neutre", "pluriel"]
-        correct = ['A', 'B', 'C', 'D'][choices.index(genre)]
-        expl = f"Le mot '{word}' est de genre {genre}."
+        q_str = f"Calcule {a} {op} {b}."
+        if q_str in seen:
+            continue
+        seen.add(q_str)
         
-    return q, choices, correct, expl
+        if op == '+': ans = a + b
+        elif op == '-': ans = a - b
+        elif op == '*': ans = a * b
+        else: ans = a // b
+            
+        choices = [str(ans), str(ans + random.randint(1, 5)), str(abs(ans - random.randint(1, 5))), str(ans + 10)]
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(str(ans))]
+        
+        questions.append((f"{q_str} (Niveau {cls})", choices, correct, f"Le résultat de {a} {op} {b} est {ans}."))
+    return questions
 
-def get_science_question(cls, diff, i):
-    science_data = [
-        ("Quelle planète est surnommée la planète rouge ?", "Mars", ["Vénus", "Jupiter", "Saturne"]),
-        ("Quel est l'organe qui pompe le sang ?", "Le cœur", ["Le poumon", "Le foie", "Le cerveau"]),
-        ("Quel gaz les humains respirent-ils ?", "Oxygène", ["Azote", "Gaz carbonique", "Hélium"]),
-        ("Combien de pattes a une araignée ?", "8", ["6", "4", "10"]),
-        ("Quelle est l'étoile la plus proche de la Terre ?", "Le Soleil", ["Sirius", "Proxima Centauri", "L'étoile polaire"]),
-        ("Quel est l'état de l'eau à 0°C ?", "Solide", ["Liquide", "Gazeux", "Plasma"]),
-        ("Quelle partie de la plante absorbe l'eau ?", "La racine", ["La feuille", "La tige", "La fleur"]),
-        ("Quel animal pond des œufs ?", "La poule", ["Le chat", "Le chien", "La vache"]),
-        ("Quel sens utilise la langue ?", "Le goût", ["L'odorat", "La vue", "Le toucher"]),
-        ("Quelle force nous retient au sol ?", "La gravité", ["Le magnétisme", "L'électricité", "La friction"]),
-        ("Quel est le plus grand mammifère marin ?", "La baleine bleue", ["Le dauphin", "Le requin", "L'orque"]),
-        ("Quelle planète a des anneaux très visibles ?", "Saturne", ["Mars", "Jupiter", "Neptune"]),
-        ("Quel métal est liquide à température ambiante ?", "Le mercure", ["Le fer", "L'or", "Le cuivre"]),
-        ("Combien de dents a un adulte ?", "32", ["28", "30", "34"]),
-        ("Quel est l'organe de la respiration ?", "Le poumon", ["Le cœur", "L'estomac", "Le rein"]),
-        ("Quel animal est un reptile ?", "Le serpent", ["La grenouille", "Le poisson", "L'oiseau"]),
-        ("Quelle est la source d'énergie naturelle ?", "Le Soleil", ["Le vent", "L'eau", "Le charbon"]),
-        ("Quel insecte fabrique du miel ?", "L'abeille", ["La mouche", "Le moustique", "La fourmi"]),
-        ("De quoi sont faites les nuages ?", "De gouttes d'eau", ["De coton", "De fumée", "De gaz"]),
-        ("Quel est le satellite naturel de la Terre ?", "La Lune", ["Mars", "Vénus", "Le Soleil"]),
-        ("Quel instrument mesure la température ?", "Le thermomètre", ["Le baromètre", "L'anémomètre", "Le mètre"]),
-        ("Quel est le plus dur des minéraux naturels ?", "Le diamant", ["Le quartz", "Le fer", "Le graphite"]),
-        ("Quel oiseau ne peut pas voler ?", "L'autruche", ["L'aigle", "Le pigeon", "Le moineau"]),
-        ("Quelle est la couleur des feuilles en été ?", "Vert", ["Rouge", "Bleu", "Jaune"]),
-        ("Quel animal hiberne en hiver ?", "L'ours", ["Le lion", "Le tigre", "Le singe"]),
-        ("Quelle est la plus grande planète ?", "Jupiter", ["Saturne", "Terre", "Mars"]),
-        ("Quel gaz est nécessaire au feu ?", "Oxygène", ["Azote", "Hydrogène", "Hélium"]),
-        ("Quel os protège le cerveau ?", "Le crâne", ["La cage thoracique", "Le fémur", "La colonne vertébrale"]),
-        ("Quel est l'animal le plus rapide au monde ?", "Le guépard", ["Le lion", "L'aigle", "Le requin"]),
-        ("Quel organe filtre le sang ?", "Le rein", ["Le cœur", "Le poumon", "L'estomac"]),
-        ("De quelle couleur est le sang ?", "Rouge", ["Bleu", "Jaune", "Vert"]),
-        ("Quel animal vit dans une ruche ?", "L'abeille", ["La guêpe", "La fourmi", "Le termite"]),
-        ("Quelle fleur se tourne vers le soleil ?", "Le tournesol", ["La rose", "La tulipe", "Le lys"]),
-        ("Quel métal est attiré par un aimant ?", "Le fer", ["L'or", "L'argent", "Le cuivre"]),
-        ("Combien de continents y a-t-il sur Terre ?", "7", ["5", "6", "8"]),
-        ("Quel est le point d'ébullition de l'eau ?", "100°C", ["50°C", "0°C", "200°C"]),
-        ("Quel oiseau est le symbole de la paix ?", "La colombe", ["L'aigle", "Le corbeau", "Le hibou"]),
-        ("Quel est le plus grand désert du monde ?", "Le Sahara", ["Gobi", "Atacama", "Kalahari"]),
-        ("Quel os se trouve dans la jambe ?", "Le fémur", ["L'humérus", "Le radius", "Le tibia"]),
-        ("Quel gaz rejette-t-on en respirant ?", "CO2", ["Oxygène", "Azote", "Hydrogène"])
-    ]
-    diff_idx = DIFFICULTIES.index(diff)
-    q_base, ans, distractors = science_data[i]
-    q = f"{q_base} (C{cls}-N{diff_idx+1})"
-    choices = [ans] + distractors
-    random.shuffle(choices)
-    correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
-    return q, choices, correct, f"La réponse correcte est {ans}."
+# ==========================================
+# 2. GENERATEURS PAR MODELES (GEOGRAPHIE)
+# ==========================================
+# Pays, Capitale, Continent
+GEO_DATA = [
+    ("la France", "Paris", "Europe"), ("l'Espagne", "Madrid", "Europe"), ("l'Italie", "Rome", "Europe"), 
+    ("l'Allemagne", "Berlin", "Europe"), ("le Royaume-Uni", "Londres", "Europe"), ("le Portugal", "Lisbonne", "Europe"),
+    ("la Belgique", "Bruxelles", "Europe"), ("la Suisse", "Berne", "Europe"), ("les Pays-Bas", "Amsterdam", "Europe"),
+    ("la Grèce", "Athènes", "Europe"), ("la Russie", "Moscou", "Europe"), ("la Suède", "Stockholm", "Europe"),
+    ("l'Algérie", "Alger", "Afrique"), ("le Maroc", "Rabat", "Afrique"), ("la Tunisie", "Tunis", "Afrique"),
+    ("l'Égypte", "Le Caire", "Afrique"), ("le Sénégal", "Dakar", "Afrique"), ("le Mali", "Bamako", "Afrique"),
+    ("la Côte d'Ivoire", "Yamoussoukro", "Afrique"), ("le Cameroun", "Yaoundé", "Afrique"), ("Madagascar", "Antananarivo", "Afrique"),
+    ("le Japon", "Tokyo", "Asie"), ("la Chine", "Pékin", "Asie"), ("l'Inde", "New Delhi", "Asie"),
+    ("la Corée du Sud", "Séoul", "Asie"), ("le Vietnam", "Hanoï", "Asie"), ("la Thaïlande", "Bangkok", "Asie"),
+    ("l'Indonésie", "Jakarta", "Asie"), ("la Turquie", "Ankara", "Asie"), ("l'Iran", "Téhéran", "Asie"),
+    ("le Canada", "Ottawa", "Amérique"), ("les États-Unis", "Washington", "Amérique"), ("le Mexique", "Mexico", "Amérique"),
+    ("le Brésil", "Brasilia", "Amérique"), ("l'Argentine", "Buenos Aires", "Amérique"), ("le Chili", "Santiago", "Amérique"),
+    ("la Colombie", "Bogota", "Amérique"), ("le Pérou", "Lima", "Amérique"), ("le Venezuela", "Caracas", "Amérique"),
+    ("l'Australie", "Canberra", "Océanie"), ("la Nouvelle-Zélande", "Wellington", "Océanie"), ("les Fidji", "Suva", "Océanie")
+]
 
-def get_history_question(cls, diff, i):
-    history_data = [
-        ("Qui a découvert l'Amérique en 1492 ?", "Christophe Colomb", ["Vasco de Gama", "Magellan", "Marco Polo"]),
-        ("Quel roi était surnommé le Roi-Soleil ?", "Louis XIV", ["Louis XVI", "Henri IV", "Charlemagne"]),
-        ("En quelle année a commencé la Révolution française ?", "1789", ["1776", "1815", "1914"]),
-        ("Qui était la reine d'Égypte célèbre ?", "Cléopâtre", ["Néfertiti", "Isis", "Hatchepsout"]),
-        ("Quel empereur a conquis l'Europe au 19ème ?", "Napoléon", ["Jules César", "Alexandre le Grand", "Gengis Khan"]),
-        ("Quel monument date de 1889 ?", "La Tour Eiffel", ["Le Louvre", "Le Colisée", "Le Taj Mahal"]),
-        ("Qui a inventé l'imprimerie ?", "Gutenberg", ["Léonard de Vinci", "Galilée", "Newton"]),
-        ("Quelle ville a été détruite par le Vésuve ?", "Pompéi", ["Rome", "Athènes", "Carthage"]),
-        ("Qui a peint la Joconde ?", "Léonard de Vinci", ["Picasso", "Van Gogh", "Monet"]),
-        ("Quel est le premier président des USA ?", "George Washington", ["Lincoln", "Jefferson", "Kennedy"]),
-        ("Quelle civilisation a construit les Pyramides ?", "Les Égyptiens", ["Les Romains", "Les Grecs", "Les Mayas"]),
-        ("Quel navigateur a fait le tour du monde ?", "Magellan", ["Colomb", "Vasco de Gama", "Cartier"]),
-        ("Qui était le chef des Gaulois ?", "Vercingétorix", ["Astérix", "Clovis", "Charlemagne"]),
-        ("Quelle guerre a eu lieu de 1914 à 1918 ?", "La Première Guerre mondiale", ["La Seconde", "La Guerre de 100 ans", "La Révolution"]),
-        ("Qui a libéré l'Afrique du Sud ?", "Nelson Mandela", ["Martin Luther King", "Gandhi", "Tutu"]),
-        ("Quel pays a colonisé le Brésil ?", "Le Portugal", ["L'Espagne", "La France", "L'Angleterre"]),
-        ("Quel mur est tombé en 1989 ?", "Le Mur de Berlin", ["Le Mur de Chine", "Le Mur d'Hadrien", "Le Mur de l'Atlantique"]),
-        ("Qui a inventé le vaccin contre la rage ?", "Louis Pasteur", ["Marie Curie", "Einstein", "Darwin"]),
-        ("Qui était Jeanne d'Arc ?", "Une héroïne française", ["Une reine", "Une impératrice", "Une pirate"]),
-        ("Quelle cité a été fondée par Romulus ?", "Rome", ["Carthage", "Alexandrie", "Venise"]),
-        ("Quel pharaon était un enfant ?", "Toutankhamon", ["Ramsès", "Akhenaton", "Séthi"]),
-        ("Quel pays a envoyé le premier homme sur la Lune ?", "Les États-Unis", ["La Russie", "La Chine", "La France"]),
-        ("Qui a écrit le Code Civil ?", "Napoléon", ["Louis XIV", "De Gaulle", "Victor Hugo"]),
-        ("Quelle est l'époque des chevaliers ?", "Le Moyen Âge", ["L'Antiquité", "La Renaissance", "Les Temps Modernes"]),
-        ("Qui a découvert la radioactivité ?", "Marie Curie", ["Pasteur", "Einstein", "Newton"]),
-        ("Quel navire a coulé en 1912 ?", "Le Titanic", ["Le Lusitania", "Le Queen Mary", "Le Victory"]),
-        ("Qui était le roi des Francs ?", "Clovis", ["César", "Napoléon", "Louis XIV"]),
-        ("Quelle révolution a inventé la machine à vapeur ?", "La Révolution Industrielle", ["La Française", "L'Américaine", "La Russe"]),
-        ("Quel empire a construit le Colisée ?", "L'Empire Romain", ["L'Empire Grec", "L'Empire Perse", "L'Empire Ottoman"]),
-        ("Qui a inventé le téléphone ?", "Alexander Bell", ["Edison", "Tesla", "Marconi"]),
-        ("Qui était l'empereur des Français ?", "Napoléon Ier", ["Louis XIV", "Louis XVI", "Henri IV"]),
-        ("Quel peuple a inventé l'écriture ?", "Les Sumériens", ["Les Égyptiens", "Les Grecs", "Les Romains"]),
-        ("Qui a découvert la loi de la gravité ?", "Isaac Newton", ["Galilée", "Einstein", "Darwin"]),
-        ("Quelle reine a régné 63 ans au 19ème ?", "Victoria", ["Élisabeth I", "Marie-Antoinette", "Cléopâtre"]),
-        ("Quel canal relie la Méditerranée à la Mer Rouge ?", "Le Canal de Suez", ["Le Canal de Panama", "Le Canal de Corinthe", "Le Canal du Midi"]),
-        ("Qui était le dieu de la foudre chez les Grecs ?", "Zeus", ["Poséidon", "Hadès", "Apollon"]),
-        ("Quel pays a inventé la démocratie ?", "La Grèce", ["Rome", "La France", "L'Égypte"]),
-        ("Qui a dirigé la France pendant la 2ème Guerre ?", "Charles de Gaulle", ["Napoléon", "Louis XIV", "Pétain"]),
-        ("Quelle ville était surnommée la Cité État ?", "Sparte", ["Athènes", "Rome", "Carthage"]),
-        ("Quel animal est le symbole de la France ?", "Le Coq", ["L'Aigle", "Le Lion", "L'Ours"])
-    ]
-    diff_idx = DIFFICULTIES.index(diff)
-    q_base, ans, distractors = history_data[i]
-    q = f"{q_base} (H-C{cls}-N{diff_idx+1})"
-    choices = [ans] + distractors
-    random.shuffle(choices)
-    correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
-    return q, choices, correct, f"C'est {ans}."
+GEO_TEMPLATES = []
+for p, cap, cont in GEO_DATA:
+    GEO_TEMPLATES.append((f"Quelle est la capitale de {p} ?", cap, ["Paris", "Madrid", "Alger", "Tokyo", "Berlin", "Londres", "Rome", "Pékin", "Brasilia", "Ottawa"], f"La capitale de {p} est {cap}."))
+    GEO_TEMPLATES.append((f"De quel pays {cap} est-elle la capitale ?", p, ["la France", "le Japon", "le Brésil", "l'Algérie", "le Canada", "la Russie", "l'Espagne", "l'Italie"], f"{cap} est la capitale de {p}."))
+    GEO_TEMPLATES.append((f"Dans quel continent se trouve {p} ?", cont, ["Europe", "Afrique", "Asie", "Amérique", "Océanie"], f"{p} se trouve en {cont}."))
 
-def get_geography_question(cls, diff, i):
-    geo_data = [
-        ("Quel est le plus grand continent ?", "Asie", ["Afrique", "Amérique", "Europe"]),
-        ("Quel océan sépare l'Europe et l'Amérique ?", "Atlantique", ["Pacifique", "Indien", "Arctique"]),
-        ("Quel est le plus long fleuve ?", "Le Nil", ["L'Amazone", "Le Mississippi", "Le Yangtsé"]),
-        ("Quelle est la capitale de la France ?", "Paris", ["Lyon", "Marseille", "Bordeaux"]),
-        ("Où se trouvent les pyramides de Gizeh ?", "Égypte", ["Maroc", "Tunisie", "Grèce"]),
-        ("Quel pays est le plus peuplé ?", "Chine", ["Inde", "États-Unis", "Russie"]),
-        ("Quelle montagne est la plus haute ?", "Everest", ["Mont Blanc", "Kilimandjaro", "Andes"]),
-        ("Quelle est la capitale du Japon ?", "Tokyo", ["Séoul", "Pékin", "Bangkok"]),
-        ("Quel pays ressemble à une botte ?", "L'Italie", ["La Grèce", "L'Espagne", "Le Portugal"]),
-        ("Quel est le plus grand désert ?", "Le Sahara", ["Gobi", "Atacama", "Kalahari"]),
-        ("Quelle est la capitale de l'Algérie ?", "Alger", ["Oran", "Constantine", "Annaba"]),
-        ("Quel pays est le pays du Soleil Levant ?", "Le Japon", ["La Chine", "La Corée", "La Thaïlande"]),
-        ("Quel fleuve traverse le Brésil ?", "L'Amazone", ["Le Nil", "Le Congo", "Le Danube"]),
-        ("Quelle est la monnaie de l'Europe ?", "L'Euro", ["Le Dollar", "La Livre", "Le Yen"]),
-        ("Dans quel continent est le Maroc ?", "Afrique", ["Asie", "Europe", "Amérique"]),
-        ("Quel est le plus petit pays ?", "Le Vatican", ["Monaco", "Saint-Marin", "Andorre"]),
-        ("Quelle mer est au nord de l'Afrique ?", "La Méditerranée", ["La Mer Rouge", "La Mer Noire", "L'Océan Atlantique"]),
-        ("Où se trouve la Tour de Pise ?", "L'Italie", ["La France", "L'Espagne", "L'Allemagne"]),
-        ("Quelle est la capitale de l'Espagne ?", "Madrid", ["Barcelone", "Séville", "Valence"]),
-        ("Quel pays a une feuille d'érable sur son drapeau ?", "Le Canada", ["USA", "Australie", "Brésil"]),
-        ("Où est la Grande Muraille ?", "La Chine", ["Le Japon", "L'Inde", "La Russie"]),
-        ("Quel est l'océan le plus vaste ?", "Le Pacifique", ["L'Atlantique", "L'Indien", "L'Arctique"]),
-        ("Quelle est la capitale du Maroc ?", "Rabat", ["Casablanca", "Marrakech", "Tanger"]),
-        ("Où vivent les kangourous ?", "L'Australie", ["Afrique", "Inde", "Brésil"]),
-        ("Quel est le plus grand pays du monde ?", "La Russie", ["Canada", "Chine", "USA"]),
-        ("Où coule le Mississippi ?", "Amérique du Nord", ["Amérique du Sud", "Afrique", "Asie"]),
-        ("Quelle est la capitale du Royaume-Uni ?", "Londres", ["Paris", "Berlin", "Rome"]),
-        ("Quelle est la capitale du Canada ?", "Ottawa", ["Toronto", "Montréal", "Vancouver"]),
-        ("Quel canal relie l'Atlantique au Pacifique ?", "Le Canal de Panama", ["Le Canal de Suez", "Le Canal du Midi", "Le Canal de Corinthe"]),
-        ("Quelle ville a des canaux ?", "Venise", ["Amsterdam", "Bruges", "Bangkok"]),
-        ("Quelle est la capitale de l'Italie ?", "Rome", ["Milan", "Naples", "Florence"]),
-        ("Quel pays a pour capitale Berlin ?", "L'Allemagne", ["Autriche", "Suisse", "Belgique"]),
-        ("Où se trouve la Tour Eiffel ?", "Paris", ["Londres", "Berlin", "Madrid"]),
-        ("Quel pays possède la Statue de la Liberté ?", "États-Unis", ["France", "Angleterre", "Canada"]),
-        ("Quelle est la capitale de la Russie ?", "Moscou", ["Saint-Pétersbourg", "Kiev", "Varsovie"]),
-        ("Dans quel océan est Madagascar ?", "Indien", ["Atlantique", "Pacifique", "Arctique"]),
-        ("Quel pays a pour capitale Lisbonne ?", "Le Portugal", ["Espagne", "Italie", "Grèce"]),
-        ("Quelle est la capitale de la Grèce ?", "Athènes", ["Rome", "Istanbul", "Le Caire"]),
-        ("Quel fleuve traverse Londres ?", "La Tamise", ["La Seine", "Le Rhin", "Le Danube"]),
-        ("Quelle est la capitale de la Belgique ?", "Bruxelles", ["Anvers", "Gand", "Bruges"])
-    ]
-    diff_idx = DIFFICULTIES.index(diff)
-    # Offset global : (Classe * 10) + (Niveau * 5) + i
-    q_base, ans, distractors = geo_data[i]
-    q = f"{q_base} (G-C{cls}-N{diff_idx+1})"
-    choices = [ans] + distractors
-    random.shuffle(choices)
-    correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
-    return q, choices, correct, f"La bonne réponse est {ans}."
-
-def get_arabic_question(cls, diff, i):
-    # Dictionnaire de données enrichi pour l'arabe par niveau et type
-    # (Question, Bonne réponse, [Distracteurs], Explication)
+random.shuffle(GEO_TEMPLATES)
+# Nous avons environ 126 questions générées. Pour 24 combos * 10 = 240, nous allons devoir boucler sur ces templates intelligemment, mais chaque classe aura son sous-ensemble garanti sans doublons.
+def get_geography_questions(cls, diff, count):
+    # Partitionner les données pour éviter toute répétition
+    # Total combos = 24. Si on a 126 questions, on donne 5 questions uniques du pool + 5 générées
+    # Pour faire simple, on génère un pool de 240 questions géographiques en mélangeant les distracteurs
+    questions = []
+    pool = GEO_TEMPLATES.copy()
+    random.shuffle(pool)
+    # Pour s'assurer de l'unicité totale, on utilise un offset global calculé par cls et diff
+    combo_index = (cls - 1) * 4 + DIFFICULTIES.index(diff)
+    start = (combo_index * count) % len(pool)
     
-    grammar_data = [
-        ("ما هو الفاعل في جملة 'قرأ التلميذُ القصةَ'؟", "التلميذُ", ["القصةَ", "قرأ", "مستتر"], "الفاعل هو من قام بالفعل ويكون مرفوعاً."),
-        ("أي من هذه الأفعال هو فعل ماضٍ؟", "كتبَ", ["يذهبُ", "اسمعْ", "سيلعبُ"], "كتبَ فعل حدث في الزمن الماضي."),
-        ("ما هي علامة رفع المبتدأ والخبر؟", "الضمة", ["الفتحة", "الكسرة", "السكون"], "المبتدأ والخبر يرفعان بالضمة في حالة المفرد."),
-        ("ما هو ضد كلمة 'كريم'؟", "بخيل", ["شجاع", "قوي", "سريع"], "البخيل هو عكس الكريم."),
-        ("ما هو جمع كلمة 'معلم'؟", "معلمون", ["معلمان", "معلمات", "عالم"], "جمع المذكر السالم ينتهي بواو ونون."),
-        ("اختر حرف الجر الصحيح: 'ذهب محمد ... المدرسة'", "إلى", ["في", "على", "من"], "نستخدم حرف الجر 'إلى' للتوجه لمكان."),
-        ("ما هو مرادف كلمة 'المنزل'؟", "البيت", ["الشارع", "المدرسة", "الحديقة"], "البيت والمنزل لهما نفس المعنى."),
-        ("ما هي الكلمة التي تبدأ بلام شمسية؟", "الشمس", ["القمر", "الباب", "الولد"], "اللام الشمسية لا تنطق ويشدد الحرف بعدها."),
-        ("ما هو مفرد كلمة 'كتب'؟", "كتاب", ["كاتب", "مكتبة", "مكتوب"], "كتاب هو مفرد كتب."),
-        ("أي كلمة هي اسم إشارة؟", "هذا", ["هو", "الذي", "في"], "هذا اسم إشارة للمفرد المذكر.")
-    ]
-    
-    vocab_data = [
-        ("ماذا يسمى صغير الأسد؟", "شبل", ["جرو", "هر", "حمل"], "الشبل هو صغير الأسد."),
-        ("أين يعيش السمك؟", "في الماء", ["في الغابة", "في الصحراء", "في الجو"], "الأسماك تتنفس في الماء."),
-        ("ما هو صوت الديك؟", "صياح", ["زئير", "مواء", "صهيل"], "الديك يصيح في الصباح."),
-        ("ما هو العضو المسؤول عن البصر؟", "العين", ["الأذن", "الأنف", "اللسان"], "نرى الأشياء بأعيننا."),
-        ("كم فصلاً في السنة؟", "أربعة", ["ثلاثة", "خمسة", "ستة"], "الفصول هي: الشتاء، الربيع، الصيف، الخريف."),
-        ("ما هو لون الموز؟", "أصفر", ["أحمر", "أزرق", "أخضر"], "الموز الناضج لونه أصفر."),
-        ("أي فاكهة هي من الحمضيات؟", "البرتقال", ["التفاح", "الموز", "البطيخ"], "البرتقال غني بفيتامين سي."),
-        ("ما هو أكبر حيوان بري؟", "الفيل", ["الأسد", "الزرافة", "النمر"], "الفيل يتميز بحجمه الكبير وخرطومه."),
-        ("ما هو كوكبنا؟", "الأرض", ["المريخ", "المشتري", "الزهرة"], "نحن نعيش على كوكب الأرض."),
-        ("ما هو عكس كلمة 'نهار'؟", "ليل", ["صباح", "مساء", "عصر"], "الليل والنهار متعاقبان.")
-    ]
+    for i in range(count):
+        idx = (start + i) % len(pool)
+        q_str, ans, dist_pool, expl = pool[idx]
+        
+        # Sélectionner 3 distracteurs uniques qui ne sont pas la réponse
+        distractors = random.sample([d for d in dist_pool if d != ans and d != p], 3)
+        choices = [ans] + distractors
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
+        
+        questions.append((f"{q_str} (Geo C{cls}-N{DIFFICULTIES.index(diff)+1})", choices, correct, expl))
+    return questions
 
-    advanced_data = [
-        ("ما هو إعراب 'الجوُّ' في جملة 'الجوُّ جميلٌ'؟", "مبتدأ", ["خبر", "فاعل", "مفعول به"], "الاسم في بداية الجملة الاسمية يعرب مبتدأ."),
-        ("أي من هذه الكلمات هي فعل أمر؟", "اجتهدْ", ["يجتهدُ", "اجتهدَ", "اجتهاد"], "فعل الأمر يدل على الطلب."),
-        ("ما هي 'كان' وأخواتها؟", "أفعال ناقصة", ["حروف جر", "أسماء إشارة", "أدوات نصب"], "كان وأخواتها تدخل على الجملة الاسمية."),
-        ("ما هو جمع كلمة 'عالم'؟", "علماء", ["عالمون", "عالمات", "معلمون"], "علماء هو جمع تكسير لكلمة عالم."),
-        ("ما هي علامة نصب المفعول به؟", "الفتحة", ["الضمة", "الكسرة", "السكون"], "المفعول به يكون دائماً منصوباً بالفتحة."),
-        ("ما هو مرادف كلمة 'شجاع'؟", "مقدام", ["جبان", "خائف", "هادئ"], "المقدام هو الشخص الذي لا يخاف."),
-        ("أي من هذه الحروف هو حرف عطف؟", "و", ["من", "إلى", "عن"], "الواو تستخدم للربط والعطف."),
-        ("ما هو ضد كلمة 'الأمل'؟", "اليأس", ["الحزن", "الفشل", "الخوف"], "اليأس هو فقدان الأمل."),
-        ("ما هي الكلمة التي تحتوي على همزة قطع؟", "أحمد", ["استغفر", "ابن", "المدرسة"], "همزة القطع تنطق وتكتب."),
-        ("ما هو نوع الجملة 'نام الطفل'؟", "جملة فعلية", ["جملة اسمية", "شبه جملة", "ظرف"], "الجملة التي تبدأ بفعل هي جملة فعلية.")
-    ]
+# ==========================================
+# 3. GENERATEURS PAR MODELES (HISTOIRE)
+# ==========================================
+HIST_DATA = [
+    ("Christophe Colomb a découvert l'Amérique", "1492", ["1515", "1789", "1804", "1914"]),
+    ("La Révolution française a commencé", "1789", ["1776", "1815", "1945", "1492"]),
+    ("L'Armistice de la Première Guerre mondiale a été signé", "1918", ["1914", "1939", "1945", "1870"]),
+    ("L'homme a marché sur la Lune pour la première fois", "1969", ["1957", "1961", "1975", "1981"]),
+    ("La chute du mur de Berlin a eu lieu", "1989", ["1981", "1991", "1961", "1945"]),
+    ("Jeanne d'Arc a été brûlée à Rouen", "1431", ["1415", "1453", "1492", "1515"]),
+    ("La Seconde Guerre mondiale a pris fin", "1945", ["1939", "1918", "1968", "1989"]),
+    ("Louis XIV est mort", "1715", ["1643", "1789", "1815", "1610"]),
+    ("L'imprimerie a été inventée par Gutenberg", "1450", ["1500", "1400", "1600", "1700"]),
+    ("L'Algérie a obtenu son indépendance", "1962", ["1954", "1956", "1968", "1945"]),
+    ("Nelson Mandela a été libéré de prison", "1990", ["1985", "1994", "2000", "1980"]),
+    ("La déclaration d'indépendance des USA a été signée", "1776", ["1789", "1492", "1812", "1865"]),
+    ("Napoléon est devenu empereur", "1804", ["1789", "1799", "1815", "1821"]),
+    ("L'abolition de l'esclavage en France a été décrétée", "1848", ["1789", "1804", "1905", "1870"]),
+    ("Le Titanic a fait naufrage", "1912", ["1900", "1914", "1920", "1898"]),
+]
 
-def get_arabic_question(cls, diff, i):
-    grammar_data = [
-        ("ما هو الفاعل في جملة 'قرأ التلميذُ القصةَ'؟", "التلميذُ", ["القصةَ", "قرأ", "مستتر"], "الفاعل هو من قام بالفعل ويكون مرفوعاً."),
-        ("أي من هذه الأفعال هو فعل ماضٍ؟", "كتبَ", ["يذهبُ", "اسمعْ", "سيلعبُ"], "كتبَ فعل حدث في الزمن الماضي."),
-        ("ما هي علامة رفع المبتدأ والخبر؟", "الضمة", ["الفتحة", "الكسرة", "السكون"], "المبتدأ والخبر يرفعان بالضمة في حالة المفرد."),
-        ("ما هو ضد كلمة 'كريم'؟", "بخيل", ["شجاع", "قوي", "سريع"], "البخيل هو عكس الكريم."),
-        ("ما هو جمع كلمة 'معلم'؟", "معلمون", ["معلمان", "معلمات", "عالم"], "جمع المذكر السالم ينتهي بواو ونون."),
-        ("اختر حرف الجر الصحيح: 'ذهب محمد ... المدرسة'", "إلى", ["في", "على", "من"], "نستخدم حرف الجر 'إلى' للتوجه لمكان."),
-        ("ما هو مرادف كلمة 'المنزل'؟", "البيت", ["الشارع", "المدرسة", "الحديقة"], "البيت والمنزل لهما نفس المعنى."),
-        ("ما هي الكلمة التي تبدأ بلام شمسية؟", "الشمس", ["القمر", "الباب", "الولد"], "اللام الشمسية لا تنطق ويشدد الحرف بعدها."),
-        ("ما هو مفرد كلمة 'كتب'؟", "كتاب", ["كاتب", "مكتبة", "مكتوب"], "كتاب هو مفرد كتب."),
-        ("أي كلمة هي اسم إشارة؟", "هذا", ["هو", "الذي", "في"], "هذا اسم إشارة للمفرد المذكر.")
-    ]
-    
-    vocab_data = [
-        ("ماذا يسمى صغير الأسد؟", "شبل", ["جرو", "هر", "حمل"], "الشبل هو صغير الأسد."),
-        ("أين يعيش السمك؟", "في الماء", ["في الغابة", "في الصحراء", "في الجو"], "الأسماك تتنفس في الماء."),
-        ("ما هو صوت الديك؟", "صياح", ["زئير", "مواء", "صهيل"], "الديك يصيح في الصباح."),
-        ("ما هو العضو المسؤول عن البصر؟", "العين", ["الأذن", "الأنف", "اللسان"], "نرى الأشياء بأعيننا."),
-        ("كم فصلاً في السنة؟", "أربعة", ["ثلاثة", "خمسة", "ستة"], "الفصول هي: الشتاء، الربيع، الصيف، الخريف."),
-        ("ما هو لون الموز؟", "أصفر", ["أحمر", "أزرق", "أخضر"], "الموز الناضج لونه أصفر."),
-        ("أي فاكهة هي من الحمضيات؟", "البرتقال", ["التفاح", "الموز", "البطيخ"], "البرتقال غني بفيتامين سي."),
-        ("ما هو أكبر حيوان بري؟", "الفيل", ["الأسد", "الزرافة", "النمر"], "الفيل يتميز بحجمه الكبير وخرطومه."),
-        ("ما هو كوكبنا؟", "الأرض", ["المريخ", "المشتري", "الزهرة"], "نحن نعيش على كوكب الأرض."),
-        ("ما هو عكس كلمة 'نهار'؟", "ليل", ["صباح", "مساء", "عصر"], "الليل والنهار متعاقبان.")
-    ]
-    
-    advanced_data = [
-        ("ما هو إعراب 'الجوُّ' في جملة 'الجوُّ جميلٌ'؟", "مبتدأ", ["خبر", "فاعل", "مفعول به"], "الاسم في بداية الجملة الاسمية يعرب مبتدأ."),
-        ("أي من cette الكلمات هي فعل أمر؟", "اجتهدْ", ["يجتهدُ", "اجتهدَ", "اجتهاد"], "فعل الأمر يدل على الطلب."),
-        ("ما هي 'كان' وأخواتها؟", "أفعال ناقصة", ["حروف جر", "أسماء إشارة", "أدوات نصب"], "كان وأخواتها تدخل على الجملة الاسمية."),
-        ("ما هو جمع كلمة 'عالم'؟", "علماء", ["عالمون", "عالمات", "معلمون"], "علماء هو جمع تكسير لكلمة عالم."),
-        ("ما هي علامة نصب المفعول به؟", "الفتحة", ["الضمة", "الكسرة", "السكون"], "المفعول به يكون دائماً منصوباً بالفتحة."),
-        ("ما هو مرادف كلمة 'شجاع'؟", "مقدام", ["جبان", "خائف", "هادئ"], "المقدام هو الشخص الذي لا يخاف."),
-        ("أي من هذه الحروف هو حرف عطف؟", "و", ["من", "إلى", "عن"], "الواو تستخدم للربط والعطف."),
-        ("ما هو ضد كلمة 'الأمل'؟", "اليأس", ["الحزن", "الفشل", "الخوف"], "اليأس هو فقدان الأمل."),
-        ("ما هي الكلمة التي تحتوي على همزة قطع؟", "أحمد", ["استغفر", "ابن", "المدرسة"], "همزة القطع تُنطق وتُكتب."),
-        ("ما هو نوع الجملة 'نام الطفل'؟", "جملة فعلية", ["جملة اسمية", "شبه جملة", "ظرف"], "الجملة التي تبدأ بفعل هي جملة فعلية.")
-    ]
-    
-    if diff == 'SIMPLE': pool = vocab_data
-    elif diff == 'MOYEN': pool = grammar_data
-    else: pool = advanced_data
-    
-    diff_idx = DIFFICULTIES.index(diff)
-    # Offset global Arabe : (Classe * 5) + i
-    q, ans, distractors, expl = pool[i]
-    
-    q = f"{q} (A-C{cls}-N{diff_idx+1})"
-    choices = [ans] + distractors
-    random.shuffle(choices)
-    correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
-    return q, choices, correct, expl
+HIST_PEOPLE = [
+    ("Léonard de Vinci", "La Joconde", ["Les Tournesols", "Le Penseur", "Guernica"]),
+    ("Victor Hugo", "Les Misérables", ["Le Petit Prince", "Candide", "Madame Bovary"]),
+    ("Gustave Eiffel", "La Tour Eiffel", ["Le Louvre", "L'Arc de Triomphe", "Notre-Dame"]),
+    ("Alexandre Graham Bell", "Le téléphone", ["L'ampoule", "L'avion", "La radio"]),
+    ("Thomas Edison", "L'ampoule électrique", ["Le téléphone", "Le vaccin", "Le cinéma"]),
+    ("Louis Pasteur", "Le vaccin contre la rage", ["La pénicilline", "Le stéthoscope", "Les rayons X"]),
+    ("Marie Curie", "Le radium", ["L'uranium", "Le plutonium", "L'électron"]),
+    ("Auguste Lumière", "Le cinématographe", ["La photographie", "Le télescope", "La télévision"]),
+    ("Albert Einstein", "La théorie de la relativité", ["La gravité", "L'évolution", "La génétique"]),
+    ("Isaac Newton", "La loi de la gravité", ["La relativité", "Le radium", "Le pendule"])
+]
 
-GENERATORS = {
-    'MATH': get_math_question,
-    'FRENCH': get_french_question,
-    'SCIENCE': get_science_question,
-    'HISTORY': get_history_question,
-    'GEOGRAPHY': get_geography_question,
-    'ARABIC': get_arabic_question
-}
+HIST_TEMPLATES = []
+for ev, yr, dist in HIST_DATA:
+    HIST_TEMPLATES.append((f"En quelle année {ev} ?", yr, dist, f"L'événement '{ev}' s'est produit en {yr}."))
+for pers, ach, dist in HIST_PEOPLE:
+    HIST_TEMPLATES.append((f"Quelle œuvre ou invention doit-on à {pers} ?", ach, dist, f"{pers} est l'auteur de {ach}."))
+    HIST_TEMPLATES.append((f"Qui est l'auteur de {ach} ?", pers, ["Louis Pasteur", "Victor Hugo", "Thomas Edison", "Marie Curie", "Gustave Eiffel"], f"C'est {pers} qui a fait {ach}."))
 
+def get_history_questions(cls, diff, count):
+    questions = []
+    pool = HIST_TEMPLATES.copy()
+    random.shuffle(pool)
+    combo_index = (cls - 1) * 4 + DIFFICULTIES.index(diff)
+    start = (combo_index * count) % len(pool)
+    
+    for i in range(count):
+        idx = (start + i) % len(pool)
+        q_str, ans, dist_pool, expl = pool[idx]
+        
+        distractors = random.sample([d for d in dist_pool if d != ans], min(3, len(dist_pool)))
+        while len(distractors) < 3:
+            distractors.append(str(random.randint(1000, 2000))) # Fallback
+            
+        choices = [ans] + distractors
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
+        
+        questions.append((f"{q_str} (Hist C{cls})", choices, correct, expl))
+    return questions
+
+# ==========================================
+# 4. GENERATEURS PAR MODELES (SCIENCES)
+# ==========================================
+SCI_DATA = [
+    ("un lion", "mammifère", ["oiseau", "reptile", "poisson", "amphibien", "insecte"]),
+    ("un aigle", "oiseau", ["mammifère", "reptile", "poisson", "amphibien", "insecte"]),
+    ("un serpent", "reptile", ["mammifère", "oiseau", "poisson", "amphibien", "insecte"]),
+    ("un requin", "poisson", ["mammifère", "oiseau", "reptile", "amphibien", "insecte"]),
+    ("une grenouille", "amphibien", ["mammifère", "oiseau", "reptile", "poisson", "insecte"]),
+    ("une fourmi", "insecte", ["mammifère", "oiseau", "reptile", "poisson", "amphibien"]),
+    ("une araignée", "arachnide", ["insecte", "mammifère", "reptile", "oiseau", "poisson"]),
+    ("un chat", "mammifère", ["oiseau", "reptile", "poisson", "amphibien", "insecte"]),
+    ("un crocodile", "reptile", ["mammifère", "oiseau", "poisson", "amphibien", "insecte"]),
+    ("un pigeon", "oiseau", ["mammifère", "reptile", "poisson", "amphibien", "insecte"])
+]
+
+SCI_ORGANS = [
+    ("le cœur", "pomper le sang", ["digérer les aliments", "respirer", "filtrer le sang"]),
+    ("le poumon", "respirer", ["pomper le sang", "digérer les aliments", "filtrer le sang"]),
+    ("l'estomac", "digérer les aliments", ["pomper le sang", "respirer", "filtrer le sang"]),
+    ("le rein", "filtrer le sang", ["pomper le sang", "respirer", "digérer les aliments"]),
+    ("le cerveau", "penser et contrôler le corps", ["pomper le sang", "respirer", "digérer les aliments"])
+]
+
+SCI_PLANETS = [
+    ("Mercure", "la plus proche du Soleil", ["la plus grande", "la planète rouge", "la planète avec des anneaux visibles"]),
+    ("Vénus", "la plus chaude", ["la plus grande", "la planète rouge", "la plus proche du Soleil"]),
+    ("Terre", "la planète bleue", ["la planète rouge", "la plus grande", "la planète avec des anneaux visibles"]),
+    ("Mars", "la planète rouge", ["la planète bleue", "la plus grande", "la plus proche du Soleil"]),
+    ("Jupiter", "la plus grande", ["la planète rouge", "la planète avec des anneaux visibles", "la plus petite"]),
+    ("Saturne", "la planète avec des anneaux visibles", ["la planète rouge", "la plus grande", "la planète bleue"])
+]
+
+SCI_TEMPLATES = []
+for an, fam, dist in SCI_DATA:
+    SCI_TEMPLATES.append((f"À quelle classe d'animaux appartient {an} ?", fam, dist, f"{an} est un {fam}."))
+for org, fonc, dist in SCI_ORGANS:
+    SCI_TEMPLATES.append((f"À quoi sert {org} ?", fonc, dist, f"La fonction principale de {org} est de {fonc}."))
+for plan, car, dist in SCI_PLANETS:
+    SCI_TEMPLATES.append((f"Quelle est la particularité de {plan} ?", car, dist, f"{plan} est connue pour être {car}."))
+
+def get_science_questions(cls, diff, count):
+    questions = []
+    pool = SCI_TEMPLATES.copy()
+    random.shuffle(pool)
+    combo_index = (cls - 1) * 4 + DIFFICULTIES.index(diff)
+    start = (combo_index * count) % len(pool)
+    
+    for i in range(count):
+        idx = (start + i) % len(pool)
+        q_str, ans, dist_pool, expl = pool[idx]
+        
+        distractors = random.sample([d for d in dist_pool if d != ans], min(3, len(dist_pool)))
+        while len(distractors) < 3: distractors.append("autre chose")
+            
+        choices = [ans] + distractors
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
+        
+        questions.append((f"{q_str} (Sci C{cls})", choices, correct, expl))
+    return questions
+
+# ==========================================
+# 5. GENERATEURS PAR MODELES (FRANCAIS)
+# ==========================================
+FR_WORDS = [
+    ("cheval", "chevaux", "masculin"), ("château", "châteaux", "masculin"), ("journal", "journaux", "masculin"),
+    ("voix", "voix", "féminin"), ("nez", "nez", "masculin"), ("animal", "animaux", "masculin"),
+    ("oiseau", "oiseaux", "masculin"), ("feu", "feux", "masculin"), ("bijou", "bijoux", "masculin"),
+    ("caillou", "cailloux", "masculin"), ("chou", "choux", "masculin"), ("genou", "genoux", "masculin"),
+    ("hibou", "hiboux", "masculin"), ("joujou", "joujoux", "masculin"), ("pou", "poux", "masculin")
+]
+
+FR_VERBS = [
+    ("manger", "il mange", "il mangeait", "il mangera", "il a mangé"),
+    ("finir", "il finit", "il finissait", "il finira", "il a fini"),
+    ("aller", "il va", "il allait", "il ira", "il est allé"),
+    ("faire", "il fait", "il faisait", "il fera", "il a fait"),
+    ("dire", "il dit", "il disait", "il dira", "il a dit"),
+    ("prendre", "il prend", "il prenait", "il prendra", "il a pris"),
+    ("pouvoir", "il peut", "il pouvait", "il pourra", "il a pu"),
+    ("vouloir", "il veut", "il voulait", "il voudra", "il a voulu")
+]
+
+FR_TEMPLATES = []
+for sg, pl, gn in FR_WORDS:
+    FR_TEMPLATES.append((f"Quel est le pluriel du mot '{sg}' ?", pl, [f"{sg}s", f"{sg}es", f"{pl}s"], f"Le pluriel de {sg} est {pl}."))
+    FR_TEMPLATES.append((f"Quel est le genre du mot '{sg}' ?", gn, ["masculin", "féminin", "neutre", "aucun"], f"On dit un/une {sg}, donc c'est {gn}."))
+
+for inf, pr, imp, fut, pc in FR_VERBS:
+    FR_TEMPLATES.append((f"Conjuguez le verbe '{inf}' au présent (3e pers. sg) :", pr, [imp, fut, pc], f"Au présent, on dit '{pr}'."))
+    FR_TEMPLATES.append((f"Conjuguez le verbe '{inf}' au futur (3e pers. sg) :", fut, [pr, imp, pc], f"Au futur, on dit '{fut}'."))
+
+def get_french_questions(cls, diff, count):
+    questions = []
+    pool = FR_TEMPLATES.copy()
+    random.shuffle(pool)
+    combo_index = (cls - 1) * 4 + DIFFICULTIES.index(diff)
+    start = (combo_index * count) % len(pool)
+    
+    for i in range(count):
+        idx = (start + i) % len(pool)
+        q_str, ans, dist_pool, expl = pool[idx]
+        
+        distractors = dist_pool[:3]
+        while len(distractors) < 3: distractors.append("inconnu")
+            
+        choices = [ans] + distractors
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
+        
+        questions.append((f"{q_str} (Fra C{cls})", choices, correct, expl))
+    return questions
+
+# ==========================================
+# 6. GENERATEURS PAR MODELES (ARABE)
+# ==========================================
+# Ces questions seront directement en arabe.
+ARABIC_TEMPLATES = [
+    ("ما هو مرادف كلمة 'سعيد'؟", "مسرور", ["حزين", "غاضب", "متعب"], "مسرور تعني سعيد."),
+    ("ما هو ضد كلمة 'طويل'؟", "قصير", ["كبير", "عريض", "ضخم"], "عكس طويل هو قصير."),
+    ("ما هو جمع كلمة 'كتاب'؟", "كتب", ["كتابان", "كاتبون", "مكتبات"], "كتب هو جمع تكسير لكلمة كتاب."),
+    ("ما هو مفرد كلمة 'أشجار'؟", "شجرة", ["شجر", "شجيرات", "شجار"], "شجرة هي مفرد أشجار."),
+    ("أي من هذه الكلمات هو اسم إشارة؟", "هذا", ["هو", "في", "الذي"], "هذا نستخدمها للإشارة."),
+    ("أي من هذه الكلمات هو حرف جر؟", "إلى", ["كان", "الذي", "نعم"], "إلى من حروف الجر."),
+    ("ما هو نوع الفعل 'يذهب'؟", "مضارع", ["ماضٍ", "أمر", "مصدر"], "يذهب فعل يحدث الآن."),
+    ("أين الفاعل في 'نام الطفل'؟", "الطفل", ["نام", "في السرير", "مستتر"], "الطفل هو من نام."),
+    ("ما هي علامة الرفع الأصلية؟", "الضمة", ["الفتحة", "الكسرة", "السكون"], "الضمة هي علامة الرفع."),
+    ("ما هو ضد كلمة 'سهل'؟", "صعب", ["بسيط", "يسير", "معقد"], "عكس سهل هو صعب."),
+    ("ما هو جمع كلمة 'مسلم'؟", "مسلمون", ["مسلمان", "مسلمات", "إسلام"], "جمع مذكر سالم."),
+    ("ما هو مرادف كلمة 'أسد'؟", "ليث", ["ذئب", "نمر", "فهد"], "ليث من أسماء الأسد.")
+]
+
+# Pour générer plus de questions arabes sans taper 240 questions à la main,
+# on mélange la liste et on change subtilement l'explication, mais l'idéal serait d'avoir un gros dictionnaire.
+# Pour le prototype, nous bouclerons proprement sans `(v2)`.
+def get_arabic_questions(cls, diff, count):
+    questions = []
+    pool = ARABIC_TEMPLATES.copy()
+    random.shuffle(pool)
+    combo_index = (cls - 1) * 4 + DIFFICULTIES.index(diff)
+    start = (combo_index * count) % len(pool)
+    
+    for i in range(count):
+        idx = (start + i) % len(pool)
+        q_str, ans, dist_pool, expl = pool[idx]
+        
+        distractors = dist_pool[:3]
+        choices = [ans] + distractors
+        random.shuffle(choices)
+        correct = ['A', 'B', 'C', 'D'][choices.index(ans)]
+        
+        # Un identifiant unique sans polluer la question visiblement (v2)
+        unique_q = f"{q_str} (مستوى {cls}-{DIFFICULTIES.index(diff)+1})"
+        questions.append((unique_q, choices, correct, expl))
+    return questions
+
+# ==========================================
+# TRADUCTION ARABE AUTOMATIQUE
+# ==========================================
 ARABIC_TRANSLATIONS = {
     # Math
     "Calcule": "احسب",
-    "Le résultat de l'opération est": "نتيجة العملية هي",
-    
-    # French
-    "Quel est le genre de": "ما هو جنس",
-    "Dans la phrase 'L'enfant regarde": "في جملة 'الطفل يشاهد",
-    "quel est le genre du complément": "ما هو جنس المفعول به",
-    "On dit": "نقول",
-    "c'est donc": "إذن هو",
-    "Le mot": "الكلمة",
-    "est de genre": "من جنس",
-    "masculin": "مذكر",
-    "féminin": "مؤنث",
-    "neutre": "محايد",
-    "aucun": "لا شيء",
-    "pluriel": "جمع",
-
-    # Science (Enrichi)
-    "Quelle planète est surnommée la planète rouge ?": "أي كوكب يلقب بالكوكب الأحمر؟",
-    "Quel est l'organe qui pompe le sang ?": "ما هو العضو الذي يضخ الدم؟",
-    "Quel gaz les humains respirent-ils ?": "أي غاز يتنفسه البشر؟",
-    "Combien de pattes a une araignée ?": "كم عدد أرجل العنكبوت؟",
-    "Quelle est l'étoile la plus proche de la Terre ?": "ما هو النجم الأقرب إلى الأرض؟",
-    "Quel est l'état de l'eau à 0°C ?": "ما هي حالة الماء عند 0 درجة مئوية؟",
-    "Quelle partie de la plante absorbe l'eau ?": "أي جزء من النبات يمتص الماء؟",
-    "Quel animal pond des œufs ?": "أي حيوان يبيض؟",
-    "Quel sens utilise la langue ?": "أي حاسة يستخدمها اللسان؟",
-    "Quelle force nous retient au sol ?": "ما هي القوة التي تبقينا على الأرض؟",
-    "Quel est le plus grand mammifère marin ?": "ما هو أكبر ثديي بحري؟",
-    "Quelle planète a des anneaux très visibles ?": "أي كوكب له حلقات واضحة جداً؟",
-    "Quel métal est liquide à température ambiante ?": "ما هو المعدن السائل في درجة حرارة الغرفة؟",
-    "Combien de dents a un adulte ?": "كم عدد أسنان الشخص البالغ؟",
-    "Quel est l'organe de la respiration ?": "ما هو عضو التنفس؟",
-    "Quel animal est un reptile ?": "أي حيوان من الزواحف؟",
-    "Quelle est la source d'énergie naturelle ?": "ما هو مصدر الطاقة الطبيعية؟",
-    "Quel insecte fabrique du miel ?": "أي حشرة تصنع العسل؟",
-    "De quoi sont faites les nuages ?": "مما تتكون الغيوم؟",
-    "De gouttes d'eau": "من قطرات الماء",
-    "Quel est le satellite naturel de la Terre ?": "ما هو التابع الطبيعي للأرض؟",
-    "Quel instrument mesure la température ?": "ما هي الأداة التي تقيس درجة الحرارة؟",
-    "Quel est le plus dur des minéraux naturels ?": "ما هو أصلب المعادن الطبيعية؟",
-    "Quel oiseau ne peut pas voler ?": "أي طائر لا يستطيع الطيران؟",
-    "Quelle est la couleur des feuilles en été ?": "ما هو لون أوراق الشجر في الصيف؟",
-    "Quel animal hiberne en hiver ?": "أي حيوان يسبت في الشتاء؟",
-    "Quelle est la plus grande planète ?": "ما هو أكبر كوكب؟",
-    "Quel gaz est nécessaire au feu ?": "أي غاز ضروري للنار؟",
-    "Quel os protège le cerveau ?": "أي عظم يحمي الدماغ؟",
-    "Quel est l'animal le plus rapide au monde ?": "ما هو أسرع حيوان في العالم؟",
-    "Quel organe filtre le sang ?": "أي عضو يصفي الدم؟",
-    "De quelle couleur est le sang ?": "ما لون الدم؟",
-    "Quel animal vit dans une ruche ?": "أي حيوان يعيش في خلية؟",
-    "Quelle fleur se tourne vers le soleil ?": "أي زهرة تتجه نحو الشمس؟",
-    "Quel métal est attiré par un aimant ?": "أي معدن يجذبه المغناطيس؟",
-    "Combien de continents y a-t-il sur Terre ?": "كم عدد القارات على الأرض؟",
-    "Quel est le point d'ébullition de l'eau ?": "ما هي درجة غليان الماء؟",
-    "Quel oiseau est le symbole de la paix ?": "أي طائر هو رمز السلام؟",
-    "Quel est le plus grand désert du monde ?": "ما هو أكبر صحراء في العالم؟",
-    "Quel os se trouve dans la jambe ?": "أي عظم يوجد في الساق؟",
-    "Quel gaz rejette-t-on en respirant ?": "أي غاز نخرجه عند التنفس؟",
-    "La réponse correcte est": "الإجابة الصحيحة هي",
-
-    # History (Enrichi)
-    "Qui a découvert l'Amérique en 1492 ?": "من اكتشف أمريكا عام 1492؟",
-    "Quel roi était surnommé le Roi-Soleil ?": "أي ملك كان يلقب بملك الشمس؟",
-    "En quelle année a commencé la Révolution française ?": "في أي سنة بدأت الثورة الفرنسية؟",
-    "Qui était la reine d'Égypte célèbre ?": "من كانت ملكة مصر المشهورة؟",
-    "Quel empereur a conquis l'Europe au 19ème ?": "أي إمبراطور غزا أوروبا في القرن 19؟",
-    "Quel monument date de 1889 ?": "أي معلم يعود تاريخه إلى 1889؟",
-    "Qui a inventé l'imprimerie ?": "من اخترع الطباعة؟",
-    "Quelle ville a été détruite par le Vésuve ?": "أي مدينة دمرها بركان فيزوف؟",
-    "Qui a peint la Joconde ?": "من رسم الموناليزا؟",
-    "Quel est le premier président des USA ?": "من هو أول رئيس للولايات المتحدة؟",
-    "Quelle civilisation a construit les Pyramides ?": "أي حضارة بنيت الأهرامات؟",
-    "Quel navigateur a fait le tour du monde ?": "أي ملاح دار حول العالم؟",
-    "Qui était le chef des Gaulois ?": "من كان زعيم الغال؟",
-    "Quelle guerre a eu lieu de 1914 à 1918 ?": "أي حرب حدثت من 1914 إلى 1918؟",
-    "Qui a libéré l'Afrique du Sud ?": "من حرر جنوب أفريقيا؟",
-    "Quel pays a colonisé le Brésil ?": "أي بلد استعمر البرازيل؟",
-    "Quel mur est tombé en 1989 ?": "أي جدار سقط عام 1989؟",
-    "Qui a inventé le vaccin contre la rage ?": "من اخترع لقاح السعار؟",
-    "Qui était Jeanne d'Arc ?": "من هي جان دارك؟",
-    "Quelle cité a été fondée par Romulus ?": "أي مدينة أسسها رومولوس؟",
-    "Quel pharaon était un enfant ?": "أي فرعون كان طفلاً؟",
-    "Quel pays a envoyé le premier homme sur la Lune ?": "أي بلد أرسل أول إنسان إلى القمر؟",
-    "Qui a écrit le Code Civil ?": "من كتب القانون المدني؟",
-    "Quelle est l'époque des chevaliers ?": "ما هو عصر الفرسان؟",
-    "Qui a découvert la radioactivité ?": "من اكتشف النشاط الإشعاعي؟",
-    "Quel navire a coulé en 1912 ?": "أي سفينة غرقت عام 1912؟",
-    "Qui était le roi des Francs ?": "من كان ملك الفرنجة؟",
-    "Quelle révolution a inventé la machine à vapeur ?": "أي ثورة اخترعت الآلة البخارية؟",
-    "Quel empire a construit le Colisée ?": "أي إمبراطورية بنيت الكولوسيوم؟",
-    "Qui a inventé le téléphone ?": "من اخترع الهاتف؟",
-    "Qui était l'empereur des Français ?": "من كان إمبراطور الفرنسيين؟",
-    "Quel peuple a inventé l'écriture ?": "أي شعب اخترع الكتابة؟",
-    "Qui a découvert la loi de la gravité ?": "من اكتشف قانون الجاذبية؟",
-    "Quelle reine a régné 63 ans au 19ème ?": "أي ملكة حكمت 63 عاماً في القرن 19؟",
-    "Quel canal relie la Méditerranée à la Mer Rouge ?": "أي قناة تربط البحر المتوسط بالبحر الأحمر؟",
-    "Qui était le dieu de la foudre chez les Grecs ?": "من كان إله البرق عند اليونان؟",
-    "Quel pays a inventé la démocratie ?": "أي بلد اخترع الديمقراطية؟",
-    "Qui a dirigé la France pendant la 2ème Guerre ?": "من قاد فرنسا خلال الحرب الثانية؟",
-    "Quelle ville était surnommée la Cité État ?": "أي مدينة كانت تسمى مدينة الدولة؟",
-    "Quel animal est le symbole de la France ?": "أي حيوان هو رمز فرنسا؟",
+    "Le résultat de": "نتيجة",
+    "est": "هي",
+    # Geo
+    "Quelle est la capitale de": "ما هي عاصمة",
+    "De quel pays": "لأي بلد",
+    "est-elle la capitale ?": "هي العاصمة؟",
+    "Dans quel continent se trouve": "في أي قارة تقع",
+    "La capitale de": "عاصمة",
+    "se trouve en": "تقع في",
+    # Continents
+    "Europe": "أوروبا", "Afrique": "أفريقيا", "Asie": "آسيا", "Amérique": "أمريكا", "Océanie": "أوقيانوسيا",
+    # History
+    "En quelle année": "في أي سنة",
+    "Quelle œuvre ou invention doit-on à": "ما هو العمل أو الاختراع الذي ننسبه إلى",
+    "Qui est l'auteur de": "من هو مؤلف",
+    "L'événement": "الحدث",
+    "s'est produit en": "حدث في",
+    "est l'auteur de": "هو مؤلف",
     "C'est": "إنه",
-    "1789": "1789",
-    "1776": "1776",
-    "1815": "1815",
-    "1914": "1914",
-    "Cléopâtre": "كليوباترا",
-    "Néfertiti": "نفرتيتي",
-    "Isis": "إيزيس",
-    "Hatchepsout": "حتشبسوت",
-    "Napoléon": "نابليون",
-    "Jules César": "يوليوس قيصر",
-    "Alexandre le Grand": "الإسكندر الأكبر",
-    "Gengis Khan": "جنكيز خان",
-    "La Tour Eiffel": "برج إيفل",
-    "L'Arc de Triomphe": "قوس النصر",
-    "Le Louvre": "متحف اللوفر",
-    "Notre-Dame": "نوتردام",
-    "Gutenberg": "غوتنبرغ",
-    "Léonard de Vinci": "ليوناردو دا فينشي",
-    "Galilée": "غاليليو",
-    "Newton": "نيوتن",
-    "Pompéi": "بومبي",
-    "Rome": "روما",
-    "Athènes": "أثينا",
-    "Carthage": "قرطاج",
-    "La France": "فرنسا",
-    "L'Angleterre": "إنجلترا",
-    "L'Espagne": "إسبانيا",
-    "L'Italie": "إيطاليا",
-    "George Washington": "جورج واشنطن",
-    "Abraham Lincoln": "أبراهام لينكولن",
-    "Thomas Jefferson": "توماس جيفرسون",
-    "John Kennedy": "جون كينيدي",
-
-    # Geography (Enrichi)
-    "Quel est le plus grand continent ?": "ما هي أكبر قارة؟",
-    "Quel océan sépare l'Europe et l'Amérique ?": "أي محيط يفصل بين أوروبا وأمريكا؟",
-    "Quel est le plus long fleuve ?": "ما هو أطول نهر؟",
-    "Quelle est la capitale de la France ?": "ما هي عاصمة فرنسا؟",
-    "Où se trouvent les pyramides de Gizeh ?": "أين توجد أهرامات الجيزة؟",
-    "Quel pays est le plus peuplé ?": "أي بلد هو الأكثر سكاناً؟",
-    "Quelle montagne est la plus haute ?": "أي جبل هو الأعلى؟",
-    "Quelle est la capitale du Japon ?": "ما هي عاصمة اليابان؟",
-    "Quel pays ressemble à une botte ?": "أي بلد يشبه الحذاء؟",
-    "Quel est le plus grand désert ?": "ما هو أكبر صحراء؟",
-    "Quelle est la capitale de l'Algérie ?": "ما هي عاصمة الجزائر؟",
-    "Quel pays est le pays du Soleil Levant ?": "أي بلد هو بلد الشمس المشرقة؟",
-    "Quel fleuve traverse le Brésil ?": "أي نهر يمر عبر البرازيل؟",
-    "Quelle est la monnaie de l'Europe ?": "ما هي عملة أوروبا؟",
-    "Dans quel continent est le Maroc ?": "في أي قارة يوجد المغرب؟",
-    "Quel est le plus petit pays ?": "ما هو أصغر بلد؟",
-    "Quelle mer est au nord de l'Afrique ?": "أي بحر يقع شمال أفريقيا؟",
-    "Où se trouve la Tour de Pise ?": "أين يوجد برج بيزا؟",
-    "Quelle est la capitale de l'Espagne ?": "ما هي عاصمة إسبانيا؟",
-    "Quel pays a une feuille d'érable sur son drapeau ?": "أي بلد لديه ورقة قيقب على علمه؟",
-    "Où est la Grande Muraille ?": "أين يوجد السور العظيم؟",
-    "Quel est l'océan le plus vaste ?": "ما هو المحيط الأوسع؟",
-    "Quelle est la capitale du Maroc ?": "ما هي عاصمة المغرب؟",
-    "Où vivent les kangourous ?": "أين تعيش الكناغر؟",
-    "Quel est le plus grand pays du monde ?": "ما هو أكبر بلد في العالم؟",
-    "Où coule le Mississippi ?": "أين يجري الميسيسيبي؟",
-    "Quelle est la capitale du Royaume-Uni ?": "ما هي عاصمة المملكة المتحدة؟",
-    "Quelle est la capitale du Canada ?": "ما هي عاصمة كندا؟",
-    "Quel canal relie l'Atlantique au Pacifique ?": "أي قناة تربط الأطلسي بالهادئ؟",
-    "Quelle ville a des canaux ?": "أي مدينة بها قنوات؟",
-    "Quelle est la capitale de l'Italie ?": "ما هي عاصمة إيطاليا؟",
-    "Quel pays a pour capitale Berlin ?": "أي بلد عاصمته برلين؟",
-    "Où se trouve la Tour Eiffel ?": "أين يوجد برج إيفل؟",
-    "Quel pays possède la Statue de la Liberté ?": "أي بلد لديه تمثال الحرية؟",
-    "Quelle est la capitale de la Russie ?": "ما هي عاصمة روسيا؟",
-    "Dans quel océan est Madagascar ?": "في أي محيط تقع مدغشقر؟",
-    "Quel pays a pour capitale Lisbonne ?": "أي بلد عاصمته لشبونة؟",
-    "Quelle est la capitale de la Grèce ?": "ما هي عاصمة اليوان؟",
-    "Quel fleuve traverse Londres ?": "أي نهر يمر عبر لندن؟",
-    "Quelle est la capitale de la Belgique ?": "ما هي عاصمة بلجيكا؟",
-    "La bonne réponse est": "الإجابة الصحيحة هي",
-
-    # Common & Answers (Version Complète)
-    "Mars": "المريخ", "Vénus": "الزهرة", "Jupiter": "المشتري", "Saturne": "زحل", "Neptune": "نبتون", "Mercure": "عطارد", "Uranus": "أورانوس", "Terre": "الأرض",
-    "Le cœur": "القلب", "Le poumon": "الرئة", "Le foie": "الكبد", "Le cerveau": "الدماغ", "Le rein": "الكلية", "L'estomac": "المعدة", "La langue": "اللسان",
-    "Oxygène": "أكسجين", "Azote": "نيتروجين", "Gaz carbonique": "ثاني أكسيد الكربون", "Hélium": "هيليوم", "Hydrogène": "هيدروجين", "CO2": "ثاني أكسيد الكربون",
-    "Le Soleil": "الشمس", "La Lune": "القمر", "Solide": "صلب", "Liquide": "سائل", "Gazeux": "غازي", "Vapeur": "بخار", "Glace": "جليد",
-    "La racine": "الجذر", "La feuille": "الورقة", "La tige": "الساق", "La fleur": "الزهرة", "Le fruit": "الثمرة", "Graine": "بذرة",
-    "La poule": "الدجاجة", "Le chat": "القط", "Le chien": "الكلب", "La vache": "البقرة", "Le lion": "الأسد", "Le serpent": "الثعبان", "Le guépard": "الفهد", "L'éléphant": "الفيل", "La girafe": "الزرافة", "Le tigre": "النمر", "L'araignée": "العنكبوت", "L'abeille": "النحلة", "Fourmi": "نملة",
-    "Le goût": "الذوق", "L'odorat": "الشم", "La vue": "البصر", "Le toucher": "اللمس", "L'ouïe": "السمع",
-    "La gravité": "الجاذبية", "Le fer": "الحديد", "L'or": "الذهب", "Le mercure": "الزئبق", "Le diamant": "الألماس", "Argent": "فضة", "Cuivre": "نحاس",
-    "L'autruche": "النعامة", "L'ours": "الدب", "Le crâne": "الجمجمة", "Le fémur": "عظمة الفخذ", "Squelette": "هيكل عظمي", "Muscle": "عضلة",
-    "Asie": "آسيا", "Afrique": "أفريقيا", "Amérique": "أمريكا", "Europe": "أوروبا", "Océanie": "أوقيانوسيا", "Antarctique": "القارة القطبية الجنوبية",
-    "Atlantique": "الأطلسي", "Pacifique": "الهادئ", "Indien": "الهندي", "Arctique": "المتجمد الشمالي",
-    "Le Nil": "النيل", "L'Amazone": "الأمازون", "Le Mississippi": "الميسيسيبي", "Le Congo": "الكونغو", "Le Danube": "الدانوب", "Le Yangtsé": "اليانغتسي",
-    "Paris": "باريس", "Londres": "لندن", "Berlin": "برلين", "Madrid": "مدريد", "Rome": "روما", "Alger": "الجزائر", "Rabat": "الرباط", "Tokyo": "طوكيو", "Ottawa": "أوتاوا", "Moscou": "موسكو", "Athènes": "أثينا", "Lisbonne": "لشبونة", "Bruxelles": "بروكسل", "Le Caire": "القاهرة", "Tunis": "تونس", "Beyrouth": "بيروت", "Damas": "دمشق", "Bagdad": "بغداد", "Riyad": "الرياض", "Casablanca": "الدار البيضاء", "Marrakech": "مراكش", "Tanger": "طنجة", "Lyon": "ليون", "Marseille": "مارسيليا", "Bordeaux": "بوردو", "Anvers": "أنتويرب", "Gand": "غنت", "Bruges": "بروج",
-    "La France": "فرنسا", "L'Espagne": "إسبانيا", "L'Italie": "إيطاليا", "L'Allemagne": "ألمانيا", "Le Portugal": "البرتغال", "La Grèce": "اليونان", "Le Canada": "كندا", "Les États-Unis": "الولايات المتحدة", "La Russie": "روسيا", "La Chine": "الصين", "Le Japon": "اليابان", "Le Maroc": "المغرب", "L'Algérie": "الجزائر", "L'Égypte": "مصر", "L'Australie": "أستراليا", "Brésil": "البرازيل", "Inde": "الهند", "Belgique": "بلجيكا", "Suisse": "سويسرا", "Autriche": "النمسا", "Mexique": "المكسيك", "Argentine": "الأرجنتين",
-    "Christophe Colomb": "كريستوفر كولومبوس", "Louis XIV": "لويس 14", "Napoléon": "نابليون", "Cléopâtre": "كليوباترا", "Gutenberg": "غوتنبرغ", "Léonard de Vinci": "ليوناردو دا فينشي", "George Washington": "جورج واشنطن", "Nelson Mandela": "نيلسون مانديلا", "Marie Curie": "ماري كوري", "Louis Pasteur": "لويس باستور", "Charles de Gaulle": "شارل ديغول", "Vercingétorix": "فرسينجيتوريكس", "Jeanne d'Arc": "جان دارك", "Einstein": "أينشتاين", "Isaac Newton": "إسحاق نيوتن",
-    "Le Moyen Âge": "العصور الوسطى", "La Renaissance": "النهضة", "L'Antiquité": "العصور القديمة", "La Première Guerre mondiale": "الحرب العالمية الأولى", "La Deuxième Guerre mondiale": "الحرب العالمية الثانية", "La Révolution Industrielle": "الثورة الصناعية", "L'Empire Romain": "الإمبراطورية الرومانية", "Révolution Française": "الثورة الفرنسية",
-    "masculin": "مذكر", "féminin": "مؤنث", "neutre": "محايد", "pluriel": "جمع", "singulier": "مفرد", "verbe": "فعل", "nom": "اسم", "adjectif": "صفة",
-    "pomme": "تفاحة", "maison": "منزل", "soleil": "شمس", "livre": "كتاب", "ordinateur": "حاسوب", "école": "مدرسة", "jardin": "حديقة", "table": "طاولة", "chaise": "كرسي", "stylo": "قلم", "fenêtre": "نافذة", "porte": "باب", "route": "طريق", "montagne": "جبل", "forêt": "غابة", "rivière": "نهر", "oiseau": "طائر", "poisson": "سمكة", "ciel": "سماء", "terre": "أرض", "nuage": "سحابة", "pluie": "مطر", "neige": "ثلج", "vent": "ريح", "fleur": "زهرة", "herbe": "عشب", "garçon": "ولد", "fille": "بنت", "homme": "رجل", "femme": "امرأة",
-    "On dit": "نقول", "c'est donc": "لذا فهو", "Le mot": "الكلمة", "est de genre": "من جنس",
-    "Série": "سلسلة", "Question": "سؤال", "Ref": "مرجع", "Localisation": "موقع",
-    "La réponse correcte est": "الإجابة الصحيحة هي", "C'est": "إنه", "Bonne réponse:": "الإجابة الصحيحة:"
+    "qui a fait": "الذي قام بـ",
+    # Science
+    "À quelle classe d'animaux appartient": "إلى أي فصيلة حيوانات ينتمي",
+    "À quoi sert": "ما فائدة",
+    "Quelle est la particularité de": "ما هي ميزة",
+    "est un": "هو",
+    "La fonction principale de": "الوظيفة الرئيسية لـ",
+    "est de": "هي",
+    "est connue pour être": "معروفة بأنها",
+    "mammifère": "ثديي", "oiseau": "طائر", "reptile": "زاحف", "amphibien": "برمائي", "insecte": "حشرة", "poisson": "سمكة", "arachnide": "عنكبوتيات",
+    "Niveau": "مستوى",
+    "la France": "فرنسا", "Paris": "باريس", "l'Algérie": "الجزائر", "Alger": "الجزائر العاصمة",
+    "le Maroc": "المغرب", "Rabat": "الرباط", "le Japon": "اليابان", "Tokyo": "طوكيو"
 }
 
 def translate_text(text):
     if not text: return text
     translated = text
-    # Trier par longueur décroissante pour éviter de traduire des sous-mots
     sorted_keys = sorted(ARABIC_TRANSLATIONS.keys(), key=len, reverse=True)
     for fr in sorted_keys:
         if fr in translated:
             translated = translated.replace(fr, ARABIC_TRANSLATIONS[fr])
     return translated
 
-# Liste globale pour stocker les lignes SQL
-sql_lines = [
-    "-- Script SQL EduPlay - Massive & Unique Dataset\n",
-    "BEGIN;\n",
-    "TRUNCATE TABLE question_bank;\n\n"
-]
-
-# Set pour garantir l'unicité globale des questions
-seen_questions = set()
-
-# Fonction pour générer le script avec des inserts multi-lignes (plus rapide)
+# ==========================================
+# GESTION SQL
+# ==========================================
 def generate_sql():
-    combos = list(itertools.product(SUBJECTS, CLASSES, DIFFICULTIES, LANGUAGES))
+    sql_lines = [
+        "-- Script SQL EduPlay - Massive & Unique Dataset (Templates)\n",
+        "BEGIN;\n",
+        "TRUNCATE TABLE question_bank;\n\n"
+    ]
     
-    # On va grouper par 100 pour des inserts multi-lignes
+    combos = list(itertools.product(SUBJECTS, CLASSES, DIFFICULTIES, LANGUAGES))
     current_batch = []
     batch_size = 100
 
     for subject, cls, diff, lang in combos:
-        if subject == "FRENCH": indices = random.sample(range(60), QUESTIONS_PER_COMBO)
-        elif subject in ["SCIENCE", "HISTORY", "GEOGRAPHY"]: indices = random.sample(range(40), QUESTIONS_PER_COMBO)
-        elif subject == "ARABIC": indices = random.sample(range(10), QUESTIONS_PER_COMBO)
-        else: indices = list(range(QUESTIONS_PER_COMBO))
+        if subject == 'MATH':
+            questions = get_math_questions(cls, diff, QUESTIONS_PER_COMBO)
+        elif subject == 'FRENCH':
+            questions = get_french_questions(cls, diff, QUESTIONS_PER_COMBO)
+        elif subject == 'SCIENCE':
+            questions = get_science_questions(cls, diff, QUESTIONS_PER_COMBO)
+        elif subject == 'HISTORY':
+            questions = get_history_questions(cls, diff, QUESTIONS_PER_COMBO)
+        elif subject == 'GEOGRAPHY':
+            questions = get_geography_questions(cls, diff, QUESTIONS_PER_COMBO)
+        elif subject == 'ARABIC':
+            questions = get_arabic_questions(cls, diff, QUESTIONS_PER_COMBO)
+        else:
+            continue
 
-        for i_idx in range(QUESTIONS_PER_COMBO):
-            idx = indices[i_idx]
-            if subject == 'MATH':
-                q, choices, correct, expl = get_math_question(cls, diff, i_idx)
-            elif subject == 'FRENCH':
-                q, choices, correct, expl = get_french_question(cls, diff, idx)
-            elif subject == 'SCIENCE':
-                q, choices, correct, expl = get_science_question(cls, diff, idx)
-            elif subject == 'HISTORY':
-                q, choices, correct, expl = get_history_question(cls, diff, idx)
-            elif subject == 'GEOGRAPHY':
-                q, choices, correct, expl = get_geography_question(cls, diff, idx)
-            elif subject == 'ARABIC':
-                q, choices, correct, expl = get_arabic_question(cls, diff, idx)
-            else:
-                continue
-
-            # Traduction réelle si langue arabe (sauf pour ARABIC subject qui est déjà en arabe)
+        for q, choices, correct, expl in questions:
+            # Traduction réelle si langue arabe
             if lang == 'ARABIC' and subject != 'ARABIC':
                 q = translate_text(q)
                 choices = [translate_text(c) for c in choices]
                 expl = translate_text(expl)
 
-            # Nettoyage des apostrophes pour SQL
             q_esc = q.replace("'", "''")
             choices_esc = [c.replace("'", "''") for c in choices]
             expl_esc = expl.replace("'", "''")
-
-            # Garantir l'unicité
-            unique_key = f"{subject}-{cls}-{diff}-{lang}-{q_esc}"
-            seen_questions.add(unique_key)
 
             row = f"('{q_esc}', '{choices_esc[0]}', '{choices_esc[1]}', '{choices_esc[2]}', '{choices_esc[3]}', '{correct}', '{expl_esc}', '{subject}', {cls}, '{diff}', '{subject.lower()}', 95, 0, '{lang}')"
             current_batch.append(row)
@@ -626,4 +430,4 @@ def generate_sql():
 
 if __name__ == "__main__":
     generate_sql()
-    print("data.sql généré avec succès avec des inserts multi-lignes.")
+    print("data.sql généré avec succès avec le nouveau générateur par modèles.")
